@@ -347,11 +347,7 @@ mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2
   <span id="toastMsg" class="font-bold text-sm pr-2"></span>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+<script>
 // ═══════════════════════════════════════════════════════════
 //  XAVFSIZ JSON PARSE (JS xatolarini oldini olish)
 // ═══════════════════════════════════════════════════════════
@@ -740,6 +736,7 @@ function getSafeName(name) {
     return name.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
+// Bepul API orqali server bilan ishlaydi
 window.hitGlobalClick = async function(name) {
     const safeName = getSafeName(name);
     // Optimistik oshirish
@@ -754,7 +751,7 @@ window.hitGlobalClick = async function(name) {
         localStorage.setItem('lh_global_clicks', JSON.stringify(window.globalClicks));
         window.rerenderClickForSafe(safeName, data.value);
     } catch (e) {
-        // Fallback local
+        // Fallback ishlayveradi (local)
     }
 }
 
@@ -841,7 +838,7 @@ window.renderTrending = function(){
       <div class="min-w-0">
         <p class="text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
         <p class="text-[10px] font-bold text-orange-500 flex items-center gap-1">
-            <i class="fa-solid fa-fire text-[9px]"></i> ${item.views}
+            <i class="fa-solid fa-fire text-[9px]"></i> ${formatViews(item.views)}
         </p>
       </div>
     </a>`).join('');
@@ -890,7 +887,6 @@ function card(item){
 
   const badgeRight = isCustom ? 'right-12' : 'right-3';
 
-  // API dan tekshirib olish (agar 0 bo'lsa yangilab yuboradi)
   if (!isCustom && views === 0) {
       fetchGlobalClick(item.n).then(v => {
          if(v > 0) window.rerenderClickForSafe(safeName, v);
