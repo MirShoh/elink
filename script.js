@@ -1,353 +1,5 @@
-<!DOCTYPE html>
-<html lang="uz" prefix="og: https://ogp.me/ns#">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ═══ SEO META ═══ -->
-<title>LifeHacks UZ — O'zbekiston Eng To'liq Onlayn Resurslar Katalogi 2025</title>
-<meta name="description" content="O'zbekiston aholisi uchun 300+ onlayn resurs: davlat xizmatlari, tibbiyot, ta'lim, huquq, tarix, iqtisodiyot, AI vositalar, mobil ilovalar va ko'proq. Barchasini bir joydan toping!">
-<meta name="keywords" content="o'zbekiston onlayn resurslar, uz ilovalar, my.gov.uz, dmed.uz, hemis.uz, lex.uz, payme, click, uzum, uzbekistan apps, o'zbek platformalar, davlat xizmatlari, tibbiyot portali, ta'lim portali, lifehacks uz">
-<meta name="author" content="LifeHacks UZ">
-<meta name="theme-color" content="#8b5cf6">
-
-<!-- Preload fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Dark mode flicker fix -->
-<script>
-(function(){
-  var d=document.documentElement;
-  if(localStorage.lh_theme==='dark'||(!('lh_theme' in localStorage)&&window.matchMedia('(prefers-color-scheme: dark)').matches)) d.classList.add('dark');
-  else d.classList.remove('dark');
-})();
-</script>
-
-<script>
-tailwind.config={
-  darkMode:'class',
-  theme:{extend:{
-    fontFamily:{sans:['"Plus Jakarta Sans"','sans-serif']},
-    animation:{
-      'fade-up':'fadeUp .28s ease-out forwards',
-      'pop':'pop .18s ease-out forwards',
-    },
-    keyframes:{
-      fadeUp:{'0%':{opacity:'0',transform:'translateY(8px)'},'100%':{opacity:'1',transform:'translateY(0)'}},
-      pop:{'0%':{transform:'scale(.9)'},'60%':{transform:'scale(1.08)'},'100%':{transform:'scale(1)'}},
-    }
-  }}
-}
-</script>
-
-<style>
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:"Plus Jakarta Sans",sans-serif}
-
-/* scrollbar */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:99px}
-::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.55)}
-.no-sc{-ms-overflow-style:none;scrollbar-width:none}
-.no-sc::-webkit-scrollbar{display:none}
-
-/* safe area */
-.pt-safe{padding-top:max(.5rem,env(safe-area-inset-top))}
-.pb-safe{padding-bottom:max(1rem,env(safe-area-inset-bottom))}
-
-/* glass */
-.glass{background:rgba(255,255,255,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(0,0,0,.07)}
-.dark .glass{background:rgba(8,12,28,.85);border:1px solid rgba(255,255,255,.07)}
-
-/* bg */
-.bg-app{position:fixed;inset:0;z-index:-1;background:#eff1fb;
-  background-image:
-    radial-gradient(at 0% 0%,rgba(139,92,246,.14) 0,transparent 52%),
-    radial-gradient(at 100% 3%,rgba(6,182,212,.11) 0,transparent 52%),
-    radial-gradient(at 55% 100%,rgba(236,72,153,.09) 0,transparent 50%)}
-.dark .bg-app{background:#060a18;
-  background-image:
-    radial-gradient(at 0% 0%,rgba(139,92,246,.22) 0,transparent 52%),
-    radial-gradient(at 100% 3%,rgba(6,182,212,.16) 0,transparent 52%),
-    radial-gradient(at 55% 100%,rgba(236,72,153,.12) 0,transparent 50%)}
-
-/* ── CARD ── */
-.card{
-  transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s;
-  position:relative;overflow:hidden;
-}
-.card:hover{transform:translateY(-4px) scale(1.018);box-shadow:0 12px 32px -8px rgba(139,92,246,.2)}
-.dark .card:hover{box-shadow:0 12px 32px -8px rgba(139,92,246,.35)}
-
-/* trending badge */
-.trending-tag{
-  position:absolute;top:8px;left:8px;
-  font-size:8px;font-weight:800;
-  padding:1px 6px;border-radius:99px;letter-spacing:.3px;
-  background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;
-  z-index:4;
-}
-
-/* nav active */
-.nav-active{background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(217,70,239,.09));color:#8b5cf6;font-weight:700}
-.dark .nav-active{background:linear-gradient(135deg,rgba(139,92,246,.22),rgba(217,70,239,.15))}
-.pill-active{background:linear-gradient(135deg,#8b5cf6,#d946ef)!important;color:#fff!important;border-color:transparent!important}
-
-/* chips */
-.chip{transition:all .16s;border:1.5px solid;cursor:pointer;user-select:none}
-.chip.on{background:linear-gradient(135deg,#8b5cf6,#d946ef);color:#fff;border-color:transparent}
-.chip.off{background:rgba(255,255,255,.7);border-color:rgba(148,163,184,.3);color:#64748b}
-.dark .chip.off{background:rgba(30,41,59,.6);border-color:rgba(100,116,139,.3);color:#94a3b8}
-
-/* search */
-.s-drop{box-shadow:0 20px 44px -8px rgba(0,0,0,.13);max-height:350px;overflow-y:auto}
-.dark .s-drop{box-shadow:0 20px 44px -8px rgba(0,0,0,.55)}
-.s-row{transition:background .13s;border-radius:8px}
-.s-row:hover{background:rgba(139,92,246,.08)}
-.dark .s-row:hover{background:rgba(139,92,246,.15)}
-
-/* highlight */
-mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2px}
-.dark mark{background:rgba(139,92,246,.38)}
-
-/* sort select arrow */
-.sort-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .4rem center;background-size:1.1em}
-
-/* fav btn */
-.fav-btn{transition:transform .15s,background .15s}
-.fav-btn:hover{transform:scale(1.15)}
-
-/* animate pop on click */
-.do-pop{animation:pop .18s ease-out}
-
-/* Search input wrapper to perfectly center the X icon vertically */
-.search-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-</style>
-</head>
-
-<body class="text-slate-800 dark:text-slate-200 antialiased overflow-hidden h-screen flex relative">
-<div class="bg-app"></div>
-
-<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
-<aside class="w-[17rem] hidden md:flex flex-col border-r border-slate-200/60 dark:border-slate-800/60 glass z-20 shrink-0 h-screen">
-
-  <div class="p-4 pb-1.5 shrink-0">
-    <!-- Brand -->
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/35 shrink-0">
-        <i class="fa-solid fa-layer-group text-sm"></i>
-      </div>
-      <div class="min-w-0">
-        <h1 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight tracking-tight">LifeHacks <span class="text-violet-500">UZ</span></h1>
-        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest" id="sidebarCount">...</p>
-      </div>
-    </div>
-
-    <!-- Search desk -->
-    <div class="search-wrapper mb-3" id="deskSWrap">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs pointer-events-none"></i>
-      <input id="deskSrc" type="text" autocomplete="off" spellcheck="false"
-        placeholder="Qidirish... (Ctrl+K)"
-        class="w-full text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-xl pl-8 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 placeholder-slate-400 transition-all"/>
-      <!-- Markazlashtirilgan X tugmasi -->
-      <button id="deskClr" class="absolute right-2 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-all z-10 opacity-0 pointer-events-none">
-        <i class="fa-solid fa-circle-xmark text-[13px]"></i>
-      </button>
-      <div id="deskDrop" class="hidden absolute top-full mt-1.5 left-0 right-0 glass rounded-xl z-[60] s-drop">
-        <div id="deskDropIn" class="p-2"></div>
-      </div>
-    </div>
-
-    <!-- Filter chips -->
-    <div class="flex flex-wrap gap-1.5 mb-3" id="deskChips"></div>
-
-    <!-- Sort + clear -->
-    <div class="flex items-center gap-2 mb-2.5">
-      <select id="sSort" class="sort-sel flex-1 text-[11px] bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-lg px-2.5 pr-6 py-1.5 text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer">
-        <option value="def">Standart tartib</option>
-        <option value="popular">🔥 Eng mashhur</option>
-        <option value="az">A → Z</option>
-        <option value="za">Z → A</option>
-      </select>
-      <button id="clrFilters" title="Tozalash" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-50 hover:text-red-400 transition-colors flex items-center justify-center opacity-0 pointer-events-none">
-        <i class="fa-solid fa-rotate-left text-xs"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- Nav -->
-  <div class="flex-1 overflow-y-auto px-3 pb-3 space-y-px" id="sidebarNav"></div>
-
-  <!-- Theme -->
-  <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
-    <button id="themeBtn" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
-      <i id="themeIco" class="fa-solid fa-moon"></i>
-      <span id="themeTxt">Tungi rejim</span>
-    </button>
-  </div>
-</aside>
-
-<!-- ═══════════════════════ MAIN ═══════════════════════ -->
-<div class="flex-1 flex flex-col h-screen overflow-hidden">
-
-  <!-- Mobile header -->
-  <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe">
-    <div class="flex items-center justify-between px-4 pt-3 pb-2">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-md">
-          <i class="fa-solid fa-layer-group text-xs"></i>
-        </div>
-        <span class="font-black text-slate-900 dark:text-white text-[15px]">LifeHacks <span class="text-violet-500">UZ</span></span>
-      </div>
-      <div class="flex gap-2">
-        <button id="themeBtnMob" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
-          <i id="themeIcoMob" class="fa-solid fa-moon text-sm"></i>
-        </button>
-        <button id="shareBtn" class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
-          <i class="fa-solid fa-share-nodes text-sm"></i>
-        </button>
-      </div>
-    </div>
-    <!-- Mobile search -->
-    <div class="px-4 pb-2 search-wrapper relative" id="mobSWrap">
-      <i class="fa-solid fa-magnifying-glass absolute left-7 text-slate-400 text-xs z-10 pointer-events-none"></i>
-      <input id="mobSrc" type="text" autocomplete="off" placeholder="Qidirish..."
-        class="w-full text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl pl-8 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 placeholder-slate-400"/>
-      <!-- Markazlashtirilgan X tugmasi -->
-      <button id="mobClr" class="absolute right-6 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 z-10 opacity-0 pointer-events-none">
-        <i class="fa-solid fa-circle-xmark text-[13px]"></i>
-      </button>
-      <div id="mobDrop" class="hidden absolute top-full mt-1 left-4 right-4 glass rounded-xl z-[60] s-drop">
-        <div id="mobDropIn" class="p-2"></div>
-      </div>
-    </div>
-    <!-- Mobile filters & categories -->
-    <div class="flex gap-1.5 px-4 pb-2 overflow-x-auto no-sc" id="mobChips"></div>
-    <div class="flex gap-1.5 px-4 pb-3 overflow-x-auto no-sc items-center" id="mobNav"></div>
-  </header>
-
-  <!-- Content area -->
-  <main class="flex-1 overflow-y-auto scroll-smooth" id="mainScroll">
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-5 pb-28 md:pb-14 pb-safe">
-
-      <!-- Trending Section -->
-      <div id="trendingSection" class="hidden mb-8">
-        <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-fire text-orange-500"></i> Ommabop resurslar
-        </h3>
-        <div class="flex overflow-x-auto gap-3 pb-2 no-sc" id="trendingGrid"></div>
-      </div>
-
-      <!-- Desktop top bar -->
-      <div class="hidden md:flex items-start justify-between mb-6 gap-4">
-        <div class="min-w-0 flex items-center gap-4">
-          <h2 id="pageTitle" class="text-2xl font-black text-slate-900 dark:text-white mb-1 truncate">Barcha Resurslar</h2>
-          <!-- Yangi qo'shish tugmasi faqat My Apps da ko'rinadi -->
-          <button id="addCustomAppBtnMain" onclick="openCustomModal()" class="hidden items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg transition-all">
-            <i class="fa-solid fa-plus"></i> Yangi qo'shish
-          </button>
-        </div>
-        
-        <div class="flex items-center gap-2 shrink-0">
-          <div class="flex flex-col">
-             <div class="flex items-center gap-2 flex-wrap justify-end">
-               <span id="resultCount" class="text-sm text-slate-400 font-medium hidden"></span>
-               <div id="activeBadges" class="flex gap-1.5 flex-wrap"></div>
-             </div>
-          </div>
-          <select id="topSort" class="sort-sel text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 pr-7 py-2 text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer shadow-sm">
-            <option value="def">Standart</option>
-            <option value="popular">🔥 Mashhur</option>
-            <option value="az">A → Z</option>
-            <option value="za">Z → A</option>
-          </select>
-          <button id="shareBtnDesk" class="flex items-center gap-2 bg-slate-900 dark:bg-violet-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg">
-            <i class="fa-solid fa-share-nodes"></i> Ulashish
-          </button>
-        </div>
-      </div>
-      
-      <!-- Mobile Add Custom App Button (shows only in my_apps) -->
-      <div id="addCustomAppBtnMobWrap" class="md:hidden hidden mb-6">
-           <button onclick="openCustomModal()" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-4 py-3 rounded-xl font-bold text-sm shadow-lg transition-all">
-            <i class="fa-solid fa-plus"></i> Yangi resurs qo'shish
-          </button>
-      </div>
-
-      <!-- Main grid -->
-      <div id="appsContainer" class="space-y-8"></div>
-
-      <!-- No results -->
-      <div id="noResults" class="hidden flex-col items-center justify-center py-28 text-center">
-        <div class="w-20 h-20 mb-5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-300 dark:text-slate-600">
-          <i class="fa-solid fa-magnifying-glass text-4xl"></i>
-        </div>
-        <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-1">Hech narsa topilmadi</h3>
-        <p class="text-slate-400 text-sm max-w-xs mb-4">Boshqa kalit so'z bilan qidiring yoki filtrlarni o'zgartiring</p>
-        <button onclick="clearAll()" class="text-xs font-bold text-violet-500 hover:text-violet-700 transition-colors border border-violet-300 dark:border-violet-700 px-4 py-2 rounded-xl">
-          <i class="fa-solid fa-rotate-left mr-1.5"></i>Barcha filtrlarni tozalash
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- Mobile FAB -->
-  <button id="scrollTop" class="md:hidden fixed bottom-5 right-4 w-11 h-11 rounded-full bg-slate-900/90 dark:bg-violet-600/90 text-white shadow-xl flex items-center justify-center z-50 transition-all duration-300 opacity-0 translate-y-16 backdrop-blur-md">
-    <i class="fa-solid fa-arrow-up text-sm"></i>
-  </button>
-</div>
-
-<!-- ═══════════════════════ ADD CUSTOM APP MODAL ═══════════════════════ -->
-<div id="caModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeCustomModal()"></div>
-    <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700" id="caModalContent">
-        <div class="flex justify-between items-center mb-5">
-            <h3 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <i class="fa-solid fa-circle-plus text-violet-500"></i> Yangi resurs
-            </h3>
-            <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Nomi <span class="text-red-500">*</span></label>
-                <input type="text" id="caName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Mening Blogim">
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Havola (URL) <span class="text-red-500">*</span></label>
-                <input type="url" id="caUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Tavsif (ixtiyoriy)</label>
-                <input type="text" id="caDesc" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="Qisqacha ma'lumot...">
-            </div>
-            <button onclick="saveCustomApp()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold rounded-xl py-3.5 mt-2 transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98]">
-                <i class="fa-solid fa-check mr-1.5"></i> Saqlash
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-4 md:top-auto md:bottom-4 glass bg-slate-900/95 dark:bg-slate-50/95 text-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[600] opacity-0 pointer-events-none transition-all duration-300">
-  <i id="toastIco" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-  <span id="toastMsg" class="font-bold text-sm pr-2"></span>
-</div>
-
-<script>
 // ═══════════════════════════════════════════════════════════
-//  XAVFSIZ JSON PARSE (JS xatolarini oldini olish)
+//  XAVFSIZ JSON PARSE (JS xatolar oldini olish uchun)
 // ═══════════════════════════════════════════════════════════
 function safeParse(key, fallback) {
     try {
@@ -526,7 +178,7 @@ items:[
   {n:"Railway", u:"https://railway.app/", d:"Terminal va sozlamalarsiz loyihalarni internetga yuklash", t:['dunyo','bepul','web']},
   {n:"Heroku", u:"https://www.heroku.com/", d:"Python, Node va PHP ni host qiluvchi mashhur klassik cloud", t:['dunyo','pullik','web']},
   {n:"Stack Overflow", u:"https://stackoverflow.com/", d:"Dasturchilar yo'liqadigan barcha xatolar uchun savol-javob", t:['dunyo','bepul','web']},
-  {n:"Tailwind CSS", u:"https://tailwindcss.com/", d:"Zamonaviy dizayn uchun eng zo'r CSS freymvork", t:['dunyo','bepul','web']},
+  {n:"Tailwind CSS", u:"https://tailwindcss.com/", d:"Zamonaviy loyihalar uchun yengil Utility CSS tizimi", t:['dunyo','bepul','web']},
   {n:"Replit", u:"https://replit.com/", d:"Hech nima o'rnatmasdan brauzer yoki telefonda kod yozish", t:['dunyo','bepul','web','mobil']},
   {n:"Codeium", u:"https://codeium.com/", d:"VS Code va boshqalar uchun bepul Copilot alternativi", t:['dunyo','bepul','web']},
   {n:"Docker", u:"https://www.docker.com/", d:"Loyiha arxitekturasini istalgan tizimda o'zgarishsiz ishlashi", t:['dunyo','bepul','web']},
@@ -725,57 +377,16 @@ items:[
 ]; // END DATA
 
 // ═══════════════════════════════════════════════════════════
-//  API & HTTP CLIENT (GLOBAL KO'RISHLAR SONI UCHUN)
-// ═══════════════════════════════════════════════════════════
-// Biz haqiqiy kliklarni sanash va hammaga ko'rsatish uchun
-// tekin va ochiq "CountAPI" alternativasi bo'lgan KV xizmatidan (countapi.xyz/hit) yoki
-// ochiq counterdan foydalanamiz.
-
-const API_NAMESPACE = 'lifehacks_uz_catalog';
-
-// Xatoliklarsiz ishlashi uchun lokal kesh bilan birga
-const globalClicks = safeParse('lh_global_clicks', {});
-
-async function hitGlobalClick(name) {
-    const safeName = name.replace(/[^a-zA-Z0-9]/g, '');
-    try {
-        // Bu haqiqiy server API si (CountAPI alternativi - bepul hisoblagich)
-        const response = await fetch(`https://api.countapi.xyz/hit/${API_NAMESPACE}/${safeName}`);
-        const data = await response.json();
-        
-        globalClicks[name] = data.value;
-        localStorage.setItem('lh_global_clicks', JSON.stringify(globalClicks));
-        
-        rerenderClickFor(name, data.value);
-    } catch (e) {
-        // Offline yoki API block bo'lsa lokal hisoblaydi
-        globalClicks[name] = (globalClicks[name] || 0) + 1;
-        localStorage.setItem('lh_global_clicks', JSON.stringify(globalClicks));
-        rerenderClickFor(name, globalClicks[name]);
-    }
-}
-
-async function fetchGlobalClick(name) {
-    const safeName = name.replace(/[^a-zA-Z0-9]/g, '');
-    try {
-        const response = await fetch(`https://api.countapi.xyz/get/${API_NAMESPACE}/${safeName}`);
-        const data = await response.json();
-        globalClicks[name] = data.value;
-        return data.value;
-    } catch (e) {
-        return globalClicks[name] || 0;
-    }
-}
-
-// ═══════════════════════════════════════════════════════════
 //  STATE & INIT
 // ═══════════════════════════════════════════════════════════
-let activeCat  = 'all';
+let activeCat  = 'my_apps'; // Dastlab "Shaxsiy ilovalar" ochilsinmi yoki all? Biz sidebar'da uni eng tepada qo'ydik. Default 'all' qoldirilsin.
+activeCat = 'all';
 let query      = '';
 let filters    = [];
 let sortMode   = 'def';
 let favorites  = safeParse('lh_favs', []);
 let srchHist   = safeParse('lh_hist', []);
+let clicks     = safeParse('lh_clicks', {});
 
 const MAX_HIST = 5;
 const FILTERS  = [
@@ -787,7 +398,7 @@ const FILTERS  = [
 const $=id=>document.getElementById(id);
 
 // ═══════════════════════════════════════════════════════════
-//  LOGO LOGIC
+//  LOGO LOGIC (FONSZ, BITTALIK TOZA LOGOTIP / AVATAR)
 // ═══════════════════════════════════════════════════════════
 function getDomain(url){ try{return new URL(url).hostname.replace('www.','');}catch(e){return '';} }
 
@@ -809,34 +420,36 @@ function iconHTML(item, cls="w-10 h-10 object-contain drop-shadow-sm") {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  CLICK TRACKING
+// ═══════════════════════════════════════════════════════════
+function getClicks(name){return clicks[name]||0;}
+function addClick(name){
+  clicks[name]=(clicks[name]||0)+1;
+  localStorage.setItem('lh_clicks',JSON.stringify(clicks));
+}
+
+// ═══════════════════════════════════════════════════════════
 //  TRENDING SECTION
 // ═══════════════════════════════════════════════════════════
 function renderTrending(){
   const all=[];
   DATA.forEach(c=>{
-    if(c.id !== 'my_apps') {
-        c.items.forEach(i=>{ 
-            const val = globalClicks[i.n] || 0;
-            if(val > 0) all.push({...i,_cat:c, views: val}); 
-        });
-    }
+    if(c.id !== 'my_apps') c.items.forEach(i=>{ if(getClicks(i.n)>0) all.push({...i,_cat:c}); });
   });
-  
-  all.sort((a,b)=> b.views - a.views);
+  all.sort((a,b)=>getClicks(b.n)-getClicks(a.n));
   const top=all.slice(0,10);
-  
   const sec=$('trendingSection'), grid=$('trendingGrid');
   if(!top.length){sec.classList.add('hidden');return;}
   sec.classList.remove('hidden');
   grid.innerHTML=top.map(item=>`
     <a href="${item.u}" target="_blank" rel="noopener noreferrer"
-       onclick="hitGlobalClick('${item.n.replace(/'/g,"\\'")}');event.stopPropagation()"
+       onclick="addClick('${item.n.replace(/'/g,"\\'")}');event.stopPropagation()"
        class="flex-shrink-0 glass rounded-xl p-2.5 flex items-center gap-3 min-w-[160px] hover:shadow-md transition-all group">
       <div class="shrink-0 flex items-center justify-center">${iconHTML(item, 'w-8 h-8 rounded-lg shadow-sm object-contain')}</div>
       <div class="min-w-0">
         <p class="text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
-        <p class="text-[10px] font-bold text-orange-500 flex items-center gap-1">
-            <i class="fa-solid fa-fire text-[9px]"></i> ${item.views}
+        <p class="text-[9px] font-bold text-slate-400 flex items-center gap-1">
+            <i class="fa-regular fa-eye"></i> ${getClicks(item.n)}
         </p>
       </div>
     </a>`).join('');
@@ -857,48 +470,33 @@ function matchItem(item, cat){
 function sortItems(arr){
   if(sortMode==='az') return [...arr].sort((a,b)=>a.n.localeCompare(b.n));
   if(sortMode==='za') return [...arr].sort((a,b)=>b.n.localeCompare(a.n));
-  if(sortMode==='popular') return [...arr].sort((a,b)=> (globalClicks[b.n]||0) - (globalClicks[a.n]||0));
+  if(sortMode==='popular') return [...arr].sort((a,b)=>getClicks(b.n)-getClicks(a.n));
   return arr;
 }
 
 // ═══════════════════════════════════════════════════════════
 //  CARD HTML
 // ═══════════════════════════════════════════════════════════
-function formatViews(views) {
-    if (views >= 1000000) return (views / 1000000).toFixed(1) + 'M';
-    if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
-    return views;
-}
-
 function card(item){
   const isFav    = favorites.includes(item.n);
   const isBepul  = item.t?.includes('bepul');
   const isMob    = item.t?.includes('mobil');
   const isCustom = item.isCustom;
   const q2       = query.trim();
-  
-  const views    = globalClicks[item.n] || 0;
-  const fViews   = formatViews(views);
-  const isHot    = views >= 10; // 10 marta ko'rilgandan keyin trend chiqadi
+  const c        = getClicks(item.n);
+  const isHot    = c>=5;
 
   const badgeRight = isCustom ? 'right-12' : 'right-3';
-  
-  // Orqa fonda API dan haqiqiy views ni yuklab olish
-  if(!isCustom && views === 0) {
-      fetchGlobalClick(item.n).then(v => {
-         if(v > 0) rerenderClickFor(item.n, v);
-      });
-  }
 
   return `
   <a href="${item.u}" target="_blank" rel="noopener noreferrer"
-     onclick="hitGlobalClick('${item.n.replace(/'/g,"\\'")}');"
+     onclick="addClick('${item.n.replace(/'/g,"\\'")}');setTimeout(()=>rerenderClickFor('${item.n.replace(/'/g,"\\'")}'),50)"
      class="card glass rounded-2xl p-4 flex flex-col h-full group relative">
     
     ${isHot?'<span class="trending-tag">🔥 TREND</span>':''}
     
-    <div class="absolute top-3 ${badgeRight} flex items-center gap-1.5 text-[10px] font-bold transition-all duration-300 z-20 px-2 py-0.5 rounded-full text-slate-400 opacity-60 group-hover:opacity-100 group-hover:bg-slate-200/50 dark:group-hover:bg-slate-700/50" id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
-        <i class="fa-regular fa-eye text-[11px]"></i> <span>${fViews}</span>
+    <div class="absolute top-3 ${badgeRight} flex items-center gap-1 text-[10px] font-bold transition-opacity z-20 px-2 py-0.5 rounded-full backdrop-blur-md bg-slate-500/10 dark:bg-slate-400/10 ${c ? 'text-slate-500 dark:text-slate-400 opacity-80' : 'text-slate-400 opacity-0 group-hover:opacity-60'}" id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
+        <i class="fa-regular fa-eye"></i> <span>${c||0}</span>
     </div>
 
     ${isCustom ? `<button onclick="event.preventDefault();event.stopPropagation();deleteCustomApp('${item.n.replace(/'/g,"\\'")}')" title="O'chirish" class="absolute top-3 right-3 flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-500/20 dark:hover:bg-red-500 transition-colors z-20"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
@@ -927,16 +525,15 @@ function card(item){
   </a>`;
 }
 
-window.rerenderClickFor = function(name, newViews){
+window.rerenderClickFor = function(name){
   const id='cb-'+name.replace(/[^a-zA-Z0-9]/g,'_');
   const el=document.getElementById(id);
   if(!el) return;
-  const fViews = formatViews(newViews);
-  el.innerHTML = `<i class="fa-regular fa-eye text-[11px]"></i> <span>${fViews}</span>`;
-  el.classList.add('do-pop', 'text-violet-500');
-  setTimeout(()=>{
-      el.classList.remove('do-pop', 'text-violet-500');
-  }, 400);
+  const c=getClicks(name);
+  el.innerHTML = `<i class="fa-regular fa-eye"></i> <span>${c}</span>`;
+  el.classList.remove('opacity-0', 'text-slate-400', 'group-hover:opacity-60');
+  el.classList.add('opacity-80', 'text-slate-500', 'dark:text-slate-400', 'do-pop');
+  setTimeout(()=>el.classList.remove('do-pop'),200);
   renderTrending();
 };
 
@@ -957,22 +554,27 @@ window.toggleFav = function(name, btn, silent=false){
 
 function renderNav(){
   const total=DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a,0);
+  $('sidebarCount').textContent=`${total} ta resurs`;
 
+  // Eng teppa-tepada shaxsiy bo'lim chiqadi!
   let s=`
-    <div class="mb-2 px-1 space-y-1">
+    <div class="mb-2 px-1">
+      <button onclick="openCustomModal()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-violet-500/20 mb-2.5">
+        <i class="fa-solid fa-plus"></i> Yangi resurs qo'shish
+      </button>
       <button onclick="setCat('my_apps')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='my_apps'?'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
         <div class="flex items-center gap-2.5"><i class="fa-solid fa-folder-open w-4 text-center text-xs ${activeCat==='my_apps'?'text-violet-500':'opacity-60'}"></i><span>Shaxsiy ro'yxat</span></div>
         <span class="text-[9px] px-1.5 py-0.5 rounded-full ${activeCat==='my_apps'?'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300':'bg-slate-200 dark:bg-slate-700/80 text-slate-500'}">${customApps.length}</span>
-      </button>
-      <button onclick="setCat('favorites')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='favorites'?'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
-        <div class="flex items-center gap-2.5"><i class="fa-solid fa-heart w-4 text-center text-xs text-rose-400"></i><span>Saqlanganlar</span></div>
-        ${favorites.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/25 text-rose-500">${favorites.length}</span>`:''}
       </button>
     </div>
     <div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 my-2"></div>
     <button onclick="setCat('all')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='all'?'nav-active':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
       <div class="flex items-center gap-2.5"><i class="fa-solid fa-border-all w-4 text-center text-xs opacity-60"></i><span>Barchasi</span></div>
       <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700/80 text-slate-500">${total}</span>
+    </button>
+    <button onclick="setCat('favorites')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='favorites'?'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
+      <div class="flex items-center gap-2.5"><i class="fa-solid fa-heart w-4 text-center text-xs text-rose-400"></i><span>Saqlanganlar</span></div>
+      ${favorites.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/25 text-rose-500">${favorites.length}</span>`:''}
     </button>`;
 
   DATA.forEach(c=>{
@@ -990,12 +592,12 @@ function renderNav(){
   $('sidebarNav').innerHTML=s;
 
   let m=`
+    <button onclick="openCustomModal()" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/20 transition-all active:scale-95"><i class="fa-solid fa-plus"></i></button>
     <button onclick="setCat('my_apps')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='my_apps'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">🛠️ Shaxsiy (${customApps.length})</button>
+    <button onclick="setCat('all')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='all'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">Barchasi</button>
     <button onclick="setCat('favorites')" class="flex-shrink-0 flex items-center gap-2 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='favorites'?'bg-rose-500 text-white border-transparent shadow-lg shadow-rose-500/30':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">
       <i class="fa-solid fa-heart"></i> ${favorites.length||''}
-    </button>
-    <button onclick="setCat('all')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='all'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">Barchasi</button>`;
-  
+    </button>`;
   DATA.forEach(c=>{
     if (c.id === 'my_apps') return;
     m+=`<button onclick="setCat('${c.id}')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all whitespace-nowrap ${activeCat===c.id?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${c.title}</button>`;
@@ -1003,17 +605,6 @@ function renderNav(){
   
   $('mobNav').innerHTML=m;
   renderChips(); renderActiveBadges();
-  
-  // Shaxsiy menyudagi tugmalar logikasi
-  if(activeCat === 'my_apps') {
-      if($('addCustomAppBtnMain')) $('addCustomAppBtnMain').classList.remove('hidden');
-      if($('addCustomAppBtnMain')) $('addCustomAppBtnMain').classList.add('flex');
-      if($('addCustomAppBtnMobWrap')) $('addCustomAppBtnMobWrap').classList.remove('hidden');
-  } else {
-      if($('addCustomAppBtnMain')) $('addCustomAppBtnMain').classList.add('hidden');
-      if($('addCustomAppBtnMain')) $('addCustomAppBtnMain').classList.remove('flex');
-      if($('addCustomAppBtnMobWrap')) $('addCustomAppBtnMobWrap').classList.add('hidden');
-  }
 }
 
 function renderChips(){
@@ -1257,7 +848,7 @@ function setupTheme(){
 
 function setupShare(){
   const fn=async()=>{
-    const d={title:"LifeHacks UZ — O'zbekiston onlayn resurslar",text:"300+ resurs bitta joyda! O'zbekiston aholisi uchun mukammal platforma",url:location.href};
+    const d={title:"E-Link UZ — O'zbekiston onlayn resurslar",text:"300+ resurs bitta joyda! O'zbekiston aholisi uchun mukammal platforma",url:location.href};
     if(navigator.share){try{await navigator.share(d);return;}catch(e){}}
     try{await navigator.clipboard.writeText(location.href);}
     catch(e){const t=document.createElement('input');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}
@@ -1369,6 +960,3 @@ function init(){
   setupScroll();
 }
 init();
-</script>
-</body>
-</html>
