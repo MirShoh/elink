@@ -102,8 +102,18 @@ tailwind.config={
   <!-- Nav -->
   <div class="flex-1 overflow-y-auto px-3 pb-3 space-y-px" id="sidebarNav"></div>
 
-  <!-- Theme -->
   <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+    <!-- User auth button -->
+    <button id="authBtnSide" onclick="openAuthModal()" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-500/10 dark:to-fuchsia-500/10 border border-violet-200/60 dark:border-violet-500/20 hover:opacity-90 transition-all">
+      <div id="authAvatarSide" class="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-user text-slate-400 text-xs"></i>
+      </div>
+      <div class="flex-1 min-w-0 text-left">
+        <p id="authNameSide" class="text-[12px] font-bold text-slate-700 dark:text-slate-300 truncate">Kirish / Ro'yxat</p>
+        <p class="text-[9px] text-slate-400">Google · Telegram · QR</p>
+      </div>
+      <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 shrink-0"></i>
+    </button>
     <button id="themeBtn" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
       <i id="themeIco" class="fa-solid fa-moon"></i>
       <span id="themeTxt">Tungi rejim</span>
@@ -124,6 +134,11 @@ tailwind.config={
         <span class="font-black text-slate-900 dark:text-white text-[15px]">E-Link <span class="text-violet-500">UZ</span></span>
       </div>
       <div class="flex gap-2">
+        <button id="authBtnMob" onclick="openAuthModal()" class="w-8 h-8 rounded-full bg-violet-50 dark:bg-violet-500/20 flex items-center justify-center transition-colors">
+          <div id="authAvatarMob" class="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+            <i class="fa-solid fa-user text-slate-400 text-[10px]"></i>
+          </div>
+        </button>
         <button id="themeBtnMob" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <i id="themeIcoMob" class="fa-solid fa-moon text-sm"></i>
         </button>
@@ -244,6 +259,81 @@ tailwind.config={
   <i id="toastIco" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
   <span id="toastMsg" class="font-bold text-sm pr-2"></span>
 </div>
+
+<!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
+<div id="authModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+  <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700" id="authModalContent">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-5">
+      <h3 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-shield-halved text-violet-500"></i> Kirish / Ro'yxat
+      </h3>
+      <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-5 mb-5 border-b border-slate-200 dark:border-slate-700">
+      <button class="auth-tab active" onclick="switchAuthTab('google',this)"><i class="fa-brands fa-google mr-1.5"></i>Google</button>
+      <button class="auth-tab" onclick="switchAuthTab('telegram',this)"><i class="fa-brands fa-telegram mr-1.5"></i>Telegram</button>
+      <button class="auth-tab" onclick="switchAuthTab('qr',this)"><i class="fa-solid fa-qrcode mr-1.5"></i>QR Kod</button>
+    </div>
+
+    <!-- Google Panel -->
+    <div class="auth-panel active" id="auth-panel-google">
+      <div id="googleSignedOut">
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center">Google hisobingiz orqali bir bosimda kiring</p>
+        <button onclick="signInGoogle()" class="auth-btn-google w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
+          Google bilan kirish
+        </button>
+      </div>
+      <div id="googleSignedIn" class="hidden text-center">
+        <img id="googleAvatar" src="" class="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-violet-300 shadow-md" onerror="this.src='https://ui-avatars.com/api/?name=U&background=8b5cf6&color=fff'">
+        <p id="googleName" class="font-black text-slate-900 dark:text-white text-base mb-0.5"></p>
+        <p id="googleEmail" class="text-xs text-slate-400 mb-4"></p>
+        <button onclick="signOutUser()" class="w-full py-2.5 rounded-xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition-colors border border-red-200 dark:bg-red-500/10 dark:border-red-500/30">
+          <i class="fa-solid fa-right-from-bracket mr-1.5"></i>Chiqish
+        </button>
+      </div>
+    </div>
+
+    <!-- Telegram Panel -->
+    <div class="auth-panel" id="auth-panel-telegram">
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center">Telegram bot orqali tezkor kirish</p>
+      <div class="flex justify-center" id="telegramWidgetWrap">
+        <!-- Telegram Login Widget - replace YOUR_BOT_USERNAME with actual bot -->
+        <div id="tgLoginBtn" onclick="telegramLogin()" class="auth-btn-tg w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm cursor-pointer">
+          <i class="fa-brands fa-telegram text-xl"></i>
+          Telegram bilan kirish
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-400 text-center mt-3">Telegram ID orqali xavfsiz autentifikatsiya</p>
+    </div>
+
+    <!-- QR Panel -->
+    <div class="auth-panel" id="auth-panel-qr">
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center">Telefon kamerasini QR ga yo'naltirib tezkor kiring</p>
+      <div class="qr-wrap mx-auto mb-3">
+        <div id="qrCanvas"></div>
+      </div>
+      <p class="text-[11px] text-center font-bold text-violet-500 mt-1 truncate px-2" id="qrUrlText"></p>
+      <p class="text-[10px] text-slate-400 text-center mt-1">Kamera bilan skanerlang yoki havolani nusxalang</p>
+      <button onclick="copyQrUrl()" class="w-full mt-3 py-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-bold text-sm hover:bg-violet-100 transition-colors border border-violet-200 dark:border-violet-500/30">
+        <i class="fa-solid fa-copy mr-1.5"></i>Havolani nusxalash
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase v9 compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<!-- QRCode -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script src="script.js"></script>
 </body>

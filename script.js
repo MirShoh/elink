@@ -11,6 +11,61 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  🔥 FIREBASE CONFIG — o'z loyihangiz ma'lumotlarini kiriting
+//  https://console.firebase.google.com → Project Settings → Web App
+// ═══════════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+   apiKey: "AIzaSyBxGU6TcRMHELBN4xJf7f-x2uX2BoJRLAI",
+    authDomain: "elink-a1ad6.firebaseapp.com",
+    projectId: "elink-a1ad6",
+    storageBucket: "elink-a1ad6.firebasestorage.app",
+    messagingSenderId: "689476090388",
+    appId: "1:689476090388:web:d041b8511523e4e99a8501",
+    measurementId: "G-3SKLX57LK2"
+};
+
+// Firebase init (graceful fallback if config not set)
+let firebaseApp = null, db = null, auth = null;
+let firebaseReady = false;
+try {
+  if (!firebase.apps.length) firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+  else firebaseApp = firebase.apps[0];
+  db   = firebase.database();
+  auth = firebase.auth();
+  firebaseReady = true;
+} catch(e) {
+  console.warn('[E-Link] Firebase ulana olmadi — local rejim ishlatilmoqda', e.message);
+}
+
+// Global clicks: { name: count }
+let globalClicks = {}; // real-time Firebase dan
+let localClicks  = safeParse('lh_clicks', {}); // local fallback
+
+// Firebase dan global ko'rishlarni real-time tinglash
+function initGlobalClicks() {
+  if (!firebaseReady) return;
+  try {
+    db.ref('clicks').on('value', snap => {
+      globalClicks = snap.val() || {};
+      // Barcha ko'rinadigan count elementlarini yangilash
+      Object.keys(globalClicks).forEach(name => {
+        const id = 'cb-' + name.replace(/[^a-zA-Z0-9]/g,'_');
+        const el = document.getElementById(id);
+        if (el) {
+          const c = globalClicks[name] || 0;
+          el.querySelector('span').textContent = c;
+          if (c > 0) {
+            el.classList.remove('opacity-0','group-hover:opacity-60');
+            el.classList.add('opacity-80');
+          }
+        }
+      });
+      renderTrending();
+    });
+  } catch(e) { console.warn('[E-Link] clicks listener xato:', e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════
 //  DATA — 330+ Premium va mahalliy resurslar to'plami
 // ═══════════════════════════════════════════════════════════
 let customApps = safeParse('lh_custom_apps', []);
@@ -379,14 +434,13 @@ items:[
 // ═══════════════════════════════════════════════════════════
 //  STATE & INIT
 // ═══════════════════════════════════════════════════════════
-let activeCat  = 'my_apps'; // Dastlab "Shaxsiy ilovalar" ochilsinmi yoki all? Biz sidebar'da uni eng tepada qo'ydik. Default 'all' qoldirilsin.
-activeCat = 'all';
+let activeCat  = 'all';
 let query      = '';
 let filters    = [];
 let sortMode   = 'def';
 let favorites  = safeParse('lh_favs', []);
 let srchHist   = safeParse('lh_hist', []);
-let clicks     = safeParse('lh_clicks', {});
+let currentUser = null; // Firebase auth user
 
 const MAX_HIST = 5;
 const FILTERS  = [
@@ -420,12 +474,23 @@ function iconHTML(item, cls="w-10 h-10 object-contain drop-shadow-sm") {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  CLICK TRACKING
+//  CLICK TRACKING — Global (Firebase) + Local fallback
 // ═══════════════════════════════════════════════════════════
-function getClicks(name){return clicks[name]||0;}
+function getClicks(name){
+  if (firebaseReady) return globalClicks[name] || 0;
+  return localClicks[name] || 0;
+}
+
 function addClick(name){
-  clicks[name]=(clicks[name]||0)+1;
-  localStorage.setItem('lh_clicks',JSON.stringify(clicks));
+  // Local fallback always
+  localClicks[name] = (localClicks[name]||0) + 1;
+  localStorage.setItem('lh_clicks', JSON.stringify(localClicks));
+  // Firebase global increment
+  if (firebaseReady) {
+    try {
+      db.ref('clicks/' + name.replace(/[^a-zA-Z0-9_]/g,'_')).transaction(v => (v||0)+1);
+    } catch(e){}
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -521,6 +586,12 @@ function card(item){
     <button onclick="event.preventDefault();event.stopPropagation();toggleFav('${item.n.replace(/'/g,"\\'")}',this)" 
         class="fav-btn absolute bottom-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs z-20 ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-rose-500'}">
         <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
+    </button>
+
+    <button onclick="event.preventDefault();event.stopPropagation();shareCard('${item.n.replace(/'/g,"\\'")}','${item.u}')"
+        title="Ulashish"
+        class="share-card-btn absolute bottom-3.5 right-14 w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs z-20 bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/20">
+        <i class="fa-solid fa-share-nodes"></i>
     </button>
   </a>`;
 }
@@ -846,6 +917,137 @@ function setupTheme(){
   }));
 }
 
+// ═══════════════════════════════════════════════════════════
+//  SHARE CARD — har bir kartochka uchun ulashish
+// ═══════════════════════════════════════════════════════════
+window.shareCard = async function(name, url) {
+  const shareData = { title: name + ' — E-Link UZ', text: name, url };
+  if (navigator.share) {
+    try { await navigator.share(shareData); return; } catch(e) {}
+  }
+  try { await navigator.clipboard.writeText(url); }
+  catch(e) {
+    const t=document.createElement('input');t.value=url;
+    document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
+  }
+  showToast(`"${name}" havolasi nusxalandi!`, 'fa-link text-violet-400');
+};
+
+// ═══════════════════════════════════════════════════════════
+//  AUTH — Google, Telegram, QR
+// ═══════════════════════════════════════════════════════════
+window.openAuthModal = function() {
+  const m = $('authModal'), mc = $('authModalContent');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  setTimeout(()=>{ mc.classList.remove('scale-95','opacity-0'); mc.classList.add('scale-100','opacity-100'); },10);
+  // Build QR on open
+  buildQR();
+};
+
+window.closeAuthModal = function() {
+  const m = $('authModal'), mc = $('authModalContent');
+  mc.classList.remove('scale-100','opacity-100'); mc.classList.add('scale-95','opacity-0');
+  setTimeout(()=>{ m.classList.add('hidden'); m.classList.remove('flex'); },200);
+};
+
+window.switchAuthTab = function(tab, btn) {
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('auth-panel-'+tab).classList.add('active');
+  if (tab==='qr') buildQR();
+};
+
+window.signInGoogle = async function() {
+  if (!firebaseReady) return showToast('Firebase sozlanmagan!','fa-circle-xmark text-red-500');
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  } catch(e) { showToast('Kirish xatosi: '+e.message,'fa-circle-xmark text-red-500'); }
+};
+
+window.signOutUser = async function() {
+  if (!firebaseReady) return;
+  try { await auth.signOut(); } catch(e){}
+};
+
+window.telegramLogin = function() {
+  // Telegram Login Widget — real loyihada @BotFather dan bot yaratib,
+  // quyidagi skriptni HTML ga qo'shing va bot username ni o'zgartiring:
+  // <script async src="https://telegram.org/js/telegram-widget.js?22"
+  //   data-telegram-login="YOUR_BOT_USERNAME" data-size="large"
+  //   data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
+  showToast('Telegram bot sozlash kerak! README ga qarang.','fa-brands fa-telegram text-blue-400');
+};
+
+window.onTelegramAuth = function(user) {
+  currentUser = { name: user.first_name+' '+(user.last_name||''), photo: user.photo_url, provider:'telegram' };
+  updateAuthUI();
+  closeAuthModal();
+  showToast(`Xush kelibsiz, ${user.first_name}!`, 'fa-brands fa-telegram text-blue-400');
+};
+
+function buildQR() {
+  const wrap = $('qrCanvas');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const url = location.href;
+  if ($('qrUrlText')) $('qrUrlText').textContent = url;
+  try {
+    new QRCode(wrap, { text: url, width:160, height:160, colorDark:'#6d28d9', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  } catch(e){ wrap.innerHTML='<p class="text-xs text-slate-400">QR yaratilmadi</p>'; }
+}
+
+window.copyQrUrl = function() {
+  const url = location.href;
+  try { navigator.clipboard.writeText(url); } catch(e){}
+  showToast('Havola nusxalandi!','fa-link text-violet-400');
+};
+
+function updateAuthUI() {
+  const user = currentUser;
+  if (!user) {
+    // Logged out state
+    $('googleSignedOut')?.classList.remove('hidden');
+    $('googleSignedIn')?.classList.add('hidden');
+    // Sidebar & mobile avatar — default icon
+    ['Side','Mob'].forEach(s => {
+      const wrap = $('authAvatar'+s);
+      if(wrap) wrap.innerHTML='<i class="fa-solid fa-user text-slate-400 text-xs"></i>';
+    });
+    const nameSide = $('authNameSide');
+    if(nameSide) nameSide.textContent = "Kirish / Ro'yxat";
+    return;
+  }
+  // Logged in
+  $('googleSignedOut')?.classList.add('hidden');
+  $('googleSignedIn')?.classList.remove('hidden');
+  if($('googleName')) $('googleName').textContent = user.name||'';
+  if($('googleEmail')) $('googleEmail').textContent = user.email||'';
+  if($('googleAvatar')&&user.photo) $('googleAvatar').src = user.photo;
+  // Sidebar & mobile avatar
+  ['Side','Mob'].forEach(s => {
+    const wrap = $('authAvatar'+s);
+    if(!wrap) return;
+    if(user.photo) wrap.innerHTML=`<img src="${user.photo}" class="user-avatar w-full h-full" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name||'U')}&background=8b5cf6&color=fff'">`;
+    else wrap.innerHTML=`<span class="text-[11px] font-black text-violet-600">${(user.name||'U').charAt(0)}</span>`;
+  });
+  const nameSide = $('authNameSide');
+  if(nameSide) nameSide.textContent = user.name || 'Foydalanuvchi';
+}
+
+function setupAuth() {
+  if (!firebaseReady) return;
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = { name: user.displayName, email: user.email, photo: user.photoURL, provider:'google', uid: user.uid };
+    } else {
+      currentUser = null;
+    }
+    updateAuthUI();
+  });
+}
+
 function setupShare(){
   const fn=async()=>{
     const d={title:"E-Link UZ — O'zbekiston onlayn resurslar",text:"300+ resurs bitta joyda! O'zbekiston aholisi uchun mukammal platforma",url:location.href};
@@ -958,5 +1160,7 @@ function init(){
   setupTheme();
   setupShare();
   setupScroll();
+  setupAuth();
+  initGlobalClicks();
 }
 init();
