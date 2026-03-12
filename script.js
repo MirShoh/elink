@@ -11,64 +11,52 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  🌐 COUNTERAPI — hech qanday config, library, account kerak emas
-//  Bitta so'rovda BARCHA kliklar — cross-device real global statistika
+//  🗄️ SUPABASE CONFIG — cross-device haqiqiy global statistika
+//  1) supabase.com → New project
+//  2) SQL Editor → quyidagi so'rovni ishga tushiring (README ga qarang)
+//  3) Project Settings → API → URL va anon key ni quyiga yozing
 // ═══════════════════════════════════════════════════════════
-const COUNTER_NS = 'elink-uz-v1';
-const COUNTER_BASE = `https://api.counterapi.dev/v1/${COUNTER_NS}`;
+const SUPA_URL = 'https://ejlpdmbplwgplsbwjhaq.supabase.co';   // https://xxxx.supabase.co
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqbHBkbWJwbHdncGxzYndqaGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjM4NTAsImV4cCI6MjA4ODgzOTg1MH0.mHDQxGb6NdNuk-3le1oeaBNZTBFe77d4WXj3lptxuoY';       // eyJhbGci...
 
-// Xotira: { "Payme": 42, "Click": 17, ... }
+const SUPA_H = {
+'apikey': SUPA_KEY,
+'Authorization': 'Bearer ' + SUPA_KEY,
+'Content-Type': 'application/json'
+};
+
+// Xotira
 let globalClicks = {};
 
-// Nom → API key: kichik harf, faqat harf/raqam/defis, max 60 ta
-function toKey(name){
-return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'item';
-}
-
-// Barcha resurslar nomini yig'ish (DATA tayyor bo'lgandan keyin chaqiriladi)
-function getAllItemNames(){
-const names = [];
-DATA.forEach(c => { if(c.id !== 'my_apps') c.items.forEach(i => names.push(i.n)); });
-return names;
-}
-
-// N ta elementni parallel fetch, keyin keyingisi (rate limit himoyasi)
-async function fetchBatch(names){
-const results = await Promise.allSettled(
-  names.map(name =>
-    fetch(`${COUNTER_BASE}/${toKey(name)}/get`, { signal: AbortSignal.timeout(4000) })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => ({ name, val: (d && d.value) ? d.value : 0 }))
-      .catch(() => ({ name, val: 0 }))
-  )
-);
-return results.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean);
-}
-
-// Sahifa ochilganda — barcha resurslar real global hisobi
-// Har bir qurilma, har bir brauzer — hammada bir xil
+// ── Sahifa ochilganda: barcha kliklarni BIR so'rovda yuklash ──
 async function initGlobalClicks(){
-const BATCH = 20; // bir vaqtda 20 ta so'rov
-const allNames = getAllItemNames();
+try {
+  const res = await fetch(`${SUPA_URL}/rest/v1/clicks?select=name,count&limit=1000`, { headers: SUPA_H });
+  if(!res.ok) return;
+  const rows = await res.json();
+  if(!Array.isArray(rows)) return;
+  rows.forEach(r => { if(r.count > 0) globalClicks[r.name] = r.count; });
+  Object.entries(globalClicks).forEach(([n, c]) => _updateCountEl(n, c));
+  renderTrending();
+  updateSidebarStats();
+} catch(e){ console.warn('[E-Link] Supabase error:', e.message); }
+}
 
-// Batchlarga bo'lib ketma-ket yuborish
-for(let i = 0; i < allNames.length; i += BATCH){
-  const batch = allNames.slice(i, i + BATCH);
-  const items = await fetchBatch(batch);
-  items.forEach(({ name, val }) => {
-    if(val > 0){
-      globalClicks[name] = val;
-      _updateCountEl(name, val);
-    }
+// ── Klik: atomic increment (race-condition xavfsiz) ──
+async function _supaIncrement(name){
+try {
+  const res = await fetch(`${SUPA_URL}/rest/v1/rpc/increment_click`, {
+    method: 'POST',
+    headers: SUPA_H,
+    body: JSON.stringify({ p_name: name })
   });
-  // Oxirgi batch emas — kichik pauza (rate limit uchun)
-  if(i + BATCH < allNames.length) await new Promise(r => setTimeout(r, 80));
+  if(!res.ok) return null;
+  const val = await res.json();
+  return typeof val === 'number' ? val : null;
+} catch(e){ return null; }
 }
 
-renderTrending();
-updateSidebarStats();
-}
-
+// ── DOM element yangilash ──
 // DOM dagi klik elementini yangilash
 function _updateCountEl(name, count){
 const id = 'cb-' + name.replace(/[^a-zA-Z0-9]/g,'_');
@@ -498,30 +486,27 @@ return `<img src="${logoUrl}" alt="${item.n}" loading="lazy" class="${cls} trans
 }
 
 // ═══════════════════════════════════════════════════════════
-//  CLICK TRACKING — optimistic UI + CounterAPI global sync
+//  CLICK TRACKING — optimistic UI + Supabase atomic increment
 // ═══════════════════════════════════════════════════════════
 function getClicks(name){
 return globalClicks[name] || 0;
 }
 
 function addClick(name){
-// 1. Optimistic: UI ni darhol oshir
+// 1. Optimistic: UI ni darhol oshir (tez ko'rinsin)
 globalClicks[name] = (globalClicks[name]||0) + 1;
 _updateCountEl(name, globalClicks[name]);
 renderTrending();
 updateSidebarStats();
 
-// 2. API ga /up so'rov — server haqiqiy global qiymat qaytaradi
-fetch(`${COUNTER_BASE}/${toKey(name)}/up`)
-  .then(r => r.ok ? r.json() : null)
-  .then(d => {
-    if(d && d.value !== undefined){
-      globalClicks[name] = d.value;
-      _updateCountEl(name, d.value);
-      updateSidebarStats();
-    }
-  })
-  .catch(()=>{});
+// 2. Supabase ga atomic increment — haqiqiy global qiymat
+_supaIncrement(name).then(serverVal => {
+  if(serverVal !== null && serverVal !== globalClicks[name]){
+    globalClicks[name] = serverVal;
+    _updateCountEl(name, serverVal);
+    updateSidebarStats();
+  }
+});
 
 // 3. So'nggi ko'rilganlar
 let foundItem = null;
