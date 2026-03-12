@@ -45,21 +45,45 @@ try {
 } catch(e){ return null; }
 }
 
-// Sahifa ochilganda lokal klikli resurslarni API bilan sinxronlashtirish
+// Sahifa ochilganda BARCHA resurslar hisobini CounterAPI dan yuklash
+// — 10 daqiqa cache bilan, yangi brauzerda ham haqiqiy raqamlar ko'rinadi
 async function initGlobalClicks(){
-// Faqat lokal klik bo'lgan resurslarni sinxronlayz (300+ ga emas, faqat active larga)
-const names = Object.keys(globalClicks).slice(0, 30); // max 30 ta so'rov
-if(!names.length){ updateSidebarStats(); return; }
-await Promise.allSettled(names.map(async name => {
-  const val = await apiFetch(name);
-  if(val !== null){
-    globalClicks[name] = val;
-    _updateCountEl(name, val);
-  }
-}));
-localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
+// Oldin cache ko'rsat (tez)
 renderTrending();
 updateSidebarStats();
+
+// Cache 10 daqiqadan yangi bo'lsa — API ga urinma
+const ts = parseInt(localStorage.getItem('lh_clicks_ts') || '0');
+if(Date.now() - ts < 10 * 60 * 1000) return;
+
+// Barcha resurs nomlarini yig'ish
+const allNames = [];
+DATA.forEach(c => {
+  if(c.id !== 'my_apps') c.items.forEach(i => allNames.push(i.n));
+});
+
+// Hammasi parallel — HTTP/2 tufayli juda tez (~1-2s)
+const results = await Promise.allSettled(
+  allNames.map(async name => ({ name, val: await apiFetch(name) }))
+);
+
+let changed = false;
+results.forEach(r => {
+  if(r.status === 'fulfilled' && r.value.val > 0){
+    if(globalClicks[r.value.name] !== r.value.val){
+      globalClicks[r.value.name] = r.value.val;
+      _updateCountEl(r.value.name, r.value.val);
+      changed = true;
+    }
+  }
+});
+
+localStorage.setItem('lh_clicks_ts', Date.now().toString());
+if(changed){
+  localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
+  renderTrending();
+  updateSidebarStats();
+}
 }
 
 // DOM dagi klik elementini yangilash
