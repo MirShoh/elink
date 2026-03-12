@@ -11,59 +11,67 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  🔥 FIREBASE CONFIG — o'z loyihangiz ma'lumotlarini kiriting
-//  https://console.firebase.google.com → Project Settings → Web App
+//  🌐 COUNTERAPI — Firebase siz, oddiy fetch orqali global klik
+//  Hech qanday config, account yoki library kerak emas!
+//  https://api.counterapi.dev/v1/{ns}/{key}/up  →  { "value": 42 }
 // ═══════════════════════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBxGU6TcRMHELBN4xJf7f-x2uX2BoJRLAI",
-  authDomain: "elink-a1ad6.firebaseapp.com",
-  projectId: "elink-a1ad6",
-  storageBucket: "elink-a1ad6.firebasestorage.app",
-  messagingSenderId: "689476090388",
-  appId: "1:689476090388:web:d041b8511523e4e99a8501",
-  measurementId: "G-3SKLX57LK2"
-};
+const COUNTER_NS = 'elink-uz-v1'; // o'zingiz xohlagan nom
 
-// Firebase init (graceful fallback if config not set)
-let firebaseApp = null, db = null, auth = null;
-let firebaseReady = false;
-try {
-if (!firebase.apps.length) firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-else firebaseApp = firebase.apps[0];
-db   = firebase.database();
-auth = firebase.auth();
-firebaseReady = true;
-} catch(e) {
-console.warn('[E-Link] Firebase ulana olmadi — local rejim ishlatilmoqda', e.message);
+// Global klik cache — lokaldan yuklanadi, API dan yangilanadi
+let globalClicks = safeParse('lh_clicks', {});
+
+// Key ni API uchun tozalash (harflar, raqamlar, defis faqat)
+function toKey(name){
+return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g,'').slice(0,60) || 'item';
 }
 
-// Global clicks: { name: count }
-let globalClicks = {}; // real-time Firebase dan
-let localClicks  = safeParse('lh_clicks', {}); // local fallback
-
-// Firebase dan global ko'rishlarni real-time tinglash
-function initGlobalClicks() {
-if (!firebaseReady) return;
+// API klikni oshiradi VA yangi global qiymatni qaytaradi
+async function apiIncrement(name){
 try {
-  db.ref('clicks').on('value', snap => {
-    globalClicks = snap.val() || {};
-    // Barcha ko'rinadigan count elementlarini yangilash
-    Object.keys(globalClicks).forEach(name => {
-      const id = 'cb-' + name.replace(/[^a-zA-Z0-9]/g,'_');
-      const el = document.getElementById(id);
-      if (el) {
-        const c = globalClicks[name] || 0;
-        el.querySelector('span').textContent = c;
-        if (c > 0) {
-          el.classList.remove('opacity-0','group-hover:opacity-60');
-          el.classList.add('opacity-80');
-        }
-      }
-    });
-    renderTrending();
-    updateSidebarStats();
-  });
-} catch(e) { console.warn('[E-Link] clicks listener xato:', e.message); }
+  const res = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/${toKey(name)}/up`);
+  if(!res.ok) return null;
+  const data = await res.json();
+  return data.value ?? null;
+} catch(e){ return null; }
+}
+
+// API dan joriy qiymatni olish (yuklanishda top resurslar uchun)
+async function apiFetch(name){
+try {
+  const res = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/${toKey(name)}/get`);
+  if(!res.ok) return null;
+  const data = await res.json();
+  return data.value ?? null;
+} catch(e){ return null; }
+}
+
+// Sahifa ochilganda lokal klikli resurslarni API bilan sinxronlashtirish
+async function initGlobalClicks(){
+// Faqat lokal klik bo'lgan resurslarni sinxronlayz (300+ ga emas, faqat active larga)
+const names = Object.keys(globalClicks).slice(0, 30); // max 30 ta so'rov
+if(!names.length){ updateSidebarStats(); return; }
+await Promise.allSettled(names.map(async name => {
+  const val = await apiFetch(name);
+  if(val !== null){
+    globalClicks[name] = val;
+    _updateCountEl(name, val);
+  }
+}));
+localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
+renderTrending();
+updateSidebarStats();
+}
+
+// DOM dagi klik elementini yangilash
+function _updateCountEl(name, count){
+const id = 'cb-' + name.replace(/[^a-zA-Z0-9]/g,'_');
+const el = document.getElementById(id);
+if(!el) return;
+el.querySelector('span').textContent = count;
+if(count > 0){
+  el.classList.remove('opacity-0','group-hover:opacity-60');
+  el.classList.add('opacity-80');
+}
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -483,24 +491,27 @@ return `<img src="${logoUrl}" alt="${item.n}" loading="lazy" class="${cls} trans
 }
 
 // ═══════════════════════════════════════════════════════════
-//  CLICK TRACKING — Global (Firebase) + Local fallback
+//  CLICK TRACKING — CounterAPI (global) + localStorage (tezlik)
 // ═══════════════════════════════════════════════════════════
 function getClicks(name){
-if (firebaseReady) return globalClicks[name] || 0;
-return localClicks[name] || 0;
+return globalClicks[name] || 0;
 }
 
 function addClick(name){
-// Local fallback always
-localClicks[name] = (localClicks[name]||0) + 1;
-localStorage.setItem('lh_clicks', JSON.stringify(localClicks));
-// Firebase global increment
-if (firebaseReady) {
-  try {
-    db.ref('clicks/' + name.replace(/[^a-zA-Z0-9_]/g,'_')).transaction(v => (v||0)+1);
-  } catch(e){}
-}
-// Recently visited tracking
+// 1. Lokal darhol oshir (UI tez yangilansin)
+globalClicks[name] = (globalClicks[name]||0) + 1;
+localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
+_updateCountEl(name, globalClicks[name]);
+// 2. API ga yuborib haqiqiy global qiymatni olish
+apiIncrement(name).then(val => {
+  if(val !== null && val !== globalClicks[name]){
+    globalClicks[name] = val;
+    localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
+    _updateCountEl(name, val);
+    updateSidebarStats();
+  }
+});
+// 3. So'nggi ko'rilganlar
 let foundItem = null;
 DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) foundItem=i; }));
 if(foundItem){
