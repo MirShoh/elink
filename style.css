@@ -194,3 +194,25 @@ mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2
   transform:translateY(-2px);
 }
 .dark .add-card:hover{background:rgba(139,92,246,.12)}
+/* ── FILTER CHIPS (yangi dizayn) ── */
+.filter-chip{
+  transition:all .16s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;user-select:none;
+}
+.filter-chip:hover{transform:translateY(-1px)}
+.filter-chip:active{transform:scale(.96)}
+
+/* ── VERIFIED SHIELD ICON ── */
+.verified-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:4px;
+  background:linear-gradient(135deg,#059669,#0d9488);
+  color:#fff;font-size:8px;
+  box-shadow:0 1px 4px rgba(5,150,105,.35);
+  shrink:0;flex-shrink:0;
+  cursor:default;
+}
+.dark .verified-icon{
+  background:linear-gradient(135deg,#10b981,#14b8a6);
+  box-shadow:0 1px 4px rgba(16,185,129,.3);
+}

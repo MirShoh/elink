@@ -466,9 +466,9 @@ let recentlyVisited = safeParse('lh_recent', []); // So'nggi ko'rilgan resurslar
 
 const MAX_HIST = 5;
 const FILTERS  = [
-{id:'bepul', label:'✅ Bepul'}, {id:'pullik',label:'💎 Pullik'},
-{id:'mobil', label:'📱 Mobil'}, {id:'web',   label:'🌐 Web'},
-{id:'uz',    label:'🇺🇿 O\'zbek'}, {id:'dunyo', label:'🌍 Jahon'}
+{id:'bepul',  label:'Bepul',    icon:'fa-solid fa-check-circle', color:'emerald'},
+{id:'mobil',  label:'Ilova',    icon:'fa-solid fa-mobile-screen-button', color:'sky'},
+{id:'web',    label:'Veb',      icon:'fa-solid fa-globe',        color:'blue'},
 ];
 
 const $=id=>document.getElementById(id);
@@ -695,7 +695,7 @@ return `
     <div class="flex-1 min-w-0 pt-0.5">
       <div class="font-black text-[14px] text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors leading-snug flex items-center gap-1.5">
         <span class="truncate">${hl(item.n,q2)}</span>
-        ${isVerified ? `<i class="fa-solid fa-circle-check text-emerald-500 dark:text-emerald-400 text-[13px] shrink-0" title="Rasmiy va ishonchli platforma"></i>` : ''}
+        ${isVerified ? `<span class="verified-icon" title="Rasmiy va ishonchli platforma"><i class="fa-solid fa-shield-halved"></i></span>` : ''}
       </div>
       <div class="flex flex-wrap gap-1 mt-1.5 items-center">${badges}</div>
     </div>
@@ -762,17 +762,19 @@ function renderNav(){
 const total=DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a,0);
 $('sidebarCount').textContent=`${total} ta resurs`;
 
-// Eng teppa-tepada shaxsiy bo'lim chiqadi!
+// Shaxsiy ro'yxat — pinned (always visible)
+const pinned=`
+  <button onclick="setCat('my_apps')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='my_apps'?'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
+    <div class="flex items-center gap-2.5"><i class="fa-solid fa-folder-open w-4 text-center text-xs ${activeCat==='my_apps'?'text-violet-500':'opacity-60'}"></i><span>Shaxsiy ro'yxat</span></div>
+    <div class="flex items-center gap-1.5">
+      ${customApps.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full ${activeCat==='my_apps'?'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300':'bg-slate-200 dark:bg-slate-700/80 text-slate-500'}">${customApps.length}</span>`:''}
+    </div>
+  </button>
+  <div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 mt-2"></div>`;
+$('sidebarPinned').innerHTML = pinned;
+
+// Kategoriyalar — scrollable
 let s=`
-  <div class="mb-2 px-1">
-    <button onclick="setCat('my_apps')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='my_apps'?'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
-      <div class="flex items-center gap-2.5"><i class="fa-solid fa-folder-open w-4 text-center text-xs ${activeCat==='my_apps'?'text-violet-500':'opacity-60'}"></i><span>Shaxsiy ro'yxat</span></div>
-      <div class="flex items-center gap-1.5">
-        ${customApps.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full ${activeCat==='my_apps'?'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300':'bg-slate-200 dark:bg-slate-700/80 text-slate-500'}">${customApps.length}</span>`:''}
-      </div>
-    </button>
-  </div>
-  <div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 my-2"></div>
   <button onclick="setCat('all')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='all'?'nav-active':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
     <div class="flex items-center gap-2.5"><i class="fa-solid fa-border-all w-4 text-center text-xs opacity-60"></i><span>Barchasi</span></div>
     <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700/80 text-slate-500">${total}</span>
@@ -813,10 +815,30 @@ renderChips(); renderActiveBadges();
 }
 
 function renderChips(){
-const h=FILTERS.map(f=>`
-  <button onclick="toggleFilter('${f.id}')" class="chip ${filters.includes(f.id)?'on':'off'} text-[11px] font-bold px-2.5 py-1 rounded-full">
-    ${f.label}
-  </button>`).join('');
+const colorMap = {
+  emerald:['bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-400',
+            'bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/25'],
+  amber:  ['bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-400',
+            'bg-amber-500 border-amber-500 text-white shadow-amber-500/25'],
+  sky:    ['bg-sky-50 border-sky-200 text-sky-700 dark:bg-sky-500/10 dark:border-sky-500/30 dark:text-sky-400',
+            'bg-sky-500 border-sky-500 text-white shadow-sky-500/25'],
+  blue:   ['bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/30 dark:text-blue-400',
+            'bg-blue-500 border-blue-500 text-white shadow-blue-500/25'],
+  green:  ['bg-green-50 border-green-200 text-green-700 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-400',
+            'bg-green-500 border-green-500 text-white shadow-green-500/25'],
+  violet: ['bg-violet-50 border-violet-200 text-violet-700 dark:bg-violet-500/10 dark:border-violet-500/30 dark:text-violet-400',
+            'bg-violet-500 border-violet-500 text-white shadow-violet-500/25'],
+};
+const h=FILTERS.map(f=>{
+  const on = filters.includes(f.id);
+  const [offCls, onCls] = colorMap[f.color] || colorMap.violet;
+  return `
+  <button onclick="toggleFilter('${f.id}')" class="filter-chip inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all ${on ? onCls+' shadow-md' : offCls}">
+    <i class="${f.icon} text-[10px]"></i>
+    <span>${f.label}</span>
+    ${on ? '<i class="fa-solid fa-xmark text-[9px] opacity-80 ml-0.5"></i>' : ''}
+  </button>`;
+}).join('');
 $('deskChips').innerHTML=h; $('mobChips').innerHTML=h;
 const hasFilter=filters.length>0||sortMode!=='def';
 $('clrFilters').style.opacity=hasFilter?'1':'0';
@@ -1274,15 +1296,62 @@ window.saveCustomApp = function() {
 };
 
 window.deleteCustomApp = function(name) {
-  if(!confirm(`"${name}" ni o'chirib tashlaysizmi?`)) return;
-  customApps = customApps.filter(a=>a.n!==name);
-  localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-  const cat = DATA.find(c=>c.id==='my_apps');
-  if(cat) cat.items=customApps;
-  favorites=favorites.filter(n=>n!==name);
-  localStorage.setItem('lh_favs',JSON.stringify(favorites));
-  showToast("Ilova o'chirildi","fa-trash text-red-500");
-  renderNav(); renderContent();
+  // Custom confirm modal — browser confirm() o'rniga
+  const existing = document.getElementById('deleteConfirmModal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'deleteConfirmModal';
+  modal.className = 'fixed inset-0 z-[600] flex items-center justify-center px-4';
+  modal.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="deleteModalBg"></div>
+    <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xs p-6 border border-slate-200 dark:border-slate-700 transform scale-95 opacity-0 transition-all duration-200" id="deleteModalBox">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mb-4">
+          <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
+        </div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white mb-1">O'chirib tashlaysizmi?</h3>
+        <p class="text-[12px] text-slate-400 leading-relaxed mb-5">
+          <span class="font-bold text-slate-600 dark:text-slate-300">"${name}"</span> shaxsiy ro'yxatingizdan o'chiriladi
+        </p>
+        <div class="flex gap-2.5 w-full">
+          <button id="deleteCancelBtn" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            Bekor qilish
+          </button>
+          <button id="deleteConfirmBtn" class="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors shadow-lg shadow-red-500/25 active:scale-[0.97]">
+            <i class="fa-solid fa-trash-can mr-1.5 text-xs"></i> O'chirish
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const box = document.getElementById('deleteModalBox');
+  const close = () => {
+    box.classList.add('scale-95','opacity-0');
+    setTimeout(() => modal.remove(), 180);
+  };
+
+  setTimeout(() => {
+    box.classList.remove('scale-95','opacity-0');
+    box.classList.add('scale-100','opacity-100');
+  }, 10);
+
+  document.getElementById('deleteCancelBtn').onclick = close;
+  document.getElementById('deleteModalBg').onclick = close;
+  document.getElementById('deleteConfirmBtn').onclick = () => {
+    close();
+    setTimeout(() => {
+      customApps = customApps.filter(a=>a.n!==name);
+      localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+      const cat = DATA.find(c=>c.id==='my_apps');
+      if(cat) cat.items = customApps;
+      favorites = favorites.filter(n=>n!==name);
+      localStorage.setItem('lh_favs', JSON.stringify(favorites));
+      showToast("Ilova o'chirildi", "fa-trash text-red-500");
+      renderNav(); renderContent();
+    }, 200);
+  };
 };
 
 
