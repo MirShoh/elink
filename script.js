@@ -11,79 +11,68 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  🌐 COUNTERAPI — Firebase siz, oddiy fetch orqali global klik
-//  Hech qanday config, account yoki library kerak emas!
-//  https://api.counterapi.dev/v1/{ns}/{key}/up  →  { "value": 42 }
+//  🌐 COUNTERAPI — hech qanday config, library, account kerak emas
+//  Bitta so'rovda BARCHA kliklar — cross-device real global statistika
 // ═══════════════════════════════════════════════════════════
-const COUNTER_NS = 'elink-uz-v1'; // o'zingiz xohlagan nom
+const COUNTER_NS = 'elink-uz-v1';
+const COUNTER_BASE = `https://api.counterapi.dev/v1/${COUNTER_NS}`;
 
-// Global klik cache — lokaldan yuklanadi, API dan yangilanadi
-let globalClicks = safeParse('lh_clicks', {});
+// Xotira: { "Payme": 42, "Click": 17, ... }
+let globalClicks = {};
 
-// Key ni API uchun tozalash (harflar, raqamlar, defis faqat)
+// Nom → API key: kichik harf, faqat harf/raqam/defis, max 60 ta
 function toKey(name){
-return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g,'').slice(0,60) || 'item';
+return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'item';
 }
 
-// API klikni oshiradi VA yangi global qiymatni qaytaradi
-async function apiIncrement(name){
+// BITTA SO'ROV bilan barcha namespace kliklarini yuklash
+// CounterAPI: GET /v1/{ns} → { "items": [{ "key":"payme","value":42 }, ...] }
+// Agar namespace endpoint ishlamasa → individual fallback
+async function fetchAllClicks(){
 try {
-  const res = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/${toKey(name)}/up`);
-  if(!res.ok) return null;
-  const data = await res.json();
-  return data.value ?? null;
-} catch(e){ return null; }
+  const res = await fetch(`${COUNTER_BASE}`);
+  if(res.ok){
+    const data = await res.json();
+    // items massivini name→count ga aylantirish
+    const map = {};
+    (data.items || data.counters || []).forEach(item => {
+      const key = item.key || item.name || '';
+      map[key] = item.value || item.count || 0;
+    });
+    // Har bir resurs nomini key orqali moslashtirish
+    DATA.forEach(c => c.items.forEach(i => {
+      const k = toKey(i.n);
+      if(map[k] !== undefined) globalClicks[i.n] = map[k];
+    }));
+    return true;
+  }
+} catch(e){}
+return false;
 }
 
-// API dan joriy qiymatni olish (yuklanishda top resurslar uchun)
-async function apiFetch(name){
-try {
-  const res = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/${toKey(name)}/get`);
-  if(!res.ok) return null;
-  const data = await res.json();
-  return data.value ?? null;
-} catch(e){ return null; }
-}
-
-// Sahifa ochilganda BARCHA resurslar hisobini CounterAPI dan yuklash
-// — 10 daqiqa cache bilan, yangi brauzerda ham haqiqiy raqamlar ko'rinadi
+// Sahifa ochilganda — barcha qurilmalarda bir xil raqamlar
 async function initGlobalClicks(){
-// Oldin cache ko'rsat (tez)
+const ok = await fetchAllClicks();
+if(!ok){
+  // Namespace endpoint ishlamasa: faqat avval bosilgan (localda borlar) ni olish
+  const keys = Object.keys(globalClicks);
+  if(keys.length){
+    const results = await Promise.allSettled(
+      keys.map(name => fetch(`${COUNTER_BASE}/${toKey(name)}/get`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => d ? { name, val: d.value||0 } : null)
+        .catch(()=>null))
+    );
+    results.forEach(r => {
+      if(r.status==='fulfilled' && r.value)
+        globalClicks[r.value.name] = r.value.val;
+    });
+  }
+}
+// UI ni yangilash
+Object.entries(globalClicks).forEach(([name, count]) => _updateCountEl(name, count));
 renderTrending();
 updateSidebarStats();
-
-// Cache 10 daqiqadan yangi bo'lsa — API ga urinma
-const ts = parseInt(localStorage.getItem('lh_clicks_ts') || '0');
-if(Date.now() - ts < 10 * 60 * 1000) return;
-
-// Barcha resurs nomlarini yig'ish
-const allNames = [];
-DATA.forEach(c => {
-  if(c.id !== 'my_apps') c.items.forEach(i => allNames.push(i.n));
-});
-
-// Hammasi parallel — HTTP/2 tufayli juda tez (~1-2s)
-const results = await Promise.allSettled(
-  allNames.map(async name => ({ name, val: await apiFetch(name) }))
-);
-
-let changed = false;
-results.forEach(r => {
-  if(r.status === 'fulfilled' && r.value.val > 0){
-    if(globalClicks[r.value.name] !== r.value.val){
-      globalClicks[r.value.name] = r.value.val;
-      _updateCountEl(r.value.name, r.value.val);
-      changed = true;
-    }
-  }
-});
-
-localStorage.setItem('lh_clicks_ts', Date.now().toString());
-if(changed){
-  localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
-  renderTrending();
-  updateSidebarStats();
-}
 }
 
 // DOM dagi klik elementini yangilash
@@ -515,26 +504,31 @@ return `<img src="${logoUrl}" alt="${item.n}" loading="lazy" class="${cls} trans
 }
 
 // ═══════════════════════════════════════════════════════════
-//  CLICK TRACKING — CounterAPI (global) + localStorage (tezlik)
+//  CLICK TRACKING — optimistic UI + CounterAPI global sync
 // ═══════════════════════════════════════════════════════════
 function getClicks(name){
 return globalClicks[name] || 0;
 }
 
 function addClick(name){
-// 1. Lokal darhol oshir (UI tez yangilansin)
+// 1. Optimistic: UI ni darhol oshir
 globalClicks[name] = (globalClicks[name]||0) + 1;
-localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
 _updateCountEl(name, globalClicks[name]);
-// 2. API ga yuborib haqiqiy global qiymatni olish
-apiIncrement(name).then(val => {
-  if(val !== null && val !== globalClicks[name]){
-    globalClicks[name] = val;
-    localStorage.setItem('lh_clicks', JSON.stringify(globalClicks));
-    _updateCountEl(name, val);
-    updateSidebarStats();
-  }
-});
+renderTrending();
+updateSidebarStats();
+
+// 2. API ga /up so'rov — server haqiqiy global qiymat qaytaradi
+fetch(`${COUNTER_BASE}/${toKey(name)}/up`)
+  .then(r => r.ok ? r.json() : null)
+  .then(d => {
+    if(d && d.value !== undefined){
+      globalClicks[name] = d.value;
+      _updateCountEl(name, d.value);
+      updateSidebarStats();
+    }
+  })
+  .catch(()=>{});
+
 // 3. So'nggi ko'rilganlar
 let foundItem = null;
 DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) foundItem=i; }));
