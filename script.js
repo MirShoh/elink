@@ -10,14 +10,6 @@ function safeParse(key, fallback) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  🗄️ SUPABASE CONFIG — cross-device haqiqiy global statistika
-//  1) supabase.com → New project
-//  2) SQL Editor → quyidagi so'rovni ishga tushiring (README ga qarang)
-//  3) Project Settings → API → URL va anon key ni quyiga yozing
-// ═══════════════════════════════════════════════════════════
-// ── Barcha maxfiy kalitlar Netlify Functions orqali yashiringan ──
-// GitHub'da hech qanday kalit yo'q — xavfsiz! ✅
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
 async function sendTelegram(text){
@@ -29,8 +21,6 @@ async function sendTelegram(text){
     });
   } catch(e){ console.warn('[TG]', e.message); }
 }
-
-// SUPA_H endi kerak emas — proxy function barcha headerni o'zi qo'shadi
 
 // Xotira
 let globalClicks = {};
