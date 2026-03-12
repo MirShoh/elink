@@ -95,7 +95,7 @@ let customApps = safeParse('lh_custom_apps', []);
 const DATA = [
 {id:'my_apps', title:"🛠️ Shaxsiy Ilovalarim", icon:"fa-folder-plus", gr:"from-slate-500 to-gray-500", items:customApps},
 
-{id:'uzbekistan',title:"🇺🇿 O'zbekiston (Mahalliy)",icon:"fa-star-and-crescent",gr:"from-blue-600 to-emerald-500",
+{id:'uzbekistan',title:"O'zbekiston (Mahalliy)",icon:"fa-star-and-crescent",gr:"from-blue-600 to-emerald-500",
 items:[
 {n:"Payme", u:"https://payme.uz/", d:"Ishonchli to'lovlar va o'tkazmalar", t:['uz','bepul','web','mobil'],v:true},
 {n:"Click", u:"https://click.uz/", d:"Tezkor to'lov tizimi va keshbeklar", t:['uz','bepul','web','mobil'],v:true},
@@ -149,7 +149,7 @@ items:[
 {n:"Uztelecom", u:"https://uztelecom.uz/", d:"Milliy operator aloqa va internet xizmati", t:['uz','bepul','mobil']}
 ]},
 
-{id:'ai_chat',title:"🤖 AI Chat va Qidiruv",icon:"fa-robot",gr:"from-indigo-500 to-blue-500",
+{id:'ai_chat',title:"AI Chat va Qidiruv",icon:"fa-robot",gr:"from-indigo-500 to-blue-500",
 items:[
 {n:"ChatGPT", u:"https://chatgpt.com/", d:"Eng mashhur va ko'p funksiyali aqlli AI yordamchi", t:['dunyo','bepul','web','mobil'],v:true},
 {n:"Gemini", u:"https://gemini.google.com/", d:"Google'ning so'nggi kuchli multimodal modeli", t:['dunyo','bepul','web','mobil']},
@@ -180,7 +180,7 @@ items:[
 {n:"Phind", u:"https://www.phind.com/", d:"Dasturchilar uchun kod xatolarini izlovchi maxsus qidiruv", t:['dunyo','bepul','web']}
 ]},
 
-{id:'ai_image',title:"🎨 AI Rasm va Dizayn",icon:"fa-image",gr:"from-pink-500 to-rose-500",
+{id:'ai_image',title:"AI Rasm va Dizayn",icon:"fa-image",gr:"from-pink-500 to-rose-500",
 items:[
 {n:"Midjourney", u:"https://www.midjourney.com/", d:"Dunyodagi eng san'atkorona va chiroyli rasm AI", t:['dunyo','pullik','web']},
 {n:"Designer", u:"https://designer.microsoft.com/", d:"Microsoft DALL-E yordamida tekin rasm generatsiyasi", t:['dunyo','bepul','web']},
@@ -207,7 +207,7 @@ items:[
 {n:"InvokeAI", u:"https://invoke.com/", d:"Studio mutaxassislari uchun maxsus rasm arxitekturasi", t:['dunyo','pullik','web']}
 ]},
 
-{id:'ai_media',title:"🎬 AI Video va Audio",icon:"fa-film",gr:"from-fuchsia-500 to-purple-500",
+{id:'ai_media',title:"AI Video va Audio",icon:"fa-film",gr:"from-fuchsia-500 to-purple-500",
 items:[
 {n:"Runway", u:"https://runwayml.com/", d:"Kino va reklama darajasidagi AI video generatori (Gen-3)", t:['dunyo','bepul','web']},
 {n:"Hedra video", u:"https://www.hedra.com/", d:"Rasmdagi yuzlarni va xarakterlarni gapirtiradigan vosita", t:['dunyo','bepul','web']},
@@ -234,7 +234,7 @@ items:[
 {n:"Kaiber", u:"https://kaiber.ai/", d:"Rasmlarni musiqaga moslab psixodelik videolarga o'girish", t:['dunyo','pullik','web']}
 ]},
 
-{id:'developer',title:"💻 Dasturlash va Web",icon:"fa-code",gr:"from-cyan-500 to-blue-600",
+{id:'developer',title:"Dasturlash va Web",icon:"fa-code",gr:"from-cyan-500 to-blue-600",
 items:[
 {n:"Lovable | Sayt va MVP", u:"https://lovable.dev/", d:"AI bilan bir zumda dizayn va kodni ishga tushirish", t:['dunyo','bepul','web']},
 {n:"Cursor", u:"https://cursor.sh/", d:"Yangi avlod, ichiga kuchli AI o'rnatilgan kod yozish dasturi", t:['dunyo','bepul','web']},
@@ -265,7 +265,7 @@ items:[
 {n:"PlanetScale", u:"https://planetscale.com/", d:"Uzilishlarsiz ishlovchi va katta tezlikdagi MySQL bazasi", t:['dunyo','bepul','web']}
 ]},
 
-{id:'business',title:"💼 Biznes va SMM",icon:"fa-chart-line",gr:"from-orange-500 to-red-500",
+{id:'business',title:"Biznes va SMM",icon:"fa-chart-line",gr:"from-orange-500 to-red-500",
 items:[
 {n:"SMM AI", u:"https://predis.ai/", d:"Biznesingiz uchun tayyor ijtimoiy tarmoq postlari va g'oyalar", t:['dunyo','bepul','web']},
 {n:"Notion", u:"https://www.notion.so/", d:"Kompaniya xodimlari uchun yagona ish joyi, ro'yxat va maqolalar", t:['dunyo','bepul','web','mobil']},
@@ -290,7 +290,7 @@ items:[
 {n:"Airtable", u:"https://airtable.com/", d:"Excel kabi ko'rinishga ega qudratli relyatsion baza va dastur", t:['dunyo','bepul','web']}
 ]},
 
-{id:'design',title:"🖌️ Dizayn va Kreativ",icon:"fa-palette",gr:"from-rose-500 to-pink-500",
+{id:'design',title:"Dizayn va Kreativ",icon:"fa-palette",gr:"from-rose-500 to-pink-500",
 items:[
 {n:"Behance", u:"https://www.behance.net/", d:"Dunyodagi eng kuchli dizaynerlar portfoliosi va kesyslar portali", t:['dunyo','bepul','web','mobil']},
 {n:"Pinterest", u:"https://www.pinterest.com/", d:"Barcha mavzulardagi rasm, g'oya, va vizual ilhomlar izlash uchun", t:['dunyo','bepul','web','mobil']},
@@ -315,7 +315,7 @@ items:[
 {n:"ColorHunt", u:"https://colorhunt.co/", d:"Mutaxassislar tomonidan tanlangan palitralarning eng didli variantlari", t:['dunyo','bepul','web']}
 ]},
 
-{id:'mobile_apps',title:"📱 Top Mobil Ilovalar",icon:"fa-mobile-screen-button",gr:"from-yellow-500 to-amber-500",
+{id:'mobile_apps',title:"Top Mobil Ilovalar",icon:"fa-mobile-screen-button",gr:"from-yellow-500 to-amber-500",
 items:[
 {n:"Telegram", u:"https://telegram.org/", d:"Eng tezkor va fayllar uzatish bo'yicha kuchli chat va messenjer", t:['dunyo','bepul','mobil']},
 {n:"WhatsApp", u:"https://www.whatsapp.com/", d:"Butun dunyo bo'ylab ommabop, ishonchli xabarlar va aloqa vositasi", t:['dunyo','bepul','mobil']},
@@ -343,7 +343,7 @@ items:[
 {n:"Netflix", u:"https://www.netflix.com/", d:"Eng shov shuvli seriallar, kinolar, eksklyuziv loyihalarning pullik videoxostingi", t:['dunyo','pullik','mobil']}
 ]},
 
-{id:'productivity',title:"🧠 Ish va O'qish",icon:"fa-brain",gr:"from-orange-500 to-amber-500",
+{id:'productivity',title:"Ish va O'qish",icon:"fa-brain",gr:"from-orange-500 to-amber-500",
 items:[
 {n:"ChatPDF", u:"https://www.chatpdf.com/", d:"Kitob va hujjatlaringiz (PDF) mazmuni bilan savol-javob qilish roboti", t:['dunyo','bepul','web']},
 {n:"QuillBot", u:"https://quillbot.com/", d:"Ingliz tilidagi yozilgan gap va insholarni xatosini to'g'rilab sinonimlaydi", t:['dunyo','bepul','web']},
@@ -373,7 +373,7 @@ items:[
 {n:"GoodNotes", u:"https://www.goodnotes.com/", d:"Stylus bilan konspektlar va iPad planhetlarida raqamli varoqlarni dars uchun yozish", t:['dunyo','pullik','mobil']}
 ]},
 
-{id:'crypto_finance',title:"💰 Kripto va Moliya",icon:"fa-bitcoin-sign",gr:"from-green-500 to-emerald-600",
+{id:'crypto_finance',title:"Kripto va Moliya",icon:"fa-bitcoin-sign",gr:"from-green-500 to-emerald-600",
 items:[
 {n:"Binance", u:"https://www.binance.com/", d:"Trillionlab valyuta aylanadigan dunyodagi eng yirik va xavfsiz kriptovalyuta birjasi", t:['dunyo','bepul','web','mobil']},
 {n:"CoinMarketCap", u:"https://coinmarketcap.com/", d:"Har bir chiqqan kriptovalyuta, token grafiki, narxi va kapitalizatsiya analitika o'chog'i", t:['dunyo','bepul','web','mobil']},
@@ -400,7 +400,7 @@ items:[
 {n:"CoinDesk", u:"https://www.coindesk.com/", d:"Butun Kripto texnologiya hamda Web3 sohalariga ixtisoslashgan markaziy jurnal va axborot yig'indisi", t:['dunyo','bepul','web']}
 ]},
 
-{id:'tools',title:"🔧 Kundalik Vositalar",icon:"fa-toolbox",gr:"from-sky-500 to-indigo-500",
+{id:'tools',title:"Kundalik Vositalar",icon:"fa-toolbox",gr:"from-sky-500 to-indigo-500",
 items:[
 {n:"DeepL", u:"https://www.deepl.com/", d:"Aksariyat insoniyat tarjimasidan aniqroq ishlangan neyron tarmoqli dunyoning eng zo'r AI mutaxassis tarjimoni", t:['dunyo','bepul','web','mobil']},
 {n:"PDF24", u:"https://www.pdf24.org/", d:"Boshqa servislar kabi pul so'ramaydigan cheksiz PDF o'qish, siqish, burish va tahrirlash platformasi 100% bepul", t:['dunyo','bepul','web']},
@@ -426,7 +426,7 @@ items:[
 {n:"Geogebra", u:"https://www.geogebra.org/", d:"Mantiqiy, Geometriya, algebra statistika muammolari va harakatlanuvchi shakllarni sintez integratsiya qilib o'rganish vositasi ta'lim sohasining yirik ustuni", t:['dunyo','bepul','web']}
 ]},
 
-{id:'security',title:"🔒 Xavfsizlik va VPN",icon:"fa-shield-halved",gr:"from-slate-600 to-slate-900",
+{id:'security',title:"Xavfsizlik va VPN",icon:"fa-shield-halved",gr:"from-slate-600 to-slate-900",
 items:[
 {n:"Bitwarden", u:"https://bitwarden.com/", d:"Butunlay tekin bulut saqlovchi va Open-source (Ochiq manba) kod orqali barcha qulaylikka ega eng mukammal super xavfsiz parollar va avtoform menejeri", t:['dunyo','bepul','web','mobil']},
 {n:"ProtonVPN", u:"https://protonvpn.com/", d:"Shveysariya qattiq xavfsizlik maxfiylik qonuniy standartiga javob beruvchi dunyodagi eng toza ma'lumot saqlamaydigan, kuchli tekin cheksiz trafiklik VPN xizmati", t:['dunyo','bepul','web','mobil']},
