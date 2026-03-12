@@ -113,7 +113,10 @@ tailwind.config={
   <div class="flex-1 overflow-y-auto px-3 pb-3 space-y-px" id="sidebarNav"></div>
 
   <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
-   
+    <!-- Taklif qilish -->
+    <button onclick="openSuggestModal()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
+      <i class="fa-solid fa-lightbulb"></i> Resurs taklif qilish
+    </button>
     <button id="themeBtn" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
       <i id="themeIco" class="fa-solid fa-moon"></i>
       <span id="themeTxt">Tungi rejim</span>
@@ -192,6 +195,9 @@ tailwind.config={
           </select>
           <button id="shareBtnDesk" class="flex items-center gap-2 bg-slate-900 dark:bg-violet-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg">
             <i class="fa-solid fa-share-nodes"></i> Ulashish
+          </button>
+          <button onclick="openSuggestModal()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg shadow-emerald-500/20">
+            <i class="fa-solid fa-lightbulb"></i> Taklif qilish
           </button>
         </div>
       </div>
@@ -296,6 +302,89 @@ tailwind.config={
       <i class="fa-solid fa-xmark text-sm"></i>
     </button>
     <div id="platModalBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ REPORT MODAL ═══════════════════════ -->
+<div id="reportModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReportModal()"></div>
+  <div id="reportModalContent" class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700">
+    <button onclick="closeReportModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center"><i class="fa-solid fa-xmark text-sm"></i></button>
+
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-400/30 shrink-0">
+        <i class="fa-solid fa-triangle-exclamation text-base"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Muammo bildirish</h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Sayt ishlamayotganini xabar bering</p>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3.5 py-2.5 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-globe text-violet-400 text-xs shrink-0"></i>
+      <span id="reportSiteName" class="font-bold text-sm text-slate-800 dark:text-white truncate"></span>
+    </div>
+    <input type="hidden" id="reportSiteUrl">
+    <input type="hidden" id="reportSiteNameHidden">
+
+    <div class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Muammo turi</label>
+        <div class="grid grid-cols-2 gap-2" id="reportReasonBtns">
+          <button type="button" onclick="selectReason(this,'Sayt ochilmayapti')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔴 Sayt ochilmayapti</button>
+          <button type="button" onclick="selectReason(this,'Sekin ishlayapti')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🐢 Sekin ishlayapti</button>
+          <button type="button" onclick="selectReason(this,'Xato URL')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔗 Xato URL</button>
+          <button type="button" onclick="selectReason(this,'Boshqa muammo')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">❓ Boshqa muammo</button>
+        </div>
+        <input type="hidden" id="reportReason">
+      </div>
+    </div>
+
+    <button id="reportSubmitBtn" onclick="submitReport()" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl py-3 transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98] text-sm">
+      <i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SUGGEST MODAL ═══════════════════════ -->
+<div id="suggestModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeSuggestModal()"></div>
+  <div id="suggestModalContent" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+    <button onclick="closeSuggestModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>
+
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-400/30 shrink-0">
+        <i class="fa-solid fa-lightbulb text-base"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Resurs taklif qilish</h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Foydali saytni hamjamiyatga qo'shing</p>
+      </div>
+    </div>
+
+    <div class="space-y-3.5">
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sayt / Ilova nomi <span class="text-red-400">*</span></label>
+        <input type="text" id="suggestName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Zoodpay">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">URL manzil <span class="text-red-400">*</span></label>
+        <input type="url" id="suggestUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
+        <input type="text" id="suggestDesc" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Bu sayt nima uchun foydali?">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Telegram / Telefon (ixtiyoriy)</label>
+        <input type="text" id="suggestContact" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="@username yoki +998...">
+      </div>
+      <button id="suggestSubmitBtn" onclick="submitSuggest()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] text-sm">
+        <i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish
+      </button>
+      <p class="text-[10px] text-slate-400 text-center leading-relaxed">Taklifingiz ko'rib chiqilgach, ma'qullansa katalogga qo'shiladi</p>
+    </div>
   </div>
 </div>
 

@@ -174,3 +174,23 @@ mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2
   border-radius:14px;
 }
 .dark #scrollTop{box-shadow:0 8px 24px rgba(0,0,0,.4),0 2px 8px rgba(139,92,246,.4)}
+
+/* ── VERIFIED ICON (inline next to name) ── */
+.fa-circle-check[title]{cursor:default}
+
+
+/* ── REASON BUTTON SELECTED ── */
+.reason-btn{transition:all .15s;cursor:pointer}
+.reason-btn.active{border-color:#f59e0b;color:#d97706;background:rgba(254,243,199,.8)}
+.dark .reason-btn.active{background:rgba(245,158,11,.1)}
+/* ── ADD CARD (Shaxsiy ro'yxatdagi + karta) ── */
+.add-card{
+  background:rgba(139,92,246,.04);
+  transition:background .2s,border-color .2s,transform .2s;
+}
+.dark .add-card{background:rgba(139,92,246,.06)}
+.add-card:hover{
+  background:rgba(139,92,246,.08);
+  transform:translateY(-2px);
+}
+.dark .add-card:hover{background:rgba(139,92,246,.12)}

@@ -16,8 +16,26 @@ function safeParse(key, fallback) {
 //  2) SQL Editor → quyidagi so'rovni ishga tushiring (README ga qarang)
 //  3) Project Settings → API → URL va anon key ni quyiga yozing
 // ═══════════════════════════════════════════════════════════
-const SUPA_URL = 'https://ejlpdmbplwgplsbwjhaq.supabase.co';   // https://xxxx.supabase.co
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqbHBkbWJwbHdncGxzYndqaGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjM4NTAsImV4cCI6MjA4ODgzOTg1MH0.mHDQxGb6NdNuk-3le1oeaBNZTBFe77d4WXj3lptxuoY';       // eyJhbGci...
+const SUPA_URL = 'https://ejlpdmbplwgplsbwjhaq.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqbHBkbWJwbHdncGxzYndqaGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjM4NTAsImV4cCI6MjA4ODgzOTg1MH0.mHDQxGb6NdNuk-3le1oeaBNZTBFe77d4WXj3lptxuoY';
+
+// ── Telegram Bot xabarnomasi ──────────────────────────────
+// 1. @BotFather da bot yarating → TOKEN oling
+// 2. Botga /start yuboring, so'ng: https://api.telegram.org/bot<TOKEN>/getUpdates → chat id oling
+const TG_TOKEN = '8245236617:AAFmzS6RaNyhcUmKzfGWLvmMaidakhBz1lY';   // 'bot123456:ABC-...'  ← shu yerga yozing
+const TG_CHAT  = '697775505';   // '-100xxxxxxx'  yoki shaxsiy chat id
+
+async function sendTelegram(text){
+  if(!TG_TOKEN || !TG_CHAT) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: TG_CHAT, text, parse_mode:'HTML', disable_web_page_preview:true })
+    });
+  } catch(e){ console.warn('[TG]', e.message); }
+}
+// ─────────────────────────────────────────────────────────
 
 const SUPA_H = {
 'apikey': SUPA_KEY,
@@ -79,19 +97,19 @@ const DATA = [
 
 {id:'uzbekistan',title:"🇺🇿 O'zbekiston (Mahalliy)",icon:"fa-star-and-crescent",gr:"from-blue-600 to-emerald-500",
 items:[
-{n:"Payme", u:"https://payme.uz/", d:"Ishonchli to'lovlar va o'tkazmalar", t:['uz','bepul','web','mobil']},
-{n:"Click", u:"https://click.uz/", d:"Tezkor to'lov tizimi va keshbeklar", t:['uz','bepul','web','mobil']},
-{n:"Uzum Market", u:"https://uzum.uz/", d:"1 kunda bepul yetkazib beriladigan market", t:['uz','bepul','web','mobil']},
+{n:"Payme", u:"https://payme.uz/", d:"Ishonchli to'lovlar va o'tkazmalar", t:['uz','bepul','web','mobil'],v:true},
+{n:"Click", u:"https://click.uz/", d:"Tezkor to'lov tizimi va keshbeklar", t:['uz','bepul','web','mobil'],v:true},
+{n:"Uzum Market", u:"https://uzum.uz/", d:"1 kunda bepul yetkazib beriladigan market", t:['uz','bepul','web','mobil'],v:true},
 {n:"Uzum Nasiya", u:"https://uzumnasiya.uz/", d:"Muddatli to'lovga muddatli xaridlar qilish", t:['uz','bepul','mobil']},
 {n:"Uzum Tezkor", u:"https://tezkor.uzum.uz/", d:"Oziq-ovqat va taomlarni tezkor yetkazib berish", t:['uz','bepul','mobil']},
 {n:"Mutolaa", u:"https://mutolaa.uz/", d:"Kitoblar va audiokitoblar milliy platformasi", t:['uz','bepul','web','mobil']},
 {n:"Ustoz AI", u:"https://ustoz.ai/", d:"O'zbek tilidagi mukammal ta'lim yordamchisi", t:['uz','bepul','web']},
 {n:"Ibrat academy", u:"https://ibrat.uz/", d:"Xorijiy tillarni bepul o'rganish loyihasi", t:['uz','bepul','web','mobil']},
 {n:"Bek va lola", u:"https://bekvalola.uz/", d:"Bolalar kiyimlari va o'yinchoqlar online do'koni", t:['uz','bepul','web','mobil']},
-{n:"My.gov.uz", u:"https://my.gov.uz/", d:"Yagona elektron davlat xizmatlari", t:['uz','bepul','web','mobil']},
+{n:"My.gov.uz", u:"https://my.gov.uz/", d:"Yagona elektron davlat xizmatlari", t:['uz','bepul','web','mobil'],v:true},
 {n:"MyTaxi", u:"https://mytaxi.uz/", d:"Milliy taksi va yetkazib berish xizmati", t:['uz','bepul','mobil']},
-{n:"eMaktab", u:"https://emaktab.uz/", d:"Elektron kundalik va raqamli ta'lim tizimi", t:['uz','bepul','web','mobil']},
-{n:"Soliq.uz", u:"https://soliq.uz/", d:"Soliq xizmatlari, keshbek va hisobotlar", t:['uz','bepul','web','mobil']},
+{n:"eMaktab", u:"https://emaktab.uz/", d:"Elektron kundalik va raqamli ta'lim tizimi", t:['uz','bepul','web','mobil'],v:true},
+{n:"Soliq.uz", u:"https://soliq.uz/", d:"Soliq xizmatlari, keshbek va hisobotlar", t:['uz','bepul','web','mobil'],v:true},
 {n:"OLX.uz", u:"https://www.olx.uz/", d:"Eng yirik bepul e'lonlar doskasi", t:['uz','bepul','web','mobil']},
 {n:"Humans.uz", u:"https://humans.uz/", d:"Milliy mobil operator va keshbek bank", t:['uz','bepul','web','mobil']},
 {n:"Macbro", u:"https://macbro.uz/", d:"Apple texnika va gadjetlar premium do'koni", t:['uz','bepul','web']},
@@ -105,7 +123,7 @@ items:[
 {n:"TBC Bank", u:"https://tbcbank.uz/", d:"Raqamli mikromoliya va innovatsion bank xizmati", t:['uz','bepul','mobil']},
 {n:"Kapitalbank", u:"https://kapitalbank.uz/", d:"Xususiy aksiyadorlik tijorat banki ilovasi", t:['uz','bepul','mobil']},
 {n:"Ipak Yuli Mobile", u:"https://ipakyulibank.uz/", d:"Ipak yuli bankining zamonaviy mobil ilovasi", t:['uz','bepul','mobil']},
-{n:"Kun.uz", u:"https://kun.uz/", d:"O'zbekistonning eng yirik yangiliklar portali", t:['uz','bepul','web','mobil']},
+{n:"Kun.uz", u:"https://kun.uz/", d:"O'zbekistonning eng yirik yangiliklar portali", t:['uz','bepul','web','mobil'],v:true},
 {n:"Daryo.uz", u:"https://daryo.uz/", d:"Milliy media va tezkor yangiliklar portali", t:['uz','bepul','web','mobil']},
 {n:"Gazeta.uz", u:"https://www.gazeta.uz/", d:"Ijtimoiy-iqtisodiy ob'ektiv tahliliy yangiliklar", t:['uz','bepul','web']},
 {n:"Qalampir.uz", u:"https://qalampir.uz/", d:"Siyosiy va jamiyatga oid qaynoq yangiliklar", t:['uz','bepul','web']},
@@ -114,18 +132,18 @@ items:[
 {n:"Afisha.uz", u:"https://afisha.uz/", d:"Toshkent tadbirlari va kino, teatr afishasi", t:['uz','bepul','web']},
 {n:"Ticketon.uz", u:"https://ticketon.uz/", d:"Konsert, teatr va sport chiptalariga buyurtma", t:['uz','bepul','web']},
 {n:"iTicket.uz", u:"https://iticket.uz/", d:"Elektron tadbir chiptalari xarid qilish portali", t:['uz','bepul','web']},
-{n:"UzAuto Tickets", u:"https://uzavtotrans.uz/", d:"Avtobus chiptalarini onlayn xarid qilish xizmati", t:['uz','bepul','web']},
-{n:"UzRailways", u:"https://chipta.railway.uz/", d:"Poyezd chiptalarini elektron onlayn bron qilish", t:['uz','bepul','web']},
+{n:"UzAuto Tickets", u:"https://uzavtotrans.uz/", d:"Avtobus chiptalarini onlayn xarid qilish xizmati", t:['uz','bepul','web'],v:true},
+{n:"UzRailways", u:"https://chipta.railway.uz/", d:"Poyezd chiptalarini elektron onlayn bron qilish", t:['uz','bepul','web'],v:true},
 {n:"Makro", u:"https://makromarket.uz/", d:"Oziq-ovqat va mahsulotlar supermarketlar tarmog'i", t:['uz','bepul','web']},
 {n:"Korzinka", u:"https://korzinka.uz/", d:"Supermarketlar tarmog'i va onlayn yetkazib berish", t:['uz','bepul','web']},
-{n:"ZiyoNET", u:"https://ziyonet.uz/", d:"Ta'limga oid milliy elektron resurslar tarmog'i", t:['uz','bepul','web']},
-{n:"Lex.uz", u:"https://lex.uz/", d:"O'zbekiston Respublikasi qonun hujjatlari bazasi", t:['uz','bepul','web']},
-{n:"Xarid.uz", u:"https://xarid.uzex.uz/", d:"Davlat xaridlari shaffof elektron portali", t:['uz','bepul','web']},
-{n:"E-qaror", u:"https://e-qaror.gov.uz/", d:"Hokimlik qarorlari ochiq elektron portali", t:['uz','bepul','web']},
-{n:"Mening Fikrim", u:"https://meningfikrim.uz/", d:"Jamoaviy jamoat murojaatlari ochiq portali", t:['uz','bepul','web']},
-{n:"Dtm.uz", u:"https://uzbmb.uz/", d:"Bilim va malakalarni baholash agentligi (Sobiq DTM)", t:['uz','bepul','web']},
-{n:"Hemis", u:"https://hemis.uz/", d:"Oliy ta'lim tizimi va talabalar platformasi", t:['uz','bepul','web']},
-{n:"Dmed.uz", u:"https://dmed.uz/", d:"Sog'liqni saqlash vazirligi rasmiy portali", t:['uz','bepul','web']},
+{n:"ZiyoNET", u:"https://ziyonet.uz/", d:"Ta'limga oid milliy elektron resurslar tarmog'i", t:['uz','bepul','web'],v:true},
+{n:"Lex.uz", u:"https://lex.uz/", d:"O'zbekiston Respublikasi qonun hujjatlari bazasi", t:['uz','bepul','web'],v:true},
+{n:"Xarid.uz", u:"https://xarid.uzex.uz/", d:"Davlat xaridlari shaffof elektron portali", t:['uz','bepul','web'],v:true},
+{n:"E-qaror", u:"https://e-qaror.gov.uz/", d:"Hokimlik qarorlari ochiq elektron portali", t:['uz','bepul','web'],v:true},
+{n:"Mening Fikrim", u:"https://meningfikrim.uz/", d:"Jamoaviy jamoat murojaatlari ochiq portali", t:['uz','bepul','web'],v:true},
+{n:"Dtm.uz", u:"https://uzbmb.uz/", d:"Bilim va malakalarni baholash agentligi (Sobiq DTM)", t:['uz','bepul','web'],v:true},
+{n:"Hemis", u:"https://hemis.uz/", d:"Oliy ta'lim tizimi va talabalar platformasi", t:['uz','bepul','web'],v:true},
+{n:"Dmed.uz", u:"https://dmed.uz/", d:"Sog'liqni saqlash vazirligi rasmiy portali", t:['uz','bepul','web'],v:true},
 {n:"Beeline Uz", u:"https://beeline.uz/", d:"Beeline aloqa operatori shaxsiy kabineti", t:['uz','bepul','mobil']},
 {n:"Ucell", u:"https://ucell.uz/", d:"Ucell abonentlari uchun raqamli xizmatlar", t:['uz','bepul','mobil']},
 {n:"Uztelecom", u:"https://uztelecom.uz/", d:"Milliy operator aloqa va internet xizmati", t:['uz','bepul','mobil']}
@@ -133,13 +151,13 @@ items:[
 
 {id:'ai_chat',title:"🤖 AI Chat va Qidiruv",icon:"fa-robot",gr:"from-indigo-500 to-blue-500",
 items:[
-{n:"ChatGPT", u:"https://chatgpt.com/", d:"Eng mashhur va ko'p funksiyali aqlli AI yordamchi", t:['dunyo','bepul','web','mobil']},
+{n:"ChatGPT", u:"https://chatgpt.com/", d:"Eng mashhur va ko'p funksiyali aqlli AI yordamchi", t:['dunyo','bepul','web','mobil'],v:true},
 {n:"Gemini", u:"https://gemini.google.com/", d:"Google'ning so'nggi kuchli multimodal modeli", t:['dunyo','bepul','web','mobil']},
 {n:"Copilot", u:"https://copilot.microsoft.com/", d:"Microsoftning bepul internetli yordamchisi", t:['dunyo','bepul','web','mobil']},
 {n:"Claude", u:"https://claude.ai/", d:"Katta matnlar, xujjatlar va kodlash uchun ideal AI", t:['dunyo','bepul','web','mobil']},
 {n:"Grok", u:"https://grok.com/", d:"xAI tomonidan yasalgan real-vaqt ma'lumotli aqlli bot", t:['dunyo','bepul','web']},
 {n:"Perplexity", u:"https://www.perplexity.ai/", d:"Internetdan faktlarni tezkor va aniq qidiruv tizimi", t:['dunyo','bepul','web','mobil']},
-{n:"Google AI Studio", u:"https://aistudio.google.com/", d:"Eng so'nggi Gemini modellarini bepul sinash muhiti", t:['dunyo','bepul','web']},
+{n:"Google AI Studio", u:"https://aistudio.google.com/", d:"Eng so'nggi Gemini modellarini bepul sinash muhiti", t:['dunyo','bepul','web'],v:true},
 {n:"Google flow", u:"https://cloud.google.com/dialogflow", d:"Biznes uchun suhbat botlari yaratish platformasi", t:['dunyo','bepul','web']},
 {n:"Poe", u:"https://poe.com/", d:"Barcha turdagi AI modellar to'plangan bitta joy", t:['dunyo','bepul','web','mobil']},
 {n:"Mistral", u:"https://chat.mistral.ai/", d:"Evropaning eng kuchli open-source AI modeli", t:['dunyo','bepul','web']},
@@ -224,7 +242,7 @@ items:[
 {n:"v0 by Vercel", u:"https://v0.dev/", d:"Faqat matn orqali to'liq React UI va ko'rinish yasash", t:['dunyo','bepul','web']},
 {n:"Bolt.new", u:"https://bolt.new/", d:"Brauzerni yopmasdan turib Full-Stack ilovalarni kodlash", t:['dunyo','bepul','web']},
 {n:"Windsurf", u:"https://codeium.com/windsurf", d:"Mustaqil masalalarni hal qiladigan Agentik AI IDE", t:['dunyo','bepul','web']},
-{n:"GitHub", u:"https://github.com/", d:"Dunyodagi eng yirik jamoaviy va ochiq kodlar maydoni", t:['dunyo','bepul','web']},
+{n:"GitHub", u:"https://github.com/", d:"Dunyodagi eng yirik jamoaviy va ochiq kodlar maydoni", t:['dunyo','bepul','web'],v:true},
 {n:"GitLab", u:"https://about.gitlab.com/", d:"Korporativ CI/CD quvvatiga ega markazlashtirilgan repo", t:['dunyo','bepul','web']},
 {n:"Bitbucket", u:"https://bitbucket.org/", d:"Jira hamda Trello tizimlariga integratsiyalashgan bulut", t:['dunyo','bepul','web']},
 {n:"Firebase", u:"https://firebase.google.com/", d:"Autentifikatsiya, bildirishnomalar va bulutli backend", t:['dunyo','bepul','web']},
@@ -574,7 +592,7 @@ DATA.forEach(c=>{
   if(c.id !== 'my_apps') c.items.forEach(i=>{ if(getClicks(i.n)>0) all.push({...i,_cat:c}); });
 });
 all.sort((a,b)=>getClicks(b.n)-getClicks(a.n));
-const top=all.slice(0,8);
+const top=all.slice(0,7);
 const sec=$('trendingSection'), grid=$('trendingGrid');
 if(!top.length){sec.classList.add('hidden');return;}
 sec.classList.remove('hidden');
@@ -624,17 +642,18 @@ return arr;
 //  CARD HTML
 // ═══════════════════════════════════════════════════════════
 function card(item){
-const isFav    = favorites.includes(item.n);
-const isBepul  = item.t?.includes('bepul');
-const isPullik = item.t?.includes('pullik');
-const isMob    = item.t?.includes('mobil');
-const hasWeb   = item.t?.includes('web') || item.isCustom;
-const isCustom = item.isCustom;
-const q2       = query.trim();
-const c        = getClicks(item.n);
-const isHot    = c >= 5;
-const esc      = item.n.replace(/'/g,"\\'");
-const escUrl   = item.u.replace(/'/g,"\\'");
+const isFav      = favorites.includes(item.n);
+const isBepul    = item.t?.includes('bepul');
+const isPullik   = item.t?.includes('pullik');
+const isMob      = item.t?.includes('mobil');
+const hasWeb     = item.t?.includes('web') || item.isCustom;
+const isCustom   = item.isCustom;
+const isVerified = !!item.v;
+const q2         = query.trim();
+const c          = getClicks(item.n);
+const isHot      = c >= 5;
+const esc        = item.n.replace(/'/g,"\\'");
+const escUrl     = item.u.replace(/'/g,"\\'");
 
 const mainClick = (isMob || item.androidUrl)
   ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},${!!(isMob||item.androidUrl)})`
@@ -653,32 +672,31 @@ const badges = [
 return `
 <div onclick="${mainClick}" class="card glass rounded-2xl p-4 flex flex-col h-full group relative cursor-pointer">
 
-  <!-- TOP RIGHT: share + fav (+ edit/delete for custom) -->
-  <div class="absolute top-3 right-3 flex items-center gap-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-    <button onclick="event.stopPropagation();shareCard('${esc}','${escUrl}')"
-        title="Ulashish"
-        class="share-card-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/20 shadow-sm backdrop-blur-sm">
-        <i class="fa-solid fa-share-nodes"></i>
-    </button>
+  <!-- TOP RIGHT: fav always, edit/delete for custom (hover) -->
+  <div class="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+    ${isCustom ? `
+    <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <button onclick="event.stopPropagation();openEditModal('${esc}')" title="Tahrirlash" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-pen text-[9px]"></i></button>
+      <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" title="O'chirish" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-trash text-[9px]"></i></button>
+    </div>` : ''}
     <button onclick="event.stopPropagation();toggleFav('${esc}',this)"
-        class="fav-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] shadow-sm backdrop-blur-sm ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20 opacity-100':'bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:text-rose-500'}">
+        class="fav-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] shadow-sm backdrop-blur-sm transition-colors ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-white/80 dark:bg-slate-800/80 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'}">
         <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
     </button>
-    ${isCustom ? `
-    <button onclick="event.stopPropagation();openEditModal('${esc}')" title="Tahrirlash" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-pen text-[9px]"></i></button>
-    <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" title="O'chirish" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-trash text-[9px]"></i></button>` : ''}
   </div>
-  ${isFav ? `<button onclick="event.stopPropagation();toggleFav('${esc}',this)" class="fav-btn absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-[11px] bg-rose-100 text-rose-500 dark:bg-rose-500/20 shadow-sm z-10 group-hover:opacity-0 transition-opacity"><i class="fa-solid fa-heart"></i></button>` : ''}
 
   <!-- LOGO + NAME + BADGES -->
-  <div class="flex items-start gap-3 mb-2.5 relative z-10 pr-8">
+  <div class="flex items-start gap-3 mb-2.5 relative z-10 pr-9">
     <div class="shrink-0">
       <div class="card-logo-wrap">
         ${iconHTML(item, 'w-11 h-11 object-contain')}
       </div>
     </div>
     <div class="flex-1 min-w-0 pt-0.5">
-      <div class="font-black text-[14px] text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors line-clamp-1 leading-snug">${hl(item.n,q2)}</div>
+      <div class="font-black text-[14px] text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors leading-snug flex items-center gap-1.5">
+        <span class="truncate">${hl(item.n,q2)}</span>
+        ${isVerified ? `<i class="fa-solid fa-circle-check text-emerald-500 dark:text-emerald-400 text-[13px] shrink-0" title="Rasmiy va ishonchli platforma"></i>` : ''}
+      </div>
       <div class="flex flex-wrap gap-1 mt-1.5 items-center">${badges}</div>
     </div>
   </div>
@@ -686,14 +704,27 @@ return `
   <!-- DESCRIPTION -->
   <p class="text-[11.5px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">${hl(item.d||'',q2)}</p>
 
-  <!-- BOTTOM: ko'rishlar soni — o'ng pastki burchak -->
-  <div class="flex items-center justify-end mt-2 relative z-10">
-    <div class="flex items-center gap-1.5 text-[10px] font-bold rounded-full px-2 py-0.5
-      ${c ? 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10' : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-800/40 opacity-0 group-hover:opacity-100 transition-opacity'}"
+  <!-- CARD FOOTER: views(left) — report+share(right) -->
+  <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100/80 dark:border-slate-800/50 relative z-10">
+    <!-- Ko'rishlar soni — chap -->
+    <div class="flex items-center gap-1 text-[10px] font-bold rounded-full px-1.5 py-0.5
+      ${c ? 'text-violet-500 dark:text-violet-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity'}"
       id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
       <i class="fa-regular fa-eye text-[9px]"></i>
       <span>${c||0}</span>
-      <span class="font-medium opacity-70">${c===1?'kirish':'kirish'}</span>
+    </div>
+    <!-- Report + Share — o'ng -->
+    <div class="flex items-center gap-1">
+      <button onclick="event.stopPropagation();openReportModal('${esc}','${escUrl}')"
+          title="Muammo bildirish"
+          class="h-6 px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold text-slate-300 dark:text-slate-600 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors">
+          <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+      </button>
+      <button onclick="event.stopPropagation();shareCard('${esc}','${escUrl}')"
+          title="Ulashish"
+          class="h-6 px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold text-slate-300 dark:text-slate-600 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors">
+          <i class="fa-solid fa-share-nodes text-[9px]"></i>
+      </button>
     </div>
   </div>
 
@@ -705,9 +736,9 @@ const id='cb-'+name.replace(/[^a-zA-Z0-9]/g,'_');
 const el=document.getElementById(id);
 if(!el) return;
 const c=getClicks(name);
-el.innerHTML = `<i class="fa-regular fa-eye text-[9px]"></i><span>${c}</span><span class="font-medium opacity-70">kirish</span>`;
-el.className = el.className.replace(/text-slate-\d+|dark:text-slate-\d+|bg-slate-\d+|dark:bg-slate-\d+\/?\d*/g,'').trim();
-el.classList.add('text-violet-500','dark:text-violet-400','bg-violet-50','dark:bg-violet-500/10','do-pop');
+el.innerHTML = `<i class="fa-regular fa-eye text-[9px]"></i><span>${c}</span>`;
+el.classList.remove('text-slate-300','dark:text-slate-600','opacity-0','group-hover:opacity-100','transition-opacity');
+el.classList.add('text-violet-500','dark:text-violet-400','do-pop');
 setTimeout(()=>el.classList.remove('do-pop'),200);
 renderTrending();
 };
@@ -734,12 +765,11 @@ $('sidebarCount').textContent=`${total} ta resurs`;
 // Eng teppa-tepada shaxsiy bo'lim chiqadi!
 let s=`
   <div class="mb-2 px-1">
-    <button onclick="openCustomModal()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-violet-500/20 mb-2.5">
-      <i class="fa-solid fa-plus"></i> Yangi resurs qo'shish
-    </button>
     <button onclick="setCat('my_apps')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='my_apps'?'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
       <div class="flex items-center gap-2.5"><i class="fa-solid fa-folder-open w-4 text-center text-xs ${activeCat==='my_apps'?'text-violet-500':'opacity-60'}"></i><span>Shaxsiy ro'yxat</span></div>
-      <span class="text-[9px] px-1.5 py-0.5 rounded-full ${activeCat==='my_apps'?'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300':'bg-slate-200 dark:bg-slate-700/80 text-slate-500'}">${customApps.length}</span>
+      <div class="flex items-center gap-1.5">
+        ${customApps.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full ${activeCat==='my_apps'?'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300':'bg-slate-200 dark:bg-slate-700/80 text-slate-500'}">${customApps.length}</span>`:''}
+      </div>
     </button>
   </div>
   <div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 my-2"></div>
@@ -861,27 +891,44 @@ if(activeCat==='favorites'){
     </div>`;
     found=1;
   }
+} else if(activeCat==='my_apps'){
+  // my_apps uchun — birinchi karta "+" qo'shish kartasi
+  const items = sortItems(customApps.filter(i=>matchItem(i,null)));
+  found += items.length + 1; // +1 for the add card
+
+  const sec = document.createElement('div');
+  sec.className = 'animate-fade-up';
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4';
+
+  // "+" qo'shish kartasi — birinchi
+  const addCard = document.createElement('div');
+  addCard.onclick = openCustomModal;
+  addCard.className = 'add-card glass rounded-2xl p-4 flex flex-col items-center justify-center h-full cursor-pointer group border-2 border-dashed border-violet-200 dark:border-violet-800/50 hover:border-violet-400 dark:hover:border-violet-600 transition-all min-h-[130px]';
+  addCard.innerHTML = `
+    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 mb-2.5 group-hover:scale-110 transition-transform">
+      <i class="fa-solid fa-plus text-base"></i>
+    </div>
+    <p class="text-sm font-black text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Yangi qo'shish</p>
+    <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy resurs qo'shing</p>`;
+  grid.appendChild(addCard);
+
+  // Mavjud kartalar
+  items.forEach(i=>{
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = card(i);
+    grid.appendChild(wrapper.firstElementChild);
+  });
+
+  sec.appendChild(grid);
+  $('appsContainer').appendChild(sec);
+
 } else {
   DATA.forEach(c=>{
     if(activeCat!=='all'&&activeCat!==c.id) return;
     const items=sortItems(c.items.filter(i=>matchItem(i,c)));
     buildSec(items, (activeCat==='all'||query.trim())?c.title:null, c.gr);
   });
-}
-
-if (activeCat === 'my_apps' && found === 0) {
-    $('appsContainer').innerHTML = `<div class="flex flex-col items-center justify-center py-24 text-slate-400 animate-fade-up">
-      <i class="fa-solid fa-folder-plus text-5xl mb-4 text-slate-300 dark:text-slate-600"></i>
-      <p class="font-bold text-lg text-slate-800 dark:text-white">Shaxsiy ro'yxat bo'sh</p>
-      <p class="text-sm mt-1 mb-5">O'zingiz uchun kerakli platformalarni saqlab qo'ying.</p>
-      <button onclick="openCustomModal()" class="bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-violet-200 transition-colors shadow-sm">
-          <i class="fa-solid fa-plus mr-1"></i> Yangi qo'shish
-      </button>
-    </div>`;
-    found = 1;
-    $('appsContainer').classList.remove('hidden');
-    $('noResults').classList.add('hidden');
-    $('noResults').classList.remove('flex');
 }
 
 $('resultCount').textContent=found?`${found} ta resurs`:'';
@@ -1419,6 +1466,85 @@ function setupTrendingScroll(){
   });
 }
 
+// ═══════════════════════════════════════════════════════════
+//  REPORT MODAL — "Ishlamayapti" xabari
+// ═══════════════════════════════════════════════════════════
+window.openReportModal = function(name, url){
+  const m=$('reportModal'), mc=$('reportModalContent');
+  $('reportSiteName').textContent = name;
+  $('reportSiteUrl').value = url;
+  $('reportSiteNameHidden').value = name;
+  $('reportReason').value = '';
+  m.classList.remove('hidden'); m.classList.add('flex');
+  setTimeout(()=>{ mc.classList.remove('scale-95','opacity-0'); mc.classList.add('scale-100','opacity-100'); },10);
+};
+window.closeReportModal = function(){
+  const m=$('reportModal'), mc=$('reportModalContent');
+  mc.classList.remove('scale-100','opacity-100'); mc.classList.add('scale-95','opacity-0');
+  setTimeout(()=>{ m.classList.add('hidden'); m.classList.remove('flex'); },200);
+};
+window.submitReport = async function(){
+  const name = $('reportSiteNameHidden').value;
+  const url  = $('reportSiteUrl').value;
+  const reason = $('reportReason').value.trim() || 'Sabab ko\'rsatilmagan';
+  const btn = $('reportSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1.5"></i> Yuborilmoqda...';
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/reports`, {
+      method:'POST', headers:{...SUPA_H,'Prefer':'return=minimal'},
+      body: JSON.stringify({ site_name: name, site_url: url, reason, created_at: new Date().toISOString() })
+    });
+    sendTelegram(`⚠️ <b>Muammo bildirish</b>\n\n🌐 Sayt: <b>${name}</b>\n🔗 ${url}\n❗ Sabab: ${reason}\n⏰ ${new Date().toLocaleString('uz')}`);
+    closeReportModal();
+    showToast("Xabar yuborildi, rahmat! Ko'rib chiqamiz.", 'fa-circle-check text-emerald-400');
+  } catch(e){
+    showToast("Xato yuz berdi, qayta urining", 'fa-circle-xmark text-red-400');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish';
+};
+
+// ═══════════════════════════════════════════════════════════
+//  SUGGEST MODAL — yangi resurs taklifi
+// ═══════════════════════════════════════════════════════════
+window.openSuggestModal = function(){
+  const m=$('suggestModal'), mc=$('suggestModalContent');
+  ['suggestName','suggestUrl','suggestDesc','suggestContact'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
+  m.classList.remove('hidden'); m.classList.add('flex');
+  setTimeout(()=>{ mc.classList.remove('scale-95','opacity-0'); mc.classList.add('scale-100','opacity-100'); },10);
+  setTimeout(()=>$('suggestName')?.focus(), 150);
+};
+window.closeSuggestModal = function(){
+  const m=$('suggestModal'), mc=$('suggestModalContent');
+  mc.classList.remove('scale-100','opacity-100'); mc.classList.add('scale-95','opacity-0');
+  setTimeout(()=>{ m.classList.add('hidden'); m.classList.remove('flex'); },200);
+};
+window.submitSuggest = async function(){
+  const name    = $('suggestName').value.trim();
+  let   url     = $('suggestUrl').value.trim();
+  const desc    = $('suggestDesc').value.trim();
+  const contact = $('suggestContact').value.trim();
+  if(!name || !url) return showToast("Nomi va URL kiritilishi shart!", 'fa-circle-xmark text-red-400');
+  if(!url.startsWith('http')) url = 'https://'+url;
+  const btn = $('suggestSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1.5"></i> Yuborilmoqda...';
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/suggestions`, {
+      method:'POST', headers:{...SUPA_H,'Prefer':'return=minimal'},
+      body: JSON.stringify({ name, url, description: desc, contact, created_at: new Date().toISOString(), status:'pending' })
+    });
+    sendTelegram(`💡 <b>Yangi resurs taklifi</b>\n\n📌 Nomi: <b>${name}</b>\n🔗 ${url}${desc?'\n📝 '+desc:''}${contact?'\n👤 '+contact:''}\n⏰ ${new Date().toLocaleString('uz')}`);
+    closeSuggestModal();
+    showToast("Taklifingiz qabul qilindi! Tez orada ko'rib chiqamiz 🙏", 'fa-circle-check text-emerald-400');
+  } catch(e){
+    showToast("Xato yuz berdi, qayta urining", 'fa-circle-xmark text-red-400');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish';
+};
+
 function init(){
 renderNav();
 renderContent();
@@ -1433,3 +1559,15 @@ initGlobalClicks();
 updateSidebarStats();
 }
 init();
+// selectReason — report modal
+window.selectReason = function(btn, reason) {
+  // Barcha tugmalardan active classni olib tashlash
+  document.querySelectorAll('.reason-btn').forEach(b => {
+    b.classList.remove('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
+    b.classList.add('border-slate-200','dark:border-slate-700','text-slate-600','dark:text-slate-400');
+  });
+  // Bosilgan tugmani belgilash
+  btn.classList.add('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
+  btn.classList.remove('border-slate-200','dark:border-slate-700');
+  document.getElementById('reportReason').value = reason;
+};
