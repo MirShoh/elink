@@ -25,52 +25,46 @@ function toKey(name){
 return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'item';
 }
 
-// BITTA SO'ROV bilan barcha namespace kliklarini yuklash
-// CounterAPI: GET /v1/{ns} → { "items": [{ "key":"payme","value":42 }, ...] }
-// Agar namespace endpoint ishlamasa → individual fallback
-async function fetchAllClicks(){
-try {
-  const res = await fetch(`${COUNTER_BASE}`);
-  if(res.ok){
-    const data = await res.json();
-    // items massivini name→count ga aylantirish
-    const map = {};
-    (data.items || data.counters || []).forEach(item => {
-      const key = item.key || item.name || '';
-      map[key] = item.value || item.count || 0;
-    });
-    // Har bir resurs nomini key orqali moslashtirish
-    DATA.forEach(c => c.items.forEach(i => {
-      const k = toKey(i.n);
-      if(map[k] !== undefined) globalClicks[i.n] = map[k];
-    }));
-    return true;
-  }
-} catch(e){}
-return false;
+// Barcha resurslar nomini yig'ish (DATA tayyor bo'lgandan keyin chaqiriladi)
+function getAllItemNames(){
+const names = [];
+DATA.forEach(c => { if(c.id !== 'my_apps') c.items.forEach(i => names.push(i.n)); });
+return names;
 }
 
-// Sahifa ochilganda — barcha qurilmalarda bir xil raqamlar
-async function initGlobalClicks(){
-const ok = await fetchAllClicks();
-if(!ok){
-  // Namespace endpoint ishlamasa: faqat avval bosilgan (localda borlar) ni olish
-  const keys = Object.keys(globalClicks);
-  if(keys.length){
-    const results = await Promise.allSettled(
-      keys.map(name => fetch(`${COUNTER_BASE}/${toKey(name)}/get`)
-        .then(r => r.ok ? r.json() : null)
-        .then(d => d ? { name, val: d.value||0 } : null)
-        .catch(()=>null))
-    );
-    results.forEach(r => {
-      if(r.status==='fulfilled' && r.value)
-        globalClicks[r.value.name] = r.value.val;
-    });
-  }
+// N ta elementni parallel fetch, keyin keyingisi (rate limit himoyasi)
+async function fetchBatch(names){
+const results = await Promise.allSettled(
+  names.map(name =>
+    fetch(`${COUNTER_BASE}/${toKey(name)}/get`, { signal: AbortSignal.timeout(4000) })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => ({ name, val: (d && d.value) ? d.value : 0 }))
+      .catch(() => ({ name, val: 0 }))
+  )
+);
+return results.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean);
 }
-// UI ni yangilash
-Object.entries(globalClicks).forEach(([name, count]) => _updateCountEl(name, count));
+
+// Sahifa ochilganda — barcha resurslar real global hisobi
+// Har bir qurilma, har bir brauzer — hammada bir xil
+async function initGlobalClicks(){
+const BATCH = 20; // bir vaqtda 20 ta so'rov
+const allNames = getAllItemNames();
+
+// Batchlarga bo'lib ketma-ket yuborish
+for(let i = 0; i < allNames.length; i += BATCH){
+  const batch = allNames.slice(i, i + BATCH);
+  const items = await fetchBatch(batch);
+  items.forEach(({ name, val }) => {
+    if(val > 0){
+      globalClicks[name] = val;
+      _updateCountEl(name, val);
+    }
+  });
+  // Oxirgi batch emas — kichik pauza (rate limit uchun)
+  if(i + BATCH < allNames.length) await new Promise(r => setTimeout(r, 80));
+}
+
 renderTrending();
 updateSidebarStats();
 }
