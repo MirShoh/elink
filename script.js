@@ -16,32 +16,21 @@ function safeParse(key, fallback) {
 //  2) SQL Editor → quyidagi so'rovni ishga tushiring (README ga qarang)
 //  3) Project Settings → API → URL va anon key ni quyiga yozing
 // ═══════════════════════════════════════════════════════════
-const SUPA_URL = 'https://ejlpdmbplwgplsbwjhaq.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqbHBkbWJwbHdncGxzYndqaGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjM4NTAsImV4cCI6MjA4ODgzOTg1MH0.mHDQxGb6NdNuk-3le1oeaBNZTBFe77d4WXj3lptxuoY';
-
-// ── Telegram Bot xabarnomasi ──────────────────────────────
-// 1. @BotFather da bot yarating → TOKEN oling
-// 2. Botga /start yuboring, so'ng: https://api.telegram.org/bot<TOKEN>/getUpdates → chat id oling
-const TG_TOKEN = '8245236617:AAFmzS6RaNyhcUmKzfGWLvmMaidakhBz1lY';   // 'bot123456:ABC-...'  ← shu yerga yozing
-const TG_CHAT  = '697775505';   // '-100xxxxxxx'  yoki shaxsiy chat id
+// ── Barcha maxfiy kalitlar Netlify Functions orqali yashiringan ──
+// GitHub'da hech qanday kalit yo'q — xavfsiz! ✅
+const SUPA_PROXY = '/.netlify/functions/supabase';
 
 async function sendTelegram(text){
-  if(!TG_TOKEN || !TG_CHAT) return;
   try {
-    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ chat_id: TG_CHAT, text, parse_mode:'HTML', disable_web_page_preview:true })
+    await fetch('/.netlify/functions/telegram', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text })
     });
   } catch(e){ console.warn('[TG]', e.message); }
 }
-// ─────────────────────────────────────────────────────────
 
-const SUPA_H = {
-'apikey': SUPA_KEY,
-'Authorization': 'Bearer ' + SUPA_KEY,
-'Content-Type': 'application/json'
-};
+// SUPA_H endi kerak emas — proxy function barcha headerni o'zi qo'shadi
 
 // Xotira
 let globalClicks = {};
@@ -49,7 +38,11 @@ let globalClicks = {};
 // ── Sahifa ochilganda: barcha kliklarni BIR so'rovda yuklash ──
 async function initGlobalClicks(){
 try {
-  const res = await fetch(`${SUPA_URL}/rest/v1/clicks?select=name,count&limit=1000`, { headers: SUPA_H });
+  const res = await fetch(SUPA_PROXY, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ path: '/rest/v1/clicks?select=name,count&limit=1000', method: 'GET' })
+  });
   if(!res.ok) return;
   const rows = await res.json();
   if(!Array.isArray(rows)) return;
@@ -63,10 +56,10 @@ try {
 // ── Klik: atomic increment (race-condition xavfsiz) ──
 async function _supaIncrement(name){
 try {
-  const res = await fetch(`${SUPA_URL}/rest/v1/rpc/increment_click`, {
+  const res = await fetch(SUPA_PROXY, {
     method: 'POST',
-    headers: SUPA_H,
-    body: JSON.stringify({ p_name: name })
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ path: '/rest/v1/rpc/increment_click', method: 'POST', body: { p_name: name } })
   });
   if(!res.ok) return null;
   const val = await res.json();
@@ -606,16 +599,11 @@ grid.innerHTML=top.map((item,idx)=>{
     : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
   const rankColor = idx===0?'from-yellow-400 to-amber-500': idx===1?'from-slate-400 to-slate-500': idx===2?'from-orange-400 to-amber-600':'from-violet-500 to-fuchsia-500';
   return `
-  <div onclick="${clickAct}" class="flex-shrink-0 glass rounded-xl p-3 flex items-center gap-3 min-w-[170px] hover:shadow-md transition-all group cursor-pointer relative overflow-hidden">
-    <div class="absolute top-0 left-0 bottom-0 w-0.5 bg-gradient-to-b ${rankColor} opacity-70 rounded-l-xl"></div>
-    <div class="shrink-0 flex items-center justify-center">${iconHTML(item, 'w-9 h-9 rounded-lg shadow-sm object-contain')}</div>
-    <div class="min-w-0 flex-1">
-      <p class="text-[12px] font-bold text-slate-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
-      <p class="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-0.5">
-        <i class="fa-solid fa-fire text-orange-400 text-[8px]"></i> <span class="text-orange-500 dark:text-orange-400 font-black">${getClicks(item.n)}</span> <span>kirish</span>
-      </p>
-    </div>
-    <span class="shrink-0 text-[10px] font-black text-slate-300 dark:text-slate-600">#${idx+1}</span>
+  <div onclick="${clickAct}" class="trend-card group">
+    <span class="text-[9px] font-black ${idx===0?'text-amber-500':idx===1?'text-slate-400':idx===2?'text-orange-500':'text-violet-400'} w-5 text-center">#${idx+1}</span>
+    <div class="shrink-0">${iconHTML(item, 'w-7 h-7 rounded-lg shadow-sm object-contain')}</div>
+    <span class="text-[11px] font-bold text-slate-800 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</span>
+    <span class="flex items-center gap-0.5 text-[10px] font-black text-orange-500"><i class="fa-solid fa-fire text-[8px]"></i>${getClicks(item.n)}</span>
   </div>`}).join('');
 }
 
@@ -666,11 +654,12 @@ const badges = [
   isCustom ? `<span class="badge-custom">Shaxsiy</span>` : '',
   hasWeb && isMob ? `<span class="badge-web"><i class="fa-solid fa-globe text-[8px]"></i> Web</span>` : '',
   isMob    ? `<span class="badge-mob"><i class="fa-solid fa-mobile-screen-button text-[8px]"></i> Ilova</span>` : '',
-  isHot    ? `<span class="badge-hot">🔥 Top</span>` : '',
+  '' /* ribbon is rendered separately */,
 ].filter(Boolean).join('');
 
 return `
 <div onclick="${mainClick}" class="card glass rounded-2xl p-4 flex flex-col h-full group relative cursor-pointer">
+  ${isHot ? `<div class="ribbon-top" aria-label="Top"><i class="fa-solid fa-fire text-[8px] mr-0.5"></i>Top</div>` : ''}
 
   <!-- TOP RIGHT: fav always, edit/delete for custom (hover) -->
   <div class="absolute top-3 right-3 flex items-center gap-1.5 z-20">
@@ -1544,6 +1533,16 @@ window.openReportModal = function(name, url){
   $('reportSiteUrl').value = url;
   $('reportSiteNameHidden').value = name;
   $('reportReason').value = '';
+  // Reason tugmalarini reset
+  document.querySelectorAll('.reason-btn').forEach(b => {
+    b.classList.remove('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
+    b.classList.add('border-slate-200','dark:border-slate-700','text-slate-600','dark:text-slate-400');
+  });
+  // Textarea yashirish
+  const wrap = document.getElementById('otherReasonWrap');
+  if(wrap){ wrap.style.maxHeight='0'; wrap.style.opacity='0'; wrap.classList.add('hidden'); }
+  const ta = document.getElementById('otherReasonText');
+  if(ta) ta.value = '';
   m.classList.remove('hidden'); m.classList.add('flex');
   setTimeout(()=>{ mc.classList.remove('scale-95','opacity-0'); mc.classList.add('scale-100','opacity-100'); },10);
 };
@@ -1555,14 +1554,18 @@ window.closeReportModal = function(){
 window.submitReport = async function(){
   const name = $('reportSiteNameHidden').value;
   const url  = $('reportSiteUrl').value;
-  const reason = $('reportReason').value.trim() || 'Sabab ko\'rsatilmagan';
+  let reason = $('reportReason').value.trim() || 'Sabab ko\'rsatilmagan';
+  if(reason === 'Boshqa muammo'){
+    const extra = ($('otherReasonText').value||'').trim();
+    if(extra) reason = 'Boshqa muammo: ' + extra;
+  }
   const btn = $('reportSubmitBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1.5"></i> Yuborilmoqda...';
   try {
-    await fetch(`${SUPA_URL}/rest/v1/reports`, {
-      method:'POST', headers:{...SUPA_H,'Prefer':'return=minimal'},
-      body: JSON.stringify({ site_name: name, site_url: url, reason, created_at: new Date().toISOString() })
+    await fetch(SUPA_PROXY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ path: '/rest/v1/reports', method: 'POST', prefer: 'return=minimal', body: { site_name: name, site_url: url, reason, created_at: new Date().toISOString() } })
     });
     sendTelegram(`⚠️ <b>Muammo bildirish</b>\n\n🌐 Sayt: <b>${name}</b>\n🔗 ${url}\n❗ Sabab: ${reason}\n⏰ ${new Date().toLocaleString('uz')}`);
     closeReportModal();
@@ -1600,9 +1603,9 @@ window.submitSuggest = async function(){
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1.5"></i> Yuborilmoqda...';
   try {
-    await fetch(`${SUPA_URL}/rest/v1/suggestions`, {
-      method:'POST', headers:{...SUPA_H,'Prefer':'return=minimal'},
-      body: JSON.stringify({ name, url, description: desc, contact, created_at: new Date().toISOString(), status:'pending' })
+    await fetch(SUPA_PROXY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ path: '/rest/v1/suggestions', method: 'POST', prefer: 'return=minimal', body: { name, url, description: desc, contact, created_at: new Date().toISOString(), status:'pending' } })
     });
     sendTelegram(`💡 <b>Yangi resurs taklifi</b>\n\n📌 Nomi: <b>${name}</b>\n🔗 ${url}${desc?'\n📝 '+desc:''}${contact?'\n👤 '+contact:''}\n⏰ ${new Date().toLocaleString('uz')}`);
     closeSuggestModal();
@@ -1639,4 +1642,143 @@ window.selectReason = function(btn, reason) {
   btn.classList.add('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
   btn.classList.remove('border-slate-200','dark:border-slate-700');
   document.getElementById('reportReason').value = reason;
+
+  // "Boshqa muammo" tanlanganda textarea ko'rsatish
+  const wrap = document.getElementById('otherReasonWrap');
+  const ta   = document.getElementById('otherReasonText');
+  if(reason === 'Boshqa muammo'){
+    wrap.classList.remove('hidden');
+    requestAnimationFrame(()=>{ wrap.style.maxHeight='200px'; wrap.style.opacity='1'; });
+    ta.focus();
+  } else {
+    wrap.style.maxHeight='0';
+    wrap.style.opacity='0';
+    setTimeout(()=>{ wrap.classList.add('hidden'); ta.value=''; }, 280);
+  }
+};
+// ── CUSTOM SORT DROPDOWN ──────────────────────────────────
+const SORT_LABELS = {
+  def:     { label: 'Standart tartib', icon: 'fa-bars-staggered' },
+  popular: { label: '🔥 Eng mashhur',  icon: null },
+  az:      { label: 'A → Z',           icon: 'fa-arrow-down-a-z' },
+  za:      { label: 'Z → A',           icon: 'fa-arrow-up-a-z' },
+};
+
+function updateSortDropLabel(val){
+  const info = SORT_LABELS[val] || SORT_LABELS.def;
+  const labelEl = document.getElementById('sortDropLabel');
+  const iconEl  = document.getElementById('sortDropIcon');
+  if(labelEl) labelEl.textContent = info.label;
+  if(iconEl){
+    if(info.icon){ iconEl.className = `fa-solid ${info.icon} text-violet-400 text-[10px]`; iconEl.textContent = ''; }
+    else { iconEl.className = ''; iconEl.textContent = ''; }
+  }
+  // Highlight active option
+  document.querySelectorAll('.sort-opt').forEach(b => {
+    const isActive = b.dataset.val === val;
+    b.classList.toggle('bg-violet-50', isActive);
+    b.classList.toggle('dark:bg-violet-500/10', isActive);
+    b.classList.toggle('text-violet-600', isActive);
+    b.classList.toggle('dark:text-violet-400', isActive);
+    b.classList.toggle('font-bold', isActive);
+  });
+}
+
+window.toggleSortDrop = function(){
+  const menu = document.getElementById('sortDropMenu');
+  const chevron = document.getElementById('sortChevron');
+  if(!menu) return;
+  const isOpen = !menu.classList.contains('hidden');
+  if(isOpen){
+    menu.classList.add('hidden');
+    if(chevron) chevron.style.transform = '';
+  } else {
+    menu.classList.remove('hidden');
+    if(chevron) chevron.style.transform = 'rotate(180deg)';
+  }
+};
+
+window.setSortMode = function(val){
+  sortMode = val;
+  // sync hidden select
+  const ss = document.getElementById('sSort');
+  if(ss) ss.value = val;
+  const ts = document.getElementById('topSort');
+  if(ts) ts.value = val;
+  updateSortDropLabel(val);
+  // close dropdown
+  const menu = document.getElementById('sortDropMenu');
+  const chevron = document.getElementById('sortChevron');
+  if(menu) menu.classList.add('hidden');
+  if(chevron) chevron.style.transform = '';
+  renderNav(); renderContent();
+};
+
+// Close on outside click
+document.addEventListener('click', function(e){
+  const wrap = document.getElementById('sortDropWrap');
+  if(wrap && !wrap.contains(e.target)){
+    const menu = document.getElementById('sortDropMenu');
+    const chevron = document.getElementById('sortChevron');
+    if(menu) menu.classList.add('hidden');
+    if(chevron) chevron.style.transform = '';
+  }
+});
+
+// ── TOP SORT CUSTOM DROPDOWN ──────────────────────────────
+const TOP_SORT_LABELS = {
+  def:     'Standart',
+  popular: '🔥 Mashhur',
+  az:      'A → Z',
+  za:      'Z → A',
+};
+
+function updateTopSortLabel(val){
+  const lbl = document.getElementById('topSortDropLabel');
+  if(lbl) lbl.textContent = TOP_SORT_LABELS[val] || 'Standart';
+  const icon = document.getElementById('topSortDropIcon');
+  const icons = { def:'fa-bars-staggered', az:'fa-arrow-down-a-z', za:'fa-arrow-up-a-z', popular:'' };
+  if(icon){
+    if(icons[val]) icon.className = `fa-solid ${icons[val]} text-violet-400 text-[10px]`;
+    else { icon.className=''; icon.textContent=''; }
+  }
+  document.querySelectorAll('.top-sort-opt').forEach(b => {
+    const active = b.dataset.top === val;
+    b.classList.toggle('bg-violet-50', active);
+    b.classList.toggle('dark:bg-violet-500/10', active);
+    b.classList.toggle('text-violet-600', active);
+    b.classList.toggle('font-bold', active);
+  });
+}
+
+window.toggleTopSortDrop = function(){
+  const menu = document.getElementById('topSortDropMenu');
+  const chev = document.getElementById('topSortChevron');
+  if(!menu) return;
+  const open = !menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', open);
+  if(chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+};
+
+// Close top sort on outside click
+document.addEventListener('click', function(e){
+  const wrap = document.getElementById('topSortDropWrap');
+  if(wrap && !wrap.contains(e.target)){
+    const menu = document.getElementById('topSortDropMenu');
+    const chev = document.getElementById('topSortChevron');
+    if(menu) menu.classList.add('hidden');
+    if(chev) chev.style.transform = '';
+  }
+});
+
+// Patch setSortMode to also update top sort label
+const _origSetSortMode = window.setSortMode;
+window.setSortMode = function(val){
+  _origSetSortMode(val);
+  updateTopSortLabel(val);
+  // close top sort dropdown too
+  const menu = document.getElementById('topSortDropMenu');
+  const chev = document.getElementById('topSortChevron');
+  if(menu) menu.classList.add('hidden');
+  if(chev) chev.style.transform = '';
 };

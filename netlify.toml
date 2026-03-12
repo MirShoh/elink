@@ -1,0 +1,21 @@
+# ═══════════════════════════════════════════════════════════
+#  netlify.toml — Netlify sozlamalari
+# ═══════════════════════════════════════════════════════════
+
+[build]
+  # Functions papkasi
+  functions = "netlify/functions"
+  # Publish papkasi (HTML fayllar qayerda bo'lsa)
+  publish = "."
+
+[functions]
+  # Node.js versiyasi
+  node_bundler = "esbuild"
+
+# Xavfsizlik headerlari
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

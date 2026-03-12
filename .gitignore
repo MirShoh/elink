@@ -1,0 +1,30 @@
+# ═══════════════════════════════════════════════════════════
+#  .gitignore — Bu fayllar HECH QACHON GitHub'ga chiqmaydi
+# ═══════════════════════════════════════════════════════════
+
+# 🔐 Maxfiy kalitlar — ENG MUHIM!
+.env
+.env.local
+.env.production
+.env.development
+.env*.local
+
+# Node modules
+node_modules/
+package-lock.json
+
+# OS fayllar
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
+.cache/
