@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="uz" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ═══ SEO META ═══ -->
+<title>E-Link.uz — O'zbekistondagi barcha to'liq onlayn resurslar katalogi</title>
+<meta name="description" content="O'zbekiston aholisi uchun 300+ onlayn resurs: davlat xizmatlari, tibbiyot, ta'lim, huquq, tarix, iqtisodiyot, AI vositalar, mobil ilovalar va ko'proq. Barchasini bir joydan toping!">
+<meta name="keywords" content="o'zbekiston onlayn resurslar, uz ilovalar, my.gov.uz, dmed.uz, hemis.uz, lex.uz, payme, click, uzum, uzbekistan apps, o'zbek platformalar, davlat xizmatlari, tibbiyot portali, ta'lim portali, E-Link uz">
+<meta name="author" content="E-Link UZ">
+<meta name="theme-color" content="#8b5cf6">
+
+<!-- Preload fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Dark mode flicker fix -->
+<script>
+(function(){
+  var d=document.documentElement;
+  if(localStorage.lh_theme==='dark'||(!('lh_theme' in localStorage)&&window.matchMedia('(prefers-color-scheme: dark)').matches)) d.classList.add('dark');
+  else d.classList.remove('dark');
+})();
+</script>
+
+<script>
+tailwind.config={
+  darkMode:'class',
+  theme:{extend:{
+    fontFamily:{sans:['"Plus Jakarta Sans"','sans-serif']},
+    animation:{
+      'fade-up':'fadeUp .28s ease-out forwards',
+      'pop':'pop .18s ease-out forwards',
+    },
+    keyframes:{
+      fadeUp:{'0%':{opacity:'0',transform:'translateY(8px)'},'100%':{opacity:'1',transform:'translateY(0)'}},
+      pop:{'0%':{transform:'scale(.9)'},'60%':{transform:'scale(1.08)'},'100%':{transform:'scale(1)'}},
+    }
+  }}
+}
+</script>
+<link rel="stylesheet" href="style.css">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2QYRFQMN3H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2QYRFQMN3H');
+</script>
+
+</head>
+
+<body class="text-slate-800 dark:text-slate-200 antialiased overflow-hidden h-screen flex relative">
+<div class="bg-app"></div>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside class="w-[17rem] hidden md:flex flex-col border-r border-slate-200/60 dark:border-slate-800/60 glass z-20 shrink-0 h-screen">
+
+  <div class="p-4 pb-1.5 shrink-0">
+    <!-- Brand -->
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/35 shrink-0">
+        <i class="fa-solid fa-layer-group text-sm"></i>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight tracking-tight">E-Link <span class="text-violet-500">UZ</span></h1>
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest" id="sidebarCount">...</p>
+      </div>
+    </div>
+
+    <!-- Search desk -->
+    <div class="search-wrapper mb-3" id="deskSWrap">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs pointer-events-none"></i>
+      <input id="deskSrc" type="text" autocomplete="off" spellcheck="false"
+        placeholder="Qidirish... (Ctrl+K)"
+        class="w-full text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-xl pl-8 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 placeholder-slate-400 transition-all"/>
+      <!-- Markazlashtirilgan X tugmasi -->
+      <button id="deskClr" class="absolute right-2 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-all z-10 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-circle-xmark text-[13px]"></i>
+      </button>
+      <div id="deskDrop" class="hidden absolute top-full mt-1.5 left-0 right-0 glass rounded-xl z-[60] s-drop">
+        <div id="deskDropIn" class="p-2"></div>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="flex flex-wrap gap-1.5 mb-3" id="deskChips"></div>
+
+    <!-- Sort + clear -->
+    <div class="flex items-center gap-2 mb-2.5">
+      <!-- Custom Sort Dropdown -->
+      <div class="relative flex-1" id="sortDropWrap">
+        <button id="sortDropBtn" onclick="toggleSortDrop()" class="w-full flex items-center justify-between gap-2 text-[11px] font-semibold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl px-3 py-2 text-slate-600 dark:text-slate-300 hover:border-violet-400 dark:hover:border-violet-500 transition-all shadow-sm cursor-pointer group">
+          <span class="flex items-center gap-1.5">
+            <i id="sortDropIcon" class="fa-solid fa-arrow-up-wide-short text-violet-400 text-[10px]"></i>
+            <span id="sortDropLabel">Standart tartib</span>
+          </span>
+          <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" id="sortChevron"></i>
+        </button>
+        <div id="sortDropMenu" class="hidden absolute top-full left-0 right-0 mt-1.5 glass rounded-xl shadow-xl z-[80] overflow-hidden border border-slate-200/80 dark:border-slate-700/60">
+          <div class="p-1.5 space-y-0.5">
+            <button onclick="setSortMode('def')" data-val="def" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+              <i class="fa-solid fa-bars-staggered text-slate-400 text-[10px] w-3"></i> Standart tartib
+            </button>
+            <button onclick="setSortMode('popular')" data-val="popular" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+              <span class="text-[12px] w-3 flex justify-center">🔥</span> Eng mashhur
+            </button>
+            <button onclick="setSortMode('az')" data-val="az" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+              <i class="fa-solid fa-arrow-down-a-z text-slate-400 text-[10px] w-3"></i> A → Z
+            </button>
+            <button onclick="setSortMode('za')" data-val="za" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+              <i class="fa-solid fa-arrow-up-a-z text-slate-400 text-[10px] w-3"></i> Z → A
+            </button>
+          </div>
+        </div>
+        <!-- hidden select for compatibility -->
+        <select id="sSort" class="hidden">
+          <option value="def">Standart tartib</option>
+          <option value="popular">🔥 Eng mashhur</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+        </select>
+      </div>
+      <button id="clrFilters" title="Tozalash" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-50 hover:text-red-400 transition-colors flex items-center justify-center opacity-0 pointer-events-none">
+        <i class="fa-solid fa-rotate-left text-xs"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Nav — Shaxsiy pinned + scrollable categories -->
+  <div id="sidebarPinned" class="shrink-0 px-3 pt-1 pb-2"></div>
+
+  <div class="shrink-0 px-3 pb-1.5">
+    <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-0.5">Kategoriyalar</p>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-3 pb-3 space-y-px" id="sidebarNav"></div>
+
+  <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+    <!-- Taklif qilish -->
+    <button onclick="openSuggestModal()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
+      <i class="fa-solid fa-lightbulb"></i> Resurs taklif qilish
+    </button>
+    <button id="themeBtn" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
+      <i id="themeIco" class="fa-solid fa-moon"></i>
+      <span id="themeTxt">Tungi rejim</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════ -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
+  <!-- Mobile header -->
+  <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe">
+    <div class="flex items-center justify-between px-4 pt-3 pb-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-layer-group text-xs"></i>
+        </div>
+        <span class="font-black text-slate-900 dark:text-white text-[15px]">E-Link <span class="text-violet-500">UZ</span></span>
+      </div>
+      <div class="flex gap-2">
+
+        <button id="themeBtnMob" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
+          <i id="themeIcoMob" class="fa-solid fa-moon text-sm"></i>
+        </button>
+        <button id="shareBtn" class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
+          <i class="fa-solid fa-share-nodes text-sm"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile search -->
+    <div class="px-4 pb-2 search-wrapper relative" id="mobSWrap">
+      <i class="fa-solid fa-magnifying-glass absolute left-7 text-slate-400 text-xs z-10 pointer-events-none"></i>
+      <input id="mobSrc" type="text" autocomplete="off" placeholder="Qidirish..."
+        class="w-full text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl pl-8 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 placeholder-slate-400"/>
+      <!-- Markazlashtirilgan X tugmasi -->
+      <button id="mobClr" class="absolute right-6 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 z-10 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-circle-xmark text-[13px]"></i>
+      </button>
+      <div id="mobDrop" class="hidden absolute top-full mt-1 left-4 right-4 glass rounded-xl z-[60] s-drop">
+        <div id="mobDropIn" class="p-2"></div>
+      </div>
+    </div>
+    <!-- Mobile filters & categories -->
+    <div class="flex gap-1.5 px-4 pb-2 overflow-x-auto no-sc" id="mobChips"></div>
+    <div class="flex gap-1.5 px-4 pb-3 overflow-x-auto no-sc items-center" id="mobNav"></div>
+  </header>
+
+  <!-- Content area -->
+  <main class="flex-1 overflow-y-auto scroll-smooth" id="mainScroll">
+
+    <!-- ── STICKY TRENDING ── -->
+    <div id="trendingSection" class="hidden sticky top-0 z-40 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/40 shadow-sm">
+      <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-2.5">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-sm">
+              <i class="fa-solid fa-fire text-white text-[10px]"></i>
+            </div>
+            <span class="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider hidden sm:inline">Ommabop</span>
+          </div>
+          <div class="flex flex-nowrap overflow-x-auto gap-2.5 pb-0.5 no-sc flex-1" id="trendingGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-5 pb-28 md:pb-14 pb-safe">
+
+      <!-- Desktop top bar -->
+      <div class="hidden md:flex items-start justify-between mb-6 gap-4">
+        <div class="min-w-0">
+          <h2 id="pageTitle" class="text-2xl font-black text-slate-900 dark:text-white mb-1 truncate">Barcha Resurslar</h2>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="resultCount" class="text-sm text-slate-400 font-medium"></span>
+            <div id="activeBadges" class="flex gap-1.5 flex-wrap"></div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Custom Top Sort Dropdown -->
+          <div class="relative" id="topSortDropWrap">
+            <button id="topSortDropBtn" onclick="toggleTopSortDrop()" class="flex items-center justify-between gap-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:border-violet-400 dark:hover:border-violet-500 transition-all shadow-sm cursor-pointer min-w-[130px]">
+              <span class="flex items-center gap-1.5">
+                <i id="topSortDropIcon" class="fa-solid fa-arrow-up-wide-short text-violet-400 text-[10px]"></i>
+                <span id="topSortDropLabel">Standart</span>
+              </span>
+              <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" id="topSortChevron"></i>
+            </button>
+            <div id="topSortDropMenu" class="hidden absolute top-full right-0 mt-1.5 glass rounded-xl shadow-xl z-[80] overflow-hidden border border-slate-200/80 dark:border-slate-700/60 min-w-[145px]">
+              <div class="p-1.5 space-y-0.5">
+                <button onclick="setSortMode('def')" data-top="def" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <i class="fa-solid fa-bars-staggered text-slate-400 text-[10px] w-3"></i> Standart
+                </button>
+                <button onclick="setSortMode('popular')" data-top="popular" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <span class="text-[12px] w-3 flex justify-center">🔥</span> Mashhur
+                </button>
+                <button onclick="setSortMode('az')" data-top="az" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <i class="fa-solid fa-arrow-down-a-z text-slate-400 text-[10px] w-3"></i> A → Z
+                </button>
+                <button onclick="setSortMode('za')" data-top="za" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <i class="fa-solid fa-arrow-up-a-z text-slate-400 text-[10px] w-3"></i> Z → A
+                </button>
+              </div>
+            </div>
+            <!-- hidden select for compatibility -->
+            <select id="topSort" class="hidden">
+              <option value="def">Standart</option>
+              <option value="popular">🔥 Mashhur</option>
+              <option value="az">A → Z</option>
+              <option value="za">Z → A</option>
+            </select>
+          </div>
+          <button id="shareBtnDesk" class="flex items-center gap-2 bg-slate-900 dark:bg-violet-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg">
+            <i class="fa-solid fa-share-nodes"></i> Ulashish
+          </button>
+          <button onclick="openSuggestModal()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg shadow-emerald-500/20">
+            <i class="fa-solid fa-lightbulb"></i> Taklif qilish
+          </button>
+        </div>
+      </div>
+
+      <!-- Main grid -->
+      <div id="appsContainer" class="space-y-8"></div>
+
+      <!-- No results -->
+      <div id="noResults" class="hidden flex-col items-center justify-center py-28 text-center">
+        <div class="w-20 h-20 mb-5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-300 dark:text-slate-600">
+          <i class="fa-solid fa-magnifying-glass text-4xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-1">Hech narsa topilmadi</h3>
+        <p class="text-slate-400 text-sm max-w-xs mb-4">Boshqa kalit so'z bilan qidiring yoki filtrlarni o'zgartiring</p>
+        <button onclick="clearAll()" class="text-xs font-bold text-violet-500 hover:text-violet-700 transition-colors border border-violet-300 dark:border-violet-700 px-4 py-2 rounded-xl">
+          <i class="fa-solid fa-rotate-left mr-1.5"></i>Barcha filtrlarni tozalash
+        </button>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <!-- Scroll progress bar — top of main -->
+  <div id="scrollProgress" class="absolute top-0 left-0 h-0.5 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 z-50 transition-all duration-100 pointer-events-none" style="width:0%"></div>
+
+  <!-- Scroll to top FAB — both mobile & desktop -->
+  <button id="scrollTop" class="fixed bottom-6 right-5 w-11 h-11 rounded-2xl bg-slate-900/90 dark:bg-violet-600 text-white shadow-xl flex items-center justify-center z-50 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none backdrop-blur-md hover:scale-110 active:scale-95 group">
+    <i class="fa-solid fa-arrow-up text-sm group-hover:-translate-y-0.5 transition-transform"></i>
+  </button>
+</div>
+
+<!-- ═══════════════════════ ADD/EDIT CUSTOM APP MODAL ═══════════════════════ -->
+<div id="caModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeCustomModal()"></div>
+    <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto" id="caModalContent">
+        <div class="flex justify-between items-center mb-5">
+            <h3 id="caModalTitle" class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-circle-plus text-violet-500"></i> Yangi resurs
+            </h3>
+            <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <div class="space-y-3.5">
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Nomi <span class="text-red-500">*</span></label>
+                <input type="text" id="caName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Mening Blogim">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Tavsif</label>
+                <input type="text" id="caDesc" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="Qisqacha ma'lumot...">
+            </div>
+
+            <!-- Platform toggle -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Platformalar</label>
+                <div class="flex gap-2">
+                    <button type="button" id="caToggleWeb" onclick="caToggle('web')" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
+                        <i class="fa-solid fa-globe"></i> Veb-sayt
+                    </button>
+                    <button type="button" id="caToggleAndroid" onclick="caToggle('android')" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
+                        <i class="fa-brands fa-android"></i> Android
+                    </button>
+                    <button type="button" id="caToggleIos" onclick="caToggle('ios')" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
+                        <i class="fa-brands fa-apple"></i> iOS
+                    </button>
+                </div>
+            </div>
+
+            <div id="caWebField">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">🌐 Veb-sayt URL</label>
+                <input type="url" id="caUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
+            </div>
+            <div id="caAndroidField" class="hidden">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">🤖 Google Play URL</label>
+                <input type="url" id="caAndroidUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://play.google.com/store/apps/details?id=...">
+            </div>
+            <div id="caIosField" class="hidden">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"> iOS App Store URL</label>
+                <input type="url" id="caIosUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://apps.apple.com/app/...">
+            </div>
+
+            <input type="hidden" id="caEditName">
+            <button onclick="saveCustomApp()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold rounded-xl py-3.5 mt-1 transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98]">
+                <i class="fa-solid fa-check mr-1.5"></i> <span id="caSaveTxt">Saqlash</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-4 md:top-auto md:bottom-4 glass bg-slate-900/95 dark:bg-slate-50/95 text-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[600] opacity-0 pointer-events-none transition-all duration-300">
+  <i id="toastIco" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+  <span id="toastMsg" class="font-bold text-sm pr-2"></span>
+</div>
+
+
+<!-- ═══════════════════════ PLATFORM MODAL ═══════════════════════ -->
+<div id="platModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closePlatformModal()"></div>
+  <div class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700" id="platModalContent">
+    <button onclick="closePlatformModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center z-10">
+      <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
+    <div id="platModalBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ REPORT MODAL ═══════════════════════ -->
+<div id="reportModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReportModal()"></div>
+  <div id="reportModalContent" class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700">
+    <button onclick="closeReportModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center"><i class="fa-solid fa-xmark text-sm"></i></button>
+
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-400/30 shrink-0">
+        <i class="fa-solid fa-triangle-exclamation text-base"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Muammo bildirish</h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Sayt ishlamayotganini xabar bering</p>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3.5 py-2.5 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-globe text-violet-400 text-xs shrink-0"></i>
+      <span id="reportSiteName" class="font-bold text-sm text-slate-800 dark:text-white truncate"></span>
+    </div>
+    <input type="hidden" id="reportSiteUrl">
+    <input type="hidden" id="reportSiteNameHidden">
+
+    <div class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Muammo turi</label>
+        <div class="grid grid-cols-2 gap-2" id="reportReasonBtns">
+          <button type="button" onclick="selectReason(this,'Sayt ochilmayapti')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔴 Sayt ochilmayapti</button>
+          <button type="button" onclick="selectReason(this,'Sekin ishlayapti')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🐢 Sekin ishlayapti</button>
+          <button type="button" onclick="selectReason(this,'Xato URL')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔗 Xato URL</button>
+          <button type="button" onclick="selectReason(this,'Boshqa muammo')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">❓ Boshqa muammo</button>
+        </div>
+        <input type="hidden" id="reportReason">
+      </div>
+
+      <!-- Boshqa muammo textarea — faqat tanlanganda ko'rinadi -->
+      <div id="otherReasonWrap" class="hidden overflow-hidden" style="max-height:0;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Izoh <span class="text-amber-500">*</span></label>
+        <textarea id="otherReasonText" rows="3" placeholder="Muammoni batafsilroq tushuntiring..." class="w-full text-xs font-medium bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:border-amber-400 dark:focus:border-amber-500 resize-none transition-all"></textarea>
+      </div>
+    </div>
+
+    <button id="reportSubmitBtn" onclick="submitReport()" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl py-3 transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98] text-sm">
+      <i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SUGGEST MODAL ═══════════════════════ -->
+<div id="suggestModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeSuggestModal()"></div>
+  <div id="suggestModalContent" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+    <button onclick="closeSuggestModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>
+
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-400/30 shrink-0">
+        <i class="fa-solid fa-lightbulb text-base"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Resurs taklif qilish</h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Foydali saytni hamjamiyatga qo'shing</p>
+      </div>
+    </div>
+
+    <div class="space-y-3.5">
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sayt / Ilova nomi <span class="text-red-400">*</span></label>
+        <input type="text" id="suggestName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Zoodpay">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">URL manzil <span class="text-red-400">*</span></label>
+        <input type="url" id="suggestUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
+        <input type="text" id="suggestDesc" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Bu sayt nima uchun foydali?">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Telegram / Telefon (ixtiyoriy)</label>
+        <input type="text" id="suggestContact" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="@username yoki +998...">
+      </div>
+      <button id="suggestSubmitBtn" onclick="submitSuggest()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] text-sm">
+        <i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish
+      </button>
+      <p class="text-[10px] text-slate-400 text-center leading-relaxed">Taklifingiz ko'rib chiqilgach, ma'qullansa katalogga qo'shiladi</p>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
