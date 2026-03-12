@@ -32,20 +32,44 @@ body{font-family:"Plus Jakarta Sans",sans-serif}
 
 /* ── CARD ── */
 .card{
-  transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s;
+  transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s;
   position:relative;overflow:hidden;
 }
-.card:hover{transform:translateY(-4px) scale(1.018);box-shadow:0 12px 32px -8px rgba(139,92,246,.2)}
-.dark .card:hover{box-shadow:0 12px 32px -8px rgba(139,92,246,.35)}
-
-/* trending badge */
-.trending-tag{
-  position:absolute;top:8px;left:8px;
-  font-size:8px;font-weight:800;
-  padding:1px 6px;border-radius:99px;letter-spacing:.3px;
-  background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;
-  z-index:4;
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(139,92,246,.04) 0%,transparent 60%);
+  opacity:0;transition:opacity .22s;pointer-events:none;border-radius:inherit;
 }
+.card:hover::before{opacity:1}
+.card:hover{transform:translateY(-3px) scale(1.012);box-shadow:0 16px 40px -10px rgba(139,92,246,.18)}
+.dark .card:hover{box-shadow:0 16px 40px -10px rgba(139,92,246,.32)}
+
+/* card logo wrapper */
+.card-logo-wrap{
+  width:44px;height:44px;border-radius:14px;overflow:hidden;
+  background:rgba(248,250,252,1);
+  border:1px solid rgba(0,0,0,.06);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  transition:transform .18s;
+}
+.dark .card-logo-wrap{background:rgba(30,41,59,.7);border-color:rgba(255,255,255,.07)}
+.card:hover .card-logo-wrap{transform:scale(1.08)}
+
+/* ── BADGES ── */
+.badge-bepul{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:.1px;background:rgba(209,250,229,.9);color:#059669}
+.dark .badge-bepul{background:rgba(16,185,129,.15);color:#34d399}
+.badge-pullik{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(254,243,199,.9);color:#d97706}
+.dark .badge-pullik{background:rgba(245,158,11,.15);color:#fbbf24}
+.badge-custom{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(237,233,254,.9);color:#7c3aed}
+.dark .badge-custom{background:rgba(139,92,246,.18);color:#a78bfa}
+.badge-web{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(219,234,254,.9);color:#2563eb}
+.dark .badge-web{background:rgba(59,130,246,.15);color:#60a5fa}
+.badge-mob{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(224,242,254,.9);color:#0369a1;border:1px solid rgba(14,165,233,.2)}
+.dark .badge-mob{background:rgba(14,165,233,.12);color:#38bdf8;border-color:rgba(14,165,233,.25)}
+.badge-hot{display:inline-flex;align-items:center;gap:2px;font-size:8px;font-weight:900;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;letter-spacing:.2px;box-shadow:0 2px 6px rgba(239,68,68,.3)}
+
+/* trending-tag — replaced by badge-hot */
 
 /* nav active */
 .nav-active{background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(217,70,239,.09));color:#8b5cf6;font-weight:700}
@@ -106,3 +130,47 @@ mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2
 /* share btn on card */
 .share-card-btn{transition:transform .15s,background .15s}
 .share-card-btn:hover{transform:scale(1.15)}
+/* ── CARD FOOTER VIEW COUNT ── */
+.card-views-bar{
+  border-top:1px solid rgba(148,163,184,.12);
+  margin-top:10px;padding-top:9px;
+}
+.dark .card-views-bar{border-color:rgba(148,163,184,.08)}
+
+/* ── SMOOTH BUTTON REVEAL ── */
+.card .btn-group{
+  opacity:0;transform:translateY(-2px);
+  transition:opacity .18s,transform .18s;
+}
+.card:hover .btn-group{opacity:1;transform:translateY(0)}
+
+/* ── TRENDING SCROLL FADE ── */
+/* trending fade — removed */
+
+/* ── PLATFORM MODAL LINK HOVER ── */
+.plat-link{
+  transition:all .16s;
+  background:rgba(255,255,255,.7);
+  border:1.5px solid rgba(148,163,184,.15);
+}
+.dark .plat-link{background:rgba(15,23,42,.5);border-color:rgba(148,163,184,.1)}
+.plat-link:hover{transform:translateX(3px)}
+
+/* ── SCROLL PROGRESS BAR ── */
+#scrollProgress{
+  position:absolute;top:0;left:0;height:2px;
+  background:linear-gradient(90deg,#8b5cf6,#d946ef,#8b5cf6);
+  background-size:200% 100%;
+  animation:progress-shimmer 2s linear infinite;
+  z-index:60;pointer-events:none;
+  border-radius:0 2px 2px 0;
+  box-shadow:0 0 8px rgba(139,92,246,.5);
+}
+@keyframes progress-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── SCROLL-TO-TOP FAB ── */
+#scrollTop{
+  box-shadow:0 8px 24px rgba(0,0,0,.18),0 2px 8px rgba(139,92,246,.25);
+  border-radius:14px;
+}
+.dark #scrollTop{box-shadow:0 8px 24px rgba(0,0,0,.4),0 2px 8px rgba(139,92,246,.4)}

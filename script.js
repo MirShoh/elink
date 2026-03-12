@@ -64,8 +64,8 @@ const el = document.getElementById(id);
 if(!el) return;
 el.querySelector('span').textContent = count;
 if(count > 0){
-  el.classList.remove('opacity-0','group-hover:opacity-60');
-  el.classList.add('opacity-80');
+  el.classList.remove('text-slate-300','dark:text-slate-600','bg-slate-50','dark:bg-slate-800/40');
+  el.classList.add('text-violet-500','dark:text-violet-400','bg-violet-50','dark:bg-violet-500/10');
 }
 }
 
@@ -467,22 +467,69 @@ function getFallbackColor(name) {
   return colors[Math.abs(hash) % colors.length];
 }
 
+// ── Global logo fallback — qo'shtirnoq muamosiz
+window._logoFail = function(img) {
+  const domain = img.dataset.domain;
+  const svg    = img.dataset.svg;
+  const step   = parseInt(img.dataset.step || '0');
+  if (step === 1 && domain) {
+    // 2-urinish: DuckDuckGo favicon
+    img.dataset.step = '2';
+    img.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+  } else {
+    // Oxirgi: tiniq globus SVG
+    img.onerror = null;
+    img.src = svg;
+  }
+};
+
+function _globeSVG(c1, c2) {
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+    `<defs>` +
+    `<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient>` +
+    `</defs>` +
+    `<rect width="64" height="64" rx="14" fill="url(#bg)"/>` +
+    // Globe circle
+    `<circle cx="32" cy="32" r="16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>` +
+    // Equator line
+    `<line x1="16" y1="32" x2="48" y2="32" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>` +
+    // Vertical center line
+    `<line x1="32" y1="16" x2="32" y2="48" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>` +
+    // Left longitude arc
+    `<path d="M32 16 Q22 32 32 48" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>` +
+    // Right longitude arc
+    `<path d="M32 16 Q42 32 32 48" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>` +
+    `</svg>`
+  )}`;
+}
+
 function iconHTML(item, cls="w-10 h-10 object-contain drop-shadow-sm") {
 const domain = getDomain(item.u);
-const logoUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : '';
-const char = (item.n || 'A').charAt(0).toUpperCase();
-// E-Link UZ branded gradient SVG fallback (violet→fuchsia, birinchi harf bilan)
-const svgFallback = encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
-  `<defs><linearGradient id="gl" x1="0%" y1="0%" x2="100%" y2="100%">` +
-  `<stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#d946ef"/>` +
-  `</linearGradient></defs>` +
-  `<rect width="64" height="64" rx="16" fill="url(#gl)"/>` +
-  `<text x="32" y="44" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="30" fill="white">${char}</text>` +
-  `</svg>`
-);
-const fallbackImg = `data:image/svg+xml,${svgFallback}`;
-return `<img src="${logoUrl}" alt="${item.n}" loading="lazy" class="${cls} transition-transform group-hover:scale-110" onerror="this.onerror=null; this.src='${fallbackImg}';">`;
+
+// Har bir ilova uchun o'ziga xos gradient rang
+const palettes = [
+  ['#6366f1','#8b5cf6'],['#8b5cf6','#d946ef'],['#06b6d4','#3b82f6'],
+  ['#10b981','#059669'],['#f59e0b','#ef4444'],['#f97316','#ec4899'],
+  ['#14b8a6','#6366f1'],['#3b82f6','#0ea5e9'],['#d946ef','#f43f5e'],
+  ['#ef4444','#f97316'],['#84cc16','#10b981'],['#a855f7','#6366f1']
+];
+let hash = 0;
+for(let i=0;i<item.n.length;i++) hash = item.n.charCodeAt(i)+((hash<<5)-hash);
+const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
+
+// Logo topilmasa — tiniq globus ikonkasi (har biri o'z rangida)
+const svgData = _globeSVG(c1, c2);
+
+// Boshlang'ich manba: Google favicon (ishonchli)
+const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : svgData;
+
+return `<img src="${src}" alt="${item.n}" loading="lazy"
+  class="${cls} transition-transform group-hover:scale-110"
+  data-domain="${domain}"
+  data-svg="${svgData}"
+  data-step="1"
+  onerror="window._logoFail(this)">`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -527,22 +574,31 @@ DATA.forEach(c=>{
   if(c.id !== 'my_apps') c.items.forEach(i=>{ if(getClicks(i.n)>0) all.push({...i,_cat:c}); });
 });
 all.sort((a,b)=>getClicks(b.n)-getClicks(a.n));
-const top=all.slice(0,10);
+const top=all.slice(0,8);
 const sec=$('trendingSection'), grid=$('trendingGrid');
 if(!top.length){sec.classList.add('hidden');return;}
 sec.classList.remove('hidden');
-grid.innerHTML=top.map(item=>`
-  <a href="${item.u}" target="_blank" rel="noopener noreferrer"
-     onclick="addClick('${item.n.replace(/'/g,"\\'")}');event.stopPropagation()"
-     class="flex-shrink-0 glass rounded-xl p-2.5 flex items-center gap-3 min-w-[160px] hover:shadow-md transition-all group">
-    <div class="shrink-0 flex items-center justify-center">${iconHTML(item, 'w-8 h-8 rounded-lg shadow-sm object-contain')}</div>
-    <div class="min-w-0">
-      <p class="text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
-      <p class="text-[9px] font-bold text-slate-400 flex items-center gap-1">
-          <i class="fa-regular fa-eye"></i> ${getClicks(item.n)}
+grid.innerHTML=top.map((item,idx)=>{
+  const esc=item.n.replace(/'/g,"\\'");
+  const escUrl=item.u.replace(/'/g,"\\'");
+  const isMob=item.t?.includes('mobil');
+  const hasWeb=item.t?.includes('web');
+  const clickAct=(isMob||item.androidUrl)
+    ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},true)`
+    : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
+  const rankColor = idx===0?'from-yellow-400 to-amber-500': idx===1?'from-slate-400 to-slate-500': idx===2?'from-orange-400 to-amber-600':'from-violet-500 to-fuchsia-500';
+  return `
+  <div onclick="${clickAct}" class="flex-shrink-0 glass rounded-xl p-3 flex items-center gap-3 min-w-[170px] hover:shadow-md transition-all group cursor-pointer relative overflow-hidden">
+    <div class="absolute top-0 left-0 bottom-0 w-0.5 bg-gradient-to-b ${rankColor} opacity-70 rounded-l-xl"></div>
+    <div class="shrink-0 flex items-center justify-center">${iconHTML(item, 'w-9 h-9 rounded-lg shadow-sm object-contain')}</div>
+    <div class="min-w-0 flex-1">
+      <p class="text-[12px] font-bold text-slate-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
+      <p class="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-0.5">
+        <i class="fa-solid fa-fire text-orange-400 text-[8px]"></i> <span class="text-orange-500 dark:text-orange-400 font-black">${getClicks(item.n)}</span> <span>kirish</span>
       </p>
     </div>
-  </a>`).join('');
+    <span class="shrink-0 text-[10px] font-black text-slate-300 dark:text-slate-600">#${idx+1}</span>
+  </div>`}).join('');
 }
 
 function hl(s,q){
@@ -570,55 +626,78 @@ return arr;
 function card(item){
 const isFav    = favorites.includes(item.n);
 const isBepul  = item.t?.includes('bepul');
+const isPullik = item.t?.includes('pullik');
 const isMob    = item.t?.includes('mobil');
+const hasWeb   = item.t?.includes('web') || item.isCustom;
 const isCustom = item.isCustom;
 const q2       = query.trim();
 const c        = getClicks(item.n);
-const isHot    = c>=5;
+const isHot    = c >= 5;
+const esc      = item.n.replace(/'/g,"\\'");
+const escUrl   = item.u.replace(/'/g,"\\'");
 
-const badgeRight = isCustom ? 'right-12' : 'right-3';
+const mainClick = (isMob || item.androidUrl)
+  ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},${!!(isMob||item.androidUrl)})`
+  : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
+
+// Platforma badgelari
+const badges = [
+  isBepul  ? `<span class="badge-bepul">✓ Bepul</span>` : '',
+  isPullik ? `<span class="badge-pullik">💎 Pullik</span>` : '',
+  isCustom ? `<span class="badge-custom">Shaxsiy</span>` : '',
+  hasWeb && isMob ? `<span class="badge-web"><i class="fa-solid fa-globe text-[8px]"></i> Web</span>` : '',
+  isMob    ? `<span class="badge-mob"><i class="fa-solid fa-mobile-screen-button text-[8px]"></i> Ilova</span>` : '',
+  isHot    ? `<span class="badge-hot">🔥 Top</span>` : '',
+].filter(Boolean).join('');
 
 return `
-<a href="${item.u}" target="_blank" rel="noopener noreferrer"
-   onclick="addClick('${item.n.replace(/'/g,"\\'")}');setTimeout(()=>rerenderClickFor('${item.n.replace(/'/g,"\\'")}'),50)"
-   class="card glass rounded-2xl p-4 flex flex-col h-full group relative">
-  
-  ${isHot?'<span class="trending-tag">🔥 TREND</span>':''}
-  
-  <div class="absolute top-3 ${badgeRight} flex items-center gap-1 text-[10px] font-bold transition-opacity z-20 px-2 py-0.5 rounded-full backdrop-blur-md bg-slate-500/10 dark:bg-slate-400/10 ${c ? 'text-slate-500 dark:text-slate-400 opacity-80' : 'text-slate-400 opacity-0 group-hover:opacity-60'}" id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
-      <i class="fa-regular fa-eye"></i> <span>${c||0}</span>
+<div onclick="${mainClick}" class="card glass rounded-2xl p-4 flex flex-col h-full group relative cursor-pointer">
+
+  <!-- TOP RIGHT: share + fav (+ edit/delete for custom) -->
+  <div class="absolute top-3 right-3 flex items-center gap-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+    <button onclick="event.stopPropagation();shareCard('${esc}','${escUrl}')"
+        title="Ulashish"
+        class="share-card-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/20 shadow-sm backdrop-blur-sm">
+        <i class="fa-solid fa-share-nodes"></i>
+    </button>
+    <button onclick="event.stopPropagation();toggleFav('${esc}',this)"
+        class="fav-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] shadow-sm backdrop-blur-sm ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20 opacity-100':'bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:text-rose-500'}">
+        <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
+    </button>
+    ${isCustom ? `
+    <button onclick="event.stopPropagation();openEditModal('${esc}')" title="Tahrirlash" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-pen text-[9px]"></i></button>
+    <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" title="O'chirish" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-trash text-[9px]"></i></button>` : ''}
   </div>
+  ${isFav ? `<button onclick="event.stopPropagation();toggleFav('${esc}',this)" class="fav-btn absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-[11px] bg-rose-100 text-rose-500 dark:bg-rose-500/20 shadow-sm z-10 group-hover:opacity-0 transition-opacity"><i class="fa-solid fa-heart"></i></button>` : ''}
 
-  ${isCustom ? `<button onclick="event.preventDefault();event.stopPropagation();deleteCustomApp('${item.n.replace(/'/g,"\\'")}')" title="O'chirish" class="absolute top-3 right-3 flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-500/20 dark:hover:bg-red-500 transition-colors z-20"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
-
-  <div class="flex items-start gap-3 mb-2.5 relative z-10 pr-16">
-    <div class="shrink-0 flex items-center justify-center">
-      ${iconHTML(item, 'w-10 h-10 object-contain drop-shadow-sm')}
-    </div>
-    <div class="flex-1 min-w-0 pt-0.5">
-      <div class="font-bold text-[14.5px] text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors line-clamp-1">${hl(item.n,q2)}</div>
-      <div class="flex flex-wrap gap-1 mt-1 items-center">
-        ${isBepul ? `<span class="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded-md">Bepul</span>` : ''}
-        ${item.t?.includes('pullik') ? `<span class="bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 text-[9px] font-bold px-1.5 py-0.5 rounded-md">Pullik</span>` : ''}
-        ${isCustom ? `<span class="bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 text-[9px] font-bold px-1.5 py-0.5 rounded-md">Shaxsiy</span>` : ''}
-        ${isMob ? `<span class="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded-md">📱</span>` : ''}
+  <!-- LOGO + NAME + BADGES -->
+  <div class="flex items-start gap-3 mb-2.5 relative z-10 pr-8">
+    <div class="shrink-0">
+      <div class="card-logo-wrap">
+        ${iconHTML(item, 'w-11 h-11 object-contain')}
       </div>
     </div>
+    <div class="flex-1 min-w-0 pt-0.5">
+      <div class="font-black text-[14px] text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors line-clamp-1 leading-snug">${hl(item.n,q2)}</div>
+      <div class="flex flex-wrap gap-1 mt-1.5 items-center">${badges}</div>
+    </div>
   </div>
-  
-  <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed relative z-10 mb-6">${hl(item.d||'',q2)}</p>
 
-  <button onclick="event.preventDefault();event.stopPropagation();toggleFav('${item.n.replace(/'/g,"\\'")}',this)" 
-      class="fav-btn absolute bottom-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs z-20 ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-rose-500'}">
-      <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
-  </button>
+  <!-- DESCRIPTION -->
+  <p class="text-[11.5px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">${hl(item.d||'',q2)}</p>
 
-  <button onclick="event.preventDefault();event.stopPropagation();shareCard('${item.n.replace(/'/g,"\\'")}','${item.u}')"
-      title="Ulashish"
-      class="share-card-btn absolute bottom-3.5 right-14 w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs z-20 bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/20">
-      <i class="fa-solid fa-share-nodes"></i>
-  </button>
-</a>`;
+  <!-- BOTTOM: ko'rishlar soni — o'ng pastki burchak -->
+  <div class="flex items-center justify-end mt-2 relative z-10">
+    <div class="flex items-center gap-1.5 text-[10px] font-bold rounded-full px-2 py-0.5
+      ${c ? 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10' : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-800/40 opacity-0 group-hover:opacity-100 transition-opacity'}"
+      id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
+      <i class="fa-regular fa-eye text-[9px]"></i>
+      <span>${c||0}</span>
+      <span class="font-medium opacity-70">${c===1?'kirish':'kirish'}</span>
+    </div>
+  </div>
+
+</div>`;
 }
 
 window.rerenderClickFor = function(name){
@@ -626,9 +705,9 @@ const id='cb-'+name.replace(/[^a-zA-Z0-9]/g,'_');
 const el=document.getElementById(id);
 if(!el) return;
 const c=getClicks(name);
-el.innerHTML = `<i class="fa-regular fa-eye"></i> <span>${c}</span>`;
-el.classList.remove('opacity-0', 'text-slate-400', 'group-hover:opacity-60');
-el.classList.add('opacity-80', 'text-slate-500', 'dark:text-slate-400', 'do-pop');
+el.innerHTML = `<i class="fa-regular fa-eye text-[9px]"></i><span>${c}</span><span class="font-medium opacity-70">kirish</span>`;
+el.className = el.className.replace(/text-slate-\d+|dark:text-slate-\d+|bg-slate-\d+|dark:bg-slate-\d+\/?\d*/g,'').trim();
+el.classList.add('text-violet-500','dark:text-violet-400','bg-violet-50','dark:bg-violet-500/10','do-pop');
 setTimeout(()=>el.classList.remove('do-pop'),200);
 renderTrending();
 };
@@ -641,7 +720,7 @@ localStorage.setItem('lh_favs', JSON.stringify(favorites));
 const on = favorites.includes(name);
 if(!silent && on) showToast("Saqlanganlarga qo'shildi!", 'fa-heart text-rose-400');
 if(btn) {
-    btn.className = `fav-btn absolute bottom-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs z-20 ${on?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-rose-500'}`;
+    btn.className = `fav-btn w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] ${on?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-rose-500'}`;
     btn.innerHTML = `<i class="fa-${on?'solid':'regular'} fa-heart"></i>`;
 }
 if(activeCat==='favorites') renderContent();
@@ -970,14 +1049,25 @@ const fn=async()=>{
 }
 
 function setupScroll(){
-const btn=$('scrollTop'), ms=$('mainScroll');
-if(!btn) return;
+const btn=$('scrollTop'), ms=$('mainScroll'), prog=$('scrollProgress');
+if(!btn||!ms) return;
+
 ms.addEventListener('scroll',()=>{
-  const show=ms.scrollTop>200;
-  btn.classList.toggle('opacity-0',!show);
-  btn.classList.toggle('translate-y-16',!show);
-});
-btn.addEventListener('click',()=>ms.scrollTo({top:0,behavior:'smooth'}));
+  const st = ms.scrollTop;
+  const max = ms.scrollHeight - ms.clientHeight;
+  const pct = max > 0 ? (st / max) * 100 : 0;
+
+  // Progress bar
+  if(prog) prog.style.width = pct + '%';
+
+  // Scroll-to-top button
+  const show = st > 220;
+  btn.classList.toggle('opacity-0', !show);
+  btn.classList.toggle('translate-y-4', !show);
+  btn.classList.toggle('pointer-events-none', !show);
+}, {passive:true});
+
+btn.addEventListener('click',()=> ms.scrollTo({top:0,behavior:'smooth'}));
 }
 
 function showToast(msg, ic='fa-circle-check text-emerald-400'){
@@ -990,77 +1080,163 @@ setTimeout(()=>t.classList.add('opacity-0','pointer-events-none'),2500);
 // ═══════════════════════════════════════════════════════════
 //  CUSTOM APPS LOGIC
 // ═══════════════════════════════════════════════════════════
-window.openCustomModal = function() {
-  const m = $('caModal');
-  const mc = $('caModalContent');
-  m.classList.remove('hidden');
-  m.classList.add('flex');
-  setTimeout(() => {
-      mc.classList.remove('scale-95', 'opacity-0');
-      mc.classList.add('scale-100', 'opacity-100');
-  }, 10);
-  $('caName').focus();
+//  CUSTOM APP MODAL LOGIC
+// ═══════════════════════════════════════════════════════════
+let _caEnabled = {web:true, android:false, ios:false};
+
+window.caToggle = function(type){
+  _caEnabled[type] = !_caEnabled[type];
+  const map = {
+    web:     {btn:'caToggleWeb',  field:'caWebField',     on:'border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400', off:'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'},
+    android: {btn:'caToggleAndroid', field:'caAndroidField', on:'border-emerald-400 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400', off:'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'},
+    ios:     {btn:'caToggleIos',  field:'caIosField',     on:'border-slate-600 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300', off:'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'},
+  };
+  const cfg = map[type];
+  const btn = $(cfg.btn), field = $(cfg.field);
+  if(_caEnabled[type]){
+    btn.className = btn.className.replace(/border-\S+|bg-\S+|text-\S+(?=\s|$)/g,'').trim();
+    btn.className += ' flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all ' + cfg.on;
+    field.classList.remove('hidden');
+  } else {
+    btn.className = btn.className.replace(/border-\S+|bg-\S+|text-\S+(?=\s|$)/g,'').trim();
+    btn.className += ' flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all ' + cfg.off;
+    field.classList.add('hidden');
+  }
+};
+
+function _resetCaModal(){
+  _caEnabled = {web:true, android:false, ios:false};
+  $('caName').value=''; $('caDesc').value='';
+  $('caUrl').value=''; $('caAndroidUrl').value=''; $('caIosUrl').value='';
+  $('caEditName').value='';
+  // Reset toggles
+  const map2 = {
+    web:     {btn:'caToggleWeb',  field:'caWebField',     on:'border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400'},
+    android: {btn:'caToggleAndroid', field:'caAndroidField', off:'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'},
+    ios:     {btn:'caToggleIos',  field:'caIosField',     off:'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'},
+  };
+  $('caToggleWeb').className = 'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400';
+  $('caToggleAndroid').className = 'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500';
+  $('caToggleIos').className = 'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500';
+  $('caWebField').classList.remove('hidden');
+  $('caAndroidField').classList.add('hidden');
+  $('caIosField').classList.add('hidden');
+  $('caModalTitle').innerHTML = '<i class="fa-solid fa-circle-plus text-violet-500"></i> Yangi resurs';
+  $('caSaveTxt').textContent = 'Saqlash';
 }
+
+window.openCustomModal = function() {
+  _resetCaModal();
+  const m=$('caModal'), mc=$('caModalContent');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  setTimeout(()=>{ mc.classList.remove('scale-95','opacity-0'); mc.classList.add('scale-100','opacity-100'); },10);
+  $('caName').focus();
+};
+
+window.openEditModal = function(name){
+  const app = customApps.find(a=>a.n===name);
+  if(!app) return;
+  _resetCaModal();
+  $('caModalTitle').innerHTML = '<i class="fa-solid fa-pen text-blue-500"></i> Tahrirlash';
+  $('caSaveTxt').textContent = 'Yangilash';
+  $('caName').value = app.n;
+  $('caDesc').value = app.d||'';
+  $('caEditName').value = app.n;
+
+  // URL fields — detect which platforms enabled
+  const hasWeb = app.t?.includes('web') || app.u;
+  const hasMob = app.t?.includes('mobil') || app.androidUrl || app.iosUrl;
+
+  if(hasWeb){ $('caUrl').value = app.u||''; }
+  else { _caEnabled.web=true; caToggle('web'); _caEnabled.web=false; caToggle('web'); }
+
+  if(app.androidUrl){
+    _caEnabled.android=false; caToggle('android');
+    $('caAndroidUrl').value = app.androidUrl;
+  }
+  if(app.iosUrl){
+    _caEnabled.ios=false; caToggle('ios');
+    $('caIosUrl').value = app.iosUrl;
+  }
+
+  const m=$('caModal'), mc=$('caModalContent');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  setTimeout(()=>{ mc.classList.remove('scale-95','opacity-0'); mc.classList.add('scale-100','opacity-100'); },10);
+  $('caName').focus();
+};
 
 window.closeCustomModal = function() {
-  const m = $('caModal');
-  const mc = $('caModalContent');
-  mc.classList.remove('scale-100', 'opacity-100');
-  mc.classList.add('scale-95', 'opacity-0');
-  setTimeout(() => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-  }, 200);
-  $('caName').value = '';
-  $('caUrl').value = '';
-  $('caDesc').value = '';
-}
+  const m=$('caModal'), mc=$('caModalContent');
+  mc.classList.remove('scale-100','opacity-100'); mc.classList.add('scale-95','opacity-0');
+  setTimeout(()=>{ m.classList.add('hidden'); m.classList.remove('flex'); },200);
+};
 
 window.saveCustomApp = function() {
-  const n = $('caName').value.trim();
-  let u = $('caUrl').value.trim();
-  const d = $('caDesc').value.trim();
+  const n    = $('caName').value.trim();
+  let   u    = $('caUrl').value.trim();
+  const d    = $('caDesc').value.trim();
+  let   aUrl = $('caAndroidUrl').value.trim();
+  let   iUrl = $('caIosUrl').value.trim();
+  const editName = $('caEditName').value.trim();
 
-  if (!n || !u) return showToast("Nomi va Havola kiritilishi shart!", "fa-circle-xmark text-red-500");
+  if(!n) return showToast("Nomi kiritilishi shart!", "fa-circle-xmark text-red-500");
+  if(!u && !aUrl && !iUrl) return showToast("Kamida bitta URL kiritilishi shart!", "fa-circle-xmark text-red-500");
 
-  if (!u.startsWith('http://') && !u.startsWith('https://')) {
-      u = 'https://' + u;
-  }
+  const fixUrl = s => (!s?'': (!s.startsWith('http://')&&!s.startsWith('https://'))?'https://'+s:s);
+  u = fixUrl(u); aUrl = fixUrl(aUrl); iUrl = fixUrl(iUrl);
 
-  if (customApps.find(a => a.n.toLowerCase() === n.toLowerCase())) {
+  // Edit mode
+  if(editName){
+    const idx = customApps.findIndex(a=>a.n===editName);
+    if(idx===-1) return;
+    // Name change conflict check
+    if(n!==editName && customApps.find(a=>a.n.toLowerCase()===n.toLowerCase()))
       return showToast("Bu nomdagi ilova allaqachon bor!", "fa-triangle-exclamation text-amber-500");
+
+    const tags = ['shaxsiy'];
+    if(u) tags.push('web');
+    if(aUrl||iUrl) tags.push('mobil');
+    const updated = {...customApps[idx], n, u, d, t:tags, isCustom:true};
+    if(aUrl) updated.androidUrl=aUrl; else delete updated.androidUrl;
+    if(iUrl) updated.iosUrl=iUrl;     else delete updated.iosUrl;
+    customApps[idx]=updated;
+    // update favs if name changed
+    if(n!==editName){
+      favorites=favorites.map(f=>f===editName?n:f);
+      localStorage.setItem('lh_favs',JSON.stringify(favorites));
+    }
+  } else {
+    if(customApps.find(a=>a.n.toLowerCase()===n.toLowerCase()))
+      return showToast("Bu nomdagi ilova allaqachon bor!", "fa-triangle-exclamation text-amber-500");
+    const tags=['shaxsiy'];
+    if(u) tags.push('web');
+    if(aUrl||iUrl) tags.push('mobil');
+    const newItem={n, u, d, t:tags, isCustom:true};
+    if(aUrl) newItem.androidUrl=aUrl;
+    if(iUrl) newItem.iosUrl=iUrl;
+    customApps.unshift(newItem);
   }
 
-  const newItem = { n, u, d, t: ['shaxsiy', 'web'], isCustom: true };
-  customApps.unshift(newItem);
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-
-  const cat = DATA.find(c => c.id === 'my_apps');
-  if(cat) cat.items = customApps;
-
+  const cat = DATA.find(c=>c.id==='my_apps');
+  if(cat) cat.items=customApps;
   closeCustomModal();
-  showToast("Ilova muvaffaqiyatli qo'shildi!");
-
-  if (activeCat !== 'my_apps') setCat('my_apps');
+  showToast(editName ? "Muvaffaqiyatli yangilandi!" : "Ilova muvaffaqiyatli qo'shildi!");
+  if(activeCat!=='my_apps') setCat('my_apps');
   else { renderNav(); renderContent(); }
-}
+};
 
 window.deleteCustomApp = function(name) {
   if(!confirm(`"${name}" ni o'chirib tashlaysizmi?`)) return;
-  
-  customApps = customApps.filter(a => a.n !== name);
+  customApps = customApps.filter(a=>a.n!==name);
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-  
-  const cat = DATA.find(c => c.id === 'my_apps');
-  if(cat) cat.items = customApps;
-
-  favorites = favorites.filter(n => n !== name);
-  localStorage.setItem('lh_favs', JSON.stringify(favorites));
-
-  showToast("Ilova o'chirildi", "fa-trash text-red-500");
-  renderNav();
-  renderContent();
-}
+  const cat = DATA.find(c=>c.id==='my_apps');
+  if(cat) cat.items=customApps;
+  favorites=favorites.filter(n=>n!==name);
+  localStorage.setItem('lh_favs',JSON.stringify(favorites));
+  showToast("Ilova o'chirildi","fa-trash text-red-500");
+  renderNav(); renderContent();
+};
 
 
 // ═══════════════════════════════════════════════════════════
@@ -1073,16 +1249,21 @@ if(!recentlyVisited.length){ wrap.classList.add('hidden'); return; }
 wrap.classList.remove('hidden');
 const grid = wrap.querySelector('#recentGrid');
 if(!grid) return;
-grid.innerHTML = recentlyVisited.map(item=>`
-  <a href="${item.u}" target="_blank" rel="noopener noreferrer"
-     onclick="addClick('${item.n.replace(/'/g,"\'")}');event.stopPropagation()"
-     class="flex-shrink-0 glass rounded-xl p-2.5 flex items-center gap-3 min-w-[155px] max-w-[180px] hover:shadow-md transition-all group">
+grid.innerHTML = recentlyVisited.map(item=>{
+  const esc=item.n.replace(/'/g,"\\'");
+  const isMob=item.t?.includes('mobil');
+  const hasWeb=item.t?.includes('web');
+  const clickAct=isMob
+    ? `openPlatformModal('${esc}','${item.u}',${hasWeb},true);addClick('${esc}')`
+    : `addClick('${esc}');window.open('${item.u}','_blank','noopener,noreferrer')`;
+  return `
+  <div onclick="${clickAct}" class="flex-shrink-0 glass rounded-xl p-2.5 flex items-center gap-3 min-w-[155px] max-w-[180px] hover:shadow-md transition-all group cursor-pointer">
     <div class="shrink-0">${iconHTML(item,'w-8 h-8 rounded-lg shadow-sm object-contain')}</div>
     <div class="min-w-0">
       <p class="text-[12px] font-bold text-slate-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
       <p class="text-[9px] text-slate-400 truncate">${(item.d||'').slice(0,30)}</p>
     </div>
-  </a>`).join('');
+  </div>`;}).join('');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1113,6 +1294,131 @@ el.innerHTML = `
   </div>`;
 }
 
+// ═══════════════════════════════════════════════════════════
+//  PLATFORM MODAL — sayt, Android yoki iOS tanlash
+// ═══════════════════════════════════════════════════════════
+window.openPlatformModal = function(name, url, hasWeb, hasMobil){
+  let item = null;
+  DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) item=i; }));
+  const modal=$('platModal'), content=$('platModalContent'), body=$('platModalBody');
+  if(!item){ addClick(name); window.open(url,'_blank','noopener,noreferrer'); return; }
+
+  const esc = name.replace(/'/g,"\\'");
+  const q   = encodeURIComponent(name);
+  // Custom app'da o'z Play/AppStore URL'lari bo'lsa ishlatamiz
+  const playUrl = item.androidUrl || `https://play.google.com/store/search?q=${q}&c=apps`;
+  const iosUrl  = item.iosUrl || `https://apps.apple.com/search?term=${q}`;
+  const domain  = getDomain(url).replace(/\/$/, '');
+
+  body.innerHTML = `
+    <div class="flex flex-col items-center mb-5">
+      <div class="w-[72px] h-[72px] rounded-[20px] overflow-hidden border border-slate-100 dark:border-slate-700/60 shadow-xl mb-3 flex items-center justify-center bg-white dark:bg-slate-800">
+        ${iconHTML(item,'w-[72px] h-[72px] object-contain')}
+      </div>
+      <h3 class="text-[17px] font-black text-slate-900 dark:text-white">${name}</h3>
+      <p class="text-[11px] text-slate-400 text-center mt-1 max-w-[240px] leading-relaxed">${item.d||''}</p>
+    </div>
+    <div class="flex items-center gap-2 mb-3">
+      <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
+      <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ochish usulini tanlang</span>
+      <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
+    </div>
+    <div class="space-y-2">
+      ${hasWeb ? `
+      <button onclick="addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${url.replace(/'/g,"\\'")}','_blank','noopener,noreferrer');closePlatformModal()"
+        class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
+        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 shrink-0">
+          <i class="fa-solid fa-globe text-[15px]"></i>
+        </div>
+        <div class="text-left flex-1 min-w-0">
+          <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Veb-sayt orqali kirish</div>
+          <div class="text-[10px] text-slate-400 truncate mt-0.5">${domain}</div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-violet-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
+      </button>` : ''}
+      ${hasMobil ? `
+      <button onclick="addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${playUrl.replace(/'/g,"\\'")}','_blank','noopener,noreferrer');closePlatformModal()"
+        class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
+        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0">
+          <i class="fa-brands fa-google-play text-[15px]"></i>
+        </div>
+        <div class="text-left flex-1 min-w-0">
+          <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Android ilovasi</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Google Play Store'dan yuklab oling</div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-emerald-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
+      </button>
+      <button onclick="addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${iosUrl.replace(/'/g,"\\'")}','_blank','noopener,noreferrer');closePlatformModal()"
+        class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
+        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white shadow-lg shrink-0">
+          <i class="fa-brands fa-apple text-[18px]"></i>
+        </div>
+        <div class="text-left flex-1 min-w-0">
+          <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">iPhone / iPad ilovasi</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">App Store'dan yuklab oling</div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-slate-500 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
+      </button>` : ''}
+    </div>`;
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(()=>{
+    content.classList.remove('scale-95','opacity-0');
+    content.classList.add('scale-100','opacity-100');
+  },10);
+};
+
+window.closePlatformModal = function(){
+  const modal=$('platModal'), content=$('platModalContent');
+  content.classList.remove('scale-100','opacity-100');
+  content.classList.add('scale-95','opacity-0');
+  setTimeout(()=>{
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  },200);
+};
+
+function setupTrendingScroll(){
+  const grid = $('trendingGrid');
+  if(!grid) return;
+  let raf = null;
+
+  grid.parentElement.addEventListener('mousemove', e => {
+    const rect = grid.parentElement.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const w = rect.width;
+    const zone = 90; // px — chetdan qancha masofada ishlaydi
+    const maxSpeed = 5; // px per frame
+
+    cancelAnimationFrame(raf);
+
+    if(x > w - zone) {
+      // O'ng tomon — oldinga sura
+      const speed = maxSpeed * ((x - (w - zone)) / zone);
+      const scroll = () => {
+        grid.scrollLeft += speed;
+        if(grid.scrollLeft < grid.scrollWidth - grid.clientWidth)
+          raf = requestAnimationFrame(scroll);
+      };
+      raf = requestAnimationFrame(scroll);
+    } else if(x < zone) {
+      // Chap tomon — orqaga sura
+      const speed = maxSpeed * ((zone - x) / zone);
+      const scroll = () => {
+        grid.scrollLeft -= speed;
+        if(grid.scrollLeft > 0)
+          raf = requestAnimationFrame(scroll);
+      };
+      raf = requestAnimationFrame(scroll);
+    }
+  });
+
+  grid.parentElement.addEventListener('mouseleave', () => {
+    cancelAnimationFrame(raf);
+  });
+}
+
 function init(){
 renderNav();
 renderContent();
@@ -1122,6 +1428,7 @@ setupSearch();
 setupTheme();
 setupShare();
 setupScroll();
+setupTrendingScroll();
 initGlobalClicks();
 updateSidebarStats();
 }

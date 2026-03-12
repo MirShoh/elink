@@ -45,6 +45,16 @@ tailwind.config={
 </script>
 <link rel="stylesheet" href="style.css">
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2QYRFQMN3H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2QYRFQMN3H');
+</script>
+
 </head>
 
 <body class="text-slate-800 dark:text-slate-200 antialiased overflow-hidden h-screen flex relative">
@@ -112,7 +122,7 @@ tailwind.config={
 </aside>
 
 <!-- ═══════════════════════ MAIN ═══════════════════════ -->
-<div class="flex-1 flex flex-col h-screen overflow-hidden">
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
   <!-- Mobile header -->
   <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe">
@@ -161,7 +171,7 @@ tailwind.config={
         <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
           <i class="fa-solid fa-fire text-orange-500"></i> Ommabop resurslar
         </h3>
-        <div class="flex overflow-x-auto gap-3 pb-2 no-sc" id="trendingGrid"></div>
+        <div class="flex flex-nowrap overflow-x-auto gap-3 pb-2 no-sc" id="trendingGrid"></div>
       </div>
 
       <!-- Desktop top bar -->
@@ -203,39 +213,69 @@ tailwind.config={
     </div>
   </main>
 
-  <!-- Mobile FAB -->
-  <button id="scrollTop" class="md:hidden fixed bottom-5 right-4 w-11 h-11 rounded-full bg-slate-900/90 dark:bg-violet-600/90 text-white shadow-xl flex items-center justify-center z-50 transition-all duration-300 opacity-0 translate-y-16 backdrop-blur-md">
-    <i class="fa-solid fa-arrow-up text-sm"></i>
+  <!-- Scroll progress bar — top of main -->
+  <div id="scrollProgress" class="absolute top-0 left-0 h-0.5 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 z-50 transition-all duration-100 pointer-events-none" style="width:0%"></div>
+
+  <!-- Scroll to top FAB — both mobile & desktop -->
+  <button id="scrollTop" class="fixed bottom-6 right-5 w-11 h-11 rounded-2xl bg-slate-900/90 dark:bg-violet-600 text-white shadow-xl flex items-center justify-center z-50 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none backdrop-blur-md hover:scale-110 active:scale-95 group">
+    <i class="fa-solid fa-arrow-up text-sm group-hover:-translate-y-0.5 transition-transform"></i>
   </button>
 </div>
 
-<!-- ═══════════════════════ ADD CUSTOM APP MODAL ═══════════════════════ -->
+<!-- ═══════════════════════ ADD/EDIT CUSTOM APP MODAL ═══════════════════════ -->
 <div id="caModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
     <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeCustomModal()"></div>
-    <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700" id="caModalContent">
+    <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto" id="caModalContent">
         <div class="flex justify-between items-center mb-5">
-            <h3 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <h3 id="caModalTitle" class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-circle-plus text-violet-500"></i> Yangi resurs
             </h3>
-            <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
+            <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
-        <div class="space-y-4">
+        <div class="space-y-3.5">
             <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Nomi <span class="text-red-500">*</span></label>
                 <input type="text" id="caName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Mening Blogim">
             </div>
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Havola (URL) <span class="text-red-500">*</span></label>
-                <input type="url" id="caUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Tavsif (ixtiyoriy)</label>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Tavsif</label>
                 <input type="text" id="caDesc" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="Qisqacha ma'lumot...">
             </div>
-            <button onclick="saveCustomApp()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold rounded-xl py-3.5 mt-2 transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98]">
-                <i class="fa-solid fa-check mr-1.5"></i> Saqlash
+
+            <!-- Platform toggle -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Platformalar</label>
+                <div class="flex gap-2">
+                    <button type="button" id="caToggleWeb" onclick="caToggle('web')" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
+                        <i class="fa-solid fa-globe"></i> Veb-sayt
+                    </button>
+                    <button type="button" id="caToggleAndroid" onclick="caToggle('android')" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
+                        <i class="fa-brands fa-android"></i> Android
+                    </button>
+                    <button type="button" id="caToggleIos" onclick="caToggle('ios')" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
+                        <i class="fa-brands fa-apple"></i> iOS
+                    </button>
+                </div>
+            </div>
+
+            <div id="caWebField">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">🌐 Veb-sayt URL</label>
+                <input type="url" id="caUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
+            </div>
+            <div id="caAndroidField" class="hidden">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">🤖 Google Play URL</label>
+                <input type="url" id="caAndroidUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://play.google.com/store/apps/details?id=...">
+            </div>
+            <div id="caIosField" class="hidden">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"> iOS App Store URL</label>
+                <input type="url" id="caIosUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/50 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://apps.apple.com/app/...">
+            </div>
+
+            <input type="hidden" id="caEditName">
+            <button onclick="saveCustomApp()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold rounded-xl py-3.5 mt-1 transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98]">
+                <i class="fa-solid fa-check mr-1.5"></i> <span id="caSaveTxt">Saqlash</span>
             </button>
         </div>
     </div>
@@ -248,7 +288,16 @@ tailwind.config={
 </div>
 
 
-<!-- CounterAPI ishlatilmoqda — hech qanday library kerak emas -->
+<!-- ═══════════════════════ PLATFORM MODAL ═══════════════════════ -->
+<div id="platModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closePlatformModal()"></div>
+  <div class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700" id="platModalContent">
+    <button onclick="closePlatformModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center z-10">
+      <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
+    <div id="platModalBody"></div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
