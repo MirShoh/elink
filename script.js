@@ -12,6 +12,57 @@ function safeParse(key, fallback) {
 
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
+// ── Foydalanuvchi noyob ID (UUID, bir marta yaratiladi) ──────
+function getOrCreateUserId(){
+  let uid = localStorage.getItem('lh_uid');
+  if(!uid){
+    uid = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,9);
+    localStorage.setItem('lh_uid', uid);
+  }
+  return uid;
+}
+const USER_ID = getOrCreateUserId();
+
+// ── Supabase dan foydalanuvchi ma'lumotlarini yuklash ─────────
+async function loadUserDataFromSupabase(){
+  try{
+    const res = await fetch(SUPA_PROXY,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        path: '/rest/v1/user_data?user_id=eq.'+encodeURIComponent(USER_ID)+'&select=custom_apps,favorites',
+        method: 'GET'
+      })
+    });
+    if(!res.ok) return null;
+    const rows = await res.json();
+    if(Array.isArray(rows) && rows[0]){
+      return { customApps: rows[0].custom_apps||[], favorites: rows[0].favorites||[] };
+    }
+    return null;
+  }catch(e){ console.warn('[sync] load error:', e.message); return null; }
+}
+
+// ── Supabase ga saqlash (debounced 1.5s) ─────────────────────
+let _syncTimer = null;
+function saveUserDataToSupabase(){
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(async ()=>{
+    try{
+      await fetch(SUPA_PROXY,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          path: '/rest/v1/rpc/upsert_user_data', method:'POST',
+          body: {
+            p_user_id: USER_ID,
+            p_custom_apps: customApps,
+            p_favorites:   favorites
+          }
+        })
+      });
+    }catch(e){ console.warn('[sync] save error:', e.message); }
+  }, 1500);
+}
+
 async function sendTelegram(text){
   try {
     await fetch('/.netlify/functions/telegram', {
@@ -74,6 +125,24 @@ if(count > 0){
 //  DATA — 330+ Premium va mahalliy resurslar to'plami
 // ═══════════════════════════════════════════════════════════
 let customApps = safeParse('lh_custom_apps', []);
+// Supabase dan sinxronlash (sahifa yuklanganda)
+(async ()=>{
+  const remote = await loadUserDataFromSupabase();
+  if(remote){
+    // Agar remote yangroq bo'lsa — undan foydalan
+    if(remote.customApps.length >= customApps.length){
+      customApps = remote.customApps;
+      localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+      const cat = DATA?.find(c=>c.id==='my_apps');
+      if(cat){ cat.items = customApps; renderNav(); renderContent(); }
+    }
+    if(remote.favorites.length >= favorites.length){
+      favorites = remote.favorites;
+      localStorage.setItem('lh_favs', JSON.stringify(favorites));
+      renderNav();
+    }
+  }
+})();
 
 const DATA = [
 {id:'my_apps', title:"🛠️ Shaxsiy Ilovalarim", icon:"fa-folder-plus", gr:"from-slate-500 to-gray-500", items:customApps},
@@ -726,6 +795,7 @@ favorites = favorites.includes(name)
   ? favorites.filter(n=>n!==name)
   : [...favorites, name];
 localStorage.setItem('lh_favs', JSON.stringify(favorites));
+saveUserDataToSupabase();
 const on = favorites.includes(name);
 if(!silent && on) showToast("Saqlanganlarga qo'shildi!", 'fa-heart text-rose-400');
 if(btn) {
@@ -1310,6 +1380,7 @@ window.saveCustomApp = function() {
   }
 
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+  saveUserDataToSupabase();
   const cat = DATA.find(c=>c.id==='my_apps');
   if(cat) cat.items=customApps;
   closeCustomModal();
@@ -1371,6 +1442,7 @@ window.deleteCustomApp = function(name) {
       if(cat) cat.items = customApps;
       favorites = favorites.filter(n=>n!==name);
       localStorage.setItem('lh_favs', JSON.stringify(favorites));
+      saveUserDataToSupabase();
       showToast("Ilova o'chirildi", "fa-trash text-red-500");
       renderNav(); renderContent();
     }, 200);
@@ -2661,6 +2733,7 @@ window.doImport = function(){
   if(!added && skipped){ showToast("Tanlangan resurslar allaqachon mavjud!", "fa-circle-info text-blue-500"); return; }
   if(!added){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+  saveUserDataToSupabase();
   window.closeImportModal();
   showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
   if(activeCat!=='my_apps') setCat('my_apps');
