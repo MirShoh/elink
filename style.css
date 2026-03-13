@@ -325,3 +325,16 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-r
 #builderAddChevron{display:inline-block;transition:transform .2s cubic-bezier(.4,0,.2,1)}
 .builder-custom-group .builder-item{background:rgba(139,92,246,.05)}
 .dark .builder-custom-group .builder-item{background:rgba(139,92,246,.1)}
+
+/* ── BUILDER GRID CARDS ── */
+/* has-[:checked] CSS selector for native checkbox state */
+.builder-item{contain:layout style}
+/* Grid custom items spacing */
+#builderCustomItems{min-height:0}
+/* Mobile toggle chevron */
+#bcMobileChevron{display:inline-block;will-change:transform}
+/* Smooth expand */
+#bcMobileFields{animation:fadeUp .18s ease-out}
+/* Android/iOS input focus rings */
+#bcAndroid:focus{border-color:rgba(16,185,129,.5)}
+#bcIos:focus{border-color:rgba(100,116,139,.5)}

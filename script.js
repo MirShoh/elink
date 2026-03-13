@@ -1910,58 +1910,99 @@ window.openListBuilderModal = function(){
             <i id="builderAddChevron" class="fa-solid fa-chevron-down text-[9px] ml-auto text-slate-400 transition-transform duration-200"></i>
           </button>
           <div id="builderAddForm" class="hidden px-3 pb-3 space-y-2">
+            <!-- Nomi + Tavsif -->
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Nomi <span class="text-red-400">*</span></label>
-                <input id="bcName" type="text" placeholder="Masalan: Mening blogim" maxlength="40"
-                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200">
+                <input id="bcName" type="text" placeholder="Mening blogim" maxlength="40"
+                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
               </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Tavsif</label>
                 <input id="bcDesc" type="text" placeholder="Qisqacha..." maxlength="60"
-                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200">
+                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
               </div>
             </div>
-            <input id="bcUrl" type="url" placeholder="https://sayt.uz"
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200">
+            <!-- Veb-sayt -->
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5 block">
+                <i class="fa-solid fa-globe text-blue-400 text-[9px]"></i> Veb-sayt URL
+              </label>
+              <input id="bcUrl" type="url" placeholder="https://sayt.uz"
+                class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-slate-800 dark:text-slate-200 transition-all">
+            </div>
+            <!-- Mobil ilovalar toggle -->
+            <div>
+              <button type="button" onclick="toggleBcMobile()" id="bcMobileToggleBtn"
+                class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-violet-500 transition-colors">
+                <i id="bcMobileChevron" class="fa-solid fa-chevron-right text-[8px] transition-transform duration-200"></i>
+                <i class="fa-solid fa-mobile-screen-button text-[9px]"></i>
+                Mobil ilova (ixtiyoriy)
+              </button>
+              <div id="bcMobileFields" class="hidden mt-2 space-y-1.5">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center shrink-0">
+                    <i class="fa-brands fa-android text-emerald-600 dark:text-emerald-400 text-[11px]"></i>
+                  </div>
+                  <input id="bcAndroid" type="url" placeholder="https://play.google.com/store/apps/details?id=..."
+                    class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all">
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                    <i class="fa-brands fa-apple text-slate-700 dark:text-slate-300 text-[11px]"></i>
+                  </div>
+                  <input id="bcIos" type="url" placeholder="https://apps.apple.com/app/..."
+                    class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-slate-500/30 text-slate-800 dark:text-slate-200 transition-all">
+                </div>
+              </div>
+            </div>
             <button onclick="addBuilderCustomItem()"
-              class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl py-2 text-xs transition-all hover:opacity-90 active:scale-[0.98] shadow-sm">
+              class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl py-2.5 text-xs transition-all hover:opacity-90 active:scale-[0.98] shadow-sm shadow-violet-500/25">
               <i class="fa-solid fa-plus-circle"></i> Ro'yxatga qo'shish
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Items list -->
+      <!-- Items list — 2 col grid -->
       <div id="builderList" class="flex-1 overflow-y-auto px-3 pb-2 space-y-3">
         <!-- Shaxsiy qo'shilgan resurslar -->
         <div id="builderCustomGroup" class="hidden">
-          <p class="text-[10px] font-black text-violet-400 uppercase tracking-wider px-2 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10"><i class="fa-solid fa-star mr-1"></i>O'zim qo'shganlarim</p>
-          <div id="builderCustomItems" class="space-y-0.5"></div>
+          <p class="text-[10px] font-black text-violet-400 uppercase tracking-wider px-1 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10"><i class="fa-solid fa-star mr-1"></i>O'zim qo'shganlarim</p>
+          <div id="builderCustomItems" class="grid grid-cols-2 gap-1.5"></div>
         </div>
         ${Object.entries(cats).map(([catId, cat])=>`
           <div class="builder-cat-group" data-cat="${catId}">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10">${cat.title}</p>
-            <div class="space-y-0.5">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10">${cat.title}</p>
+            <div class="grid grid-cols-2 gap-1.5">
               ${cat.items.map(item=>{
                 const domain = getDomain(item.u||'');
                 const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
                 const key = item.n;
-                return `<label class="builder-item flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all group" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
-                  <input type="checkbox" class="builder-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\\'")}')">
-                  <div class="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                    ${src ? `<img src="${src}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
-                  </div>
+                const hasMob  = item.t?.includes('mobil');
+                const hasWeb  = item.t?.includes('web');
+                const isBepul = item.t?.includes('bepul');
+                return `<label class="builder-item flex items-start gap-2 p-2.5 rounded-2xl border border-transparent hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50 dark:has-[:checked]:bg-violet-500/15 dark:has-[:checked]:border-violet-500/60" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
+                  <input type="checkbox" class="builder-chk mt-0.5 w-3.5 h-3.5 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
-                    ${item.d ? `<p class="text-[10px] text-slate-400 truncate">${item.d}</p>` : ''}
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                      <div class="w-6 h-6 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 flex items-center justify-center shrink-0">
+                        ${src ? `<img src="${src}" class="w-5 h-5 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-[9px]"></i>`}
+                      </div>
+                      <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
+                    </div>
+                    ${item.d ? `<p class="text-[9px] text-slate-400 truncate leading-snug">${item.d}</p>` : ''}
+                    <div class="flex gap-1 mt-1 flex-wrap">
+                      ${isBepul ? `<span class="text-[8px] font-black bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">Bepul</span>` : ''}
+                      ${hasWeb  ? `<span class="text-[8px] font-black bg-blue-100 dark:bg-blue-500/15 text-blue-500 dark:text-blue-400 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-globe text-[7px] mr-0.5"></i>Web</span>` : ''}
+                      ${hasMob  ? `<span class="text-[8px] font-black bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-mobile-screen-button text-[7px] mr-0.5"></i>Ilova</span>` : ''}
+                    </div>
                   </div>
                 </label>`;
               }).join('')}
             </div>
           </div>`).join('')}
       </div>
-
       <!-- Footer -->
       <div class="shrink-0 border-t border-slate-200/60 dark:border-slate-700/60 px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm sm:rounded-b-3xl rounded-b-none">
         <div class="flex items-center justify-between mb-2.5">
@@ -2006,6 +2047,17 @@ window.filterBuilderItems = function(q){
   });
 };
 
+// ── toggleBcMobile — Android/iOS maydonlarini ko'rsatish/yashirish ──
+window.toggleBcMobile = function(){
+  const fields = document.getElementById('bcMobileFields');
+  const chev   = document.getElementById('bcMobileChevron');
+  if(!fields) return;
+  const hidden = fields.classList.contains('hidden');
+  fields.classList.toggle('hidden', !hidden);
+  if(chev) chev.style.transform = hidden ? 'rotate(90deg)' : '';
+  if(hidden) setTimeout(()=> document.getElementById('bcAndroid')?.focus(), 80);
+};
+
 window.builderSelectAll = function(val){
   document.querySelectorAll('.builder-chk').forEach(chk=>{
     if(chk.closest('.builder-item')?.style.display === 'none') return;
@@ -2040,42 +2092,61 @@ window.toggleBuilderAddForm = function(){
 };
 
 window.addBuilderCustomItem = function(){
-  const nameEl = document.getElementById('bcName');
-  const urlEl  = document.getElementById('bcUrl');
-  const descEl = document.getElementById('bcDesc');
-  const name = nameEl?.value.trim();
-  const url  = urlEl?.value.trim() || '';
-  const desc = descEl?.value.trim() || '';
+  const nameEl    = document.getElementById('bcName');
+  const urlEl     = document.getElementById('bcUrl');
+  const descEl    = document.getElementById('bcDesc');
+  const androidEl = document.getElementById('bcAndroid');
+  const iosEl     = document.getElementById('bcIos');
+  const name    = nameEl?.value.trim();
+  const url     = urlEl?.value.trim()     || '';
+  const desc    = descEl?.value.trim()    || '';
+  const android = androidEl?.value.trim() || '';
+  const ios     = iosEl?.value.trim()     || '';
   if(!name){ showToast("Nomi kiritilishi shart!", "fa-circle-xmark text-red-500"); nameEl?.focus(); return; }
+  if(!url && !android && !ios){ showToast("Kamida bitta URL kiritilishi shart!", "fa-circle-xmark text-red-500"); urlEl?.focus(); return; }
   const key = '__c__' + name;
   if(_builderSelected.has(key)){ showToast("Bu resurs allaqachon qo'shilgan!", "fa-triangle-exclamation text-amber-500"); return; }
-  _builderSelected.set(key, { n:name, u:url, d:desc, t:[], isCustom:true });
+  // Tags
+  const tags = [];
+  if(url)     tags.push('web');
+  if(android || ios) tags.push('mobil');
+  const item = { n:name, u:url, d:desc, t:tags, isCustom:true,
+    ...(android ? {android} : {}), ...(ios ? {ios} : {}) };
+  _builderSelected.set(key, item);
   updateBuilderCount();
-  // DOM row
+  // DOM card (2-col grid)
   const group = document.getElementById('builderCustomGroup');
   const list  = document.getElementById('builderCustomItems');
   if(group) group.classList.remove('hidden');
   if(list){
-    const domain = getDomain(url);
+    const domain = getDomain(url||android||'');
     const row = document.createElement('div');
-    row.className = 'builder-item flex items-center gap-3 px-2 py-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 animate-fade-up';
+    row.className = 'builder-item flex items-start gap-2 p-2.5 rounded-2xl border border-violet-300 dark:border-violet-500/50 bg-violet-50 dark:bg-violet-500/15 animate-fade-up relative';
     row.dataset.customKey = key;
     row.innerHTML = `
-      <i class="fa-solid fa-check-circle text-violet-500 text-sm shrink-0"></i>
-      <div class="w-8 h-8 rounded-lg overflow-hidden border border-violet-200/60 dark:border-violet-600/30 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-        ${domain ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" class="w-7 h-7 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
-      </div>
+      <i class="fa-solid fa-check-circle text-violet-500 text-xs mt-0.5 shrink-0"></i>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-bold text-violet-700 dark:text-violet-300 truncate">${name}</p>
-        <p class="text-[10px] text-slate-400 truncate">${desc || url || ''}</p>
+        <div class="flex items-center gap-1.5 mb-0.5">
+          <div class="w-6 h-6 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-violet-200/60 dark:border-violet-600/30 flex items-center justify-center shrink-0">
+            ${domain ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" class="w-5 h-5 object-contain" onerror="this.style.display='none'">` : '<i class="fa-solid fa-star text-violet-400 text-[9px]"></i>'}
+          </div>
+          <p class="text-xs font-bold text-violet-700 dark:text-violet-300 truncate leading-tight">${name}</p>
+        </div>
+        ${desc ? `<p class="text-[9px] text-slate-400 truncate">${desc}</p>` : ''}
+        <div class="flex gap-1 mt-1 flex-wrap">
+          ${url     ? '<span class="text-[8px] font-black bg-blue-100 dark:bg-blue-500/15 text-blue-500 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-globe text-[7px] mr-0.5"></i>Web</span>' : ''}
+          ${android ? '<span class="text-[8px] font-black bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full"><i class="fa-brands fa-android text-[8px] mr-0.5"></i>Android</span>' : ''}
+          ${ios     ? '<span class="text-[8px] font-black bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded-full"><i class="fa-brands fa-apple text-[8px] mr-0.5"></i>iOS</span>' : ''}
+        </div>
       </div>
       <button onclick="removeBuilderCustomItem('${key.replace(/'/g,"\'")}',this.closest('[data-custom-key]'))"
-        class="w-6 h-6 rounded-full flex items-center justify-center text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shrink-0">
-        <i class="fa-solid fa-xmark text-xs"></i>
+        class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all">
+        <i class="fa-solid fa-xmark text-[9px]"></i>
       </button>`;
     list.appendChild(row);
   }
-  if(nameEl) nameEl.value=''; if(urlEl) urlEl.value=''; if(descEl) descEl.value='';
+  // Reset inputs
+  [nameEl,urlEl,descEl,androidEl,iosEl].forEach(el=>{ if(el) el.value=''; });
   showToast(`"${name}" qo'shildi ✨`, 'fa-circle-check text-violet-400');
 };
 
@@ -2086,7 +2157,7 @@ window.removeBuilderCustomItem = function(key, rowEl){
   setTimeout(()=>{
     const list = document.getElementById('builderCustomItems');
     const group = document.getElementById('builderCustomGroup');
-    if(list && group && !list.querySelector('[data-custom-key]')) group.classList.add('hidden');
+    if(list && group && list.querySelectorAll('[data-custom-key]').length===0) group.classList.add('hidden');
   },200);
 };
 
