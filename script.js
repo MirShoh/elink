@@ -642,9 +642,8 @@ const badges = [
   isBepul  ? `<span class="badge-bepul">✓ Bepul</span>` : '',
   isPullik ? `<span class="badge-pullik">💎 Pullik</span>` : '',
   isCustom ? `<span class="badge-custom">Shaxsiy</span>` : '',
-  hasWeb && isMob ? `<span class="badge-web"><i class="fa-solid fa-globe text-[8px]"></i> Web</span>` : '',
-  isMob    ? `<span class="badge-mob"><i class="fa-solid fa-mobile-screen-button text-[8px]"></i> Ilova</span>` : '',
-  '' /* ribbon is rendered separately */,
+  hasWeb && isMob ? `<span class="badge-web" title="Veb-sayt"><i class="fa-solid fa-globe text-[9px]"></i></span>` : '',
+  isMob    ? `<span class="badge-mob" title="Mobil ilova"><i class="fa-solid fa-mobile-screen-button text-[9px]"></i></span>` : '',
 ].filter(Boolean).join('');
 
 return `
@@ -693,16 +692,16 @@ return `
       <span>${c||0}</span>
     </div>
     <!-- Report + Share — o'ng -->
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1.5">
       <button onclick="event.stopPropagation();openReportModal('${esc}','${escUrl}')"
           title="Muammo bildirish"
-          class="h-6 px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold text-slate-300 dark:text-slate-600 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors">
-          <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+          class="card-action-btn text-slate-400 dark:text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10">
+          <i class="fa-solid fa-triangle-exclamation text-sm"></i>
       </button>
       <button onclick="event.stopPropagation();shareCard('${esc}','${escUrl}')"
           title="Ulashish"
-          class="h-6 px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold text-slate-300 dark:text-slate-600 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors">
-          <i class="fa-solid fa-share-nodes text-[9px]"></i>
+          class="card-action-btn text-slate-400 dark:text-slate-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10">
+          <i class="fa-solid fa-share-nodes text-sm"></i>
       </button>
     </div>
   </div>
@@ -741,41 +740,50 @@ function renderNav(){
 const total=DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a,0);
 $('sidebarCount').textContent=`${total} ta resurs`;
 
-// Shaxsiy ro'yxat — pinned (always visible)
-const pinned=`
-  <button onclick="setCat('my_apps')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='my_apps'?'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
-    <div class="flex items-center gap-2.5"><i class="fa-solid fa-folder-open w-4 text-center text-xs ${activeCat==='my_apps'?'text-violet-500':'opacity-60'}"></i><span>Shaxsiy ro'yxat</span></div>
-    <div class="flex items-center gap-1.5">
-      ${customApps.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full ${activeCat==='my_apps'?'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300':'bg-slate-200 dark:bg-slate-700/80 text-slate-500'}">${customApps.length}</span>`:''}
+// ── Helper: build one nav item ──
+const navBtn = (onclick, title, icon, label, count, extraClass='', countClass='') => {
+  return `<button onclick="${onclick}" title="${title}"
+    class="sb-nav-item ${extraClass} w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group">
+    <div class="flex items-center gap-2.5 min-w-0 overflow-hidden">
+      <i class="fa-solid ${icon} w-4 text-center text-xs opacity-55 group-hover:opacity-100 transition-opacity shrink-0"></i>
+      <span class="truncate text-left">${label}</span>
     </div>
-  </button>
-  <div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 mt-2"></div>`;
-$('sidebarPinned').innerHTML = pinned;
-
-// Kategoriyalar — scrollable
-let s=`
-  <button onclick="setCat('all')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='all'?'nav-active':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
-    <div class="flex items-center gap-2.5"><i class="fa-solid fa-border-all w-4 text-center text-xs opacity-60"></i><span>Barchasi</span></div>
-    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700/80 text-slate-500">${total}</span>
-  </button>
-  <button onclick="setCat('favorites')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${activeCat==='favorites'?'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
-    <div class="flex items-center gap-2.5"><i class="fa-solid fa-heart w-4 text-center text-xs text-rose-400"></i><span>Saqlanganlar</span></div>
-    ${favorites.length?`<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/25 text-rose-500">${favorites.length}</span>`:''}
+    ${count ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full ${countClass} shrink-0 font-bold">${count}</span>` : ''}
   </button>`;
+};
+
+// ── Shaxsiy ro'yxat (pinned) ──
+const myActive = activeCat==='my_apps';
+const myCountCls = myActive ? 'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300' : 'bg-slate-200 dark:bg-slate-700/80 text-slate-500';
+const myExtraCls = myActive ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
+const pinned = navBtn(`setCat('my_apps')`, "Shaxsiy ro'yxat", 'fa-folder-open',
+  "Shaxsiy ro'yxat", customApps.length||'', myExtraCls, myCountCls);
+$('sidebarPinned').innerHTML = pinned +
+  `<div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 mt-2 mb-1"></div>`;
+
+// ── Kategoriyalar ──
+const allActive = activeCat==='all';
+const favActive = activeCat==='favorites';
+
+let s = navBtn(`setCat('all')`, 'Barchasi', 'fa-border-all', 'Barchasi', total,
+  allActive ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50',
+  allActive ? 'bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200' : 'bg-slate-200 dark:bg-slate-700/80 text-slate-500');
+
+s += navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saqlanganlar',
+  favorites.length||'',
+  favActive ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50',
+  favActive ? 'bg-rose-200 dark:bg-rose-500/30 text-rose-600' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-500');
 
 DATA.forEach(c=>{
-  if (c.id === 'my_apps') return;
-  const cnt=c.items.filter(i=>matchItem(i,c)).length;
-  s+=`<button onclick="setCat('${c.id}')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-sm group ${activeCat===c.id?'nav-active':'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}">
-    <div class="flex items-center gap-2.5 min-w-0 overflow-hidden">
-      <i class="fa-solid ${c.icon} w-4 text-center text-xs opacity-55 group-hover:opacity-100 transition-opacity shrink-0"></i>
-      <span class="truncate text-left">${c.title}</span>
-    </div>
-    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 shrink-0">${cnt}</span>
-  </button>`;
+  if(c.id==='my_apps') return;
+  const cnt = c.items.filter(i=>matchItem(i,c)).length;
+  const isAct = activeCat===c.id;
+  s += navBtn(`setCat('${c.id}')`, c.title, c.icon, c.title, cnt,
+    isAct ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50',
+    isAct ? 'bg-violet-200 dark:bg-violet-500/25 text-violet-600 dark:text-violet-300' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400');
 });
 
-$('sidebarNav').innerHTML=s;
+$('sidebarNav').innerHTML = s;
 
 let m=`
   <button onclick="openCustomModal()" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/20 transition-all active:scale-95"><i class="fa-solid fa-plus"></i></button>
@@ -861,17 +869,27 @@ $('mainScroll').scrollTo({top:0,behavior:'smooth'});
 function renderContent(){
 $('appsContainer').innerHTML='';
 let found=0, delay=0;
-const buildSec=(items, heading, gr)=>{
+const buildSec=(items, heading, gr, catId)=>{
   if(!items.length) return;
   found+=items.length;
   const sec=document.createElement('div');
   sec.className='animate-fade-up';
   sec.style.animationDelay=`${delay}s`;
   delay+=0.025;
+  // Category share URL
+const shareUrl = catId ? ('https://elink.uz/?cat=' + catId) : 'https://elink.uz';
+  const shareTitle = heading ? heading + ' — E-Link UZ' : 'E-Link UZ';
+  const shareBtn = heading ? `
+    <button onclick="shareCat('${shareTitle.replace(/'/g,"\\'")}','${shareUrl.replace(/'/g,"\\'")}',this)"
+      class="ml-auto flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors border border-transparent hover:border-violet-200 dark:hover:border-violet-500/20">
+      <i class="fa-solid fa-share-nodes text-[10px]"></i>
+      <span class="hidden sm:inline">Ulashish</span>
+    </button>` : '';
   const h=heading?`<div class="flex items-center gap-3 mb-4">
     <div class="w-1 h-5 rounded-full bg-gradient-to-b ${gr}"></div>
     <h3 class="text-base font-black text-slate-800 dark:text-white">${heading}</h3>
     <span class="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">${items.length} ta</span>
+    ${shareBtn}
   </div>`:'';
   const grid=`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4">
     ${items.map(i=>card(i)).join('')}
@@ -893,9 +911,9 @@ if(activeCat==='favorites'){
     found=1;
   }
 } else if(activeCat==='my_apps'){
-  // my_apps uchun — birinchi karta "+" qo'shish kartasi
+  // my_apps uchun — faqat shaxsiy, share tugmasi yo'q
   const items = sortItems(customApps.filter(i=>matchItem(i,null)));
-  found += items.length + 1; // +1 for the add card
+  found += items.length + 1;
 
   const sec = document.createElement('div');
   sec.className = 'animate-fade-up';
@@ -914,7 +932,6 @@ if(activeCat==='favorites'){
     <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy resurs qo'shing</p>`;
   grid.appendChild(addCard);
 
-  // Mavjud kartalar
   items.forEach(i=>{
     const wrapper = document.createElement('div');
     wrapper.innerHTML = card(i);
@@ -928,7 +945,7 @@ if(activeCat==='favorites'){
   DATA.forEach(c=>{
     if(activeCat!=='all'&&activeCat!==c.id) return;
     const items=sortItems(c.items.filter(i=>matchItem(i,c)));
-    buildSec(items, (activeCat==='all'||query.trim())?c.title:null, c.gr);
+    buildSec(items, (activeCat==='all'||query.trim())?c.title:null, c.gr, c.id);
   });
 }
 
@@ -1070,13 +1087,39 @@ upd(html.classList.contains('dark'));
 }
 
 // ═══════════════════════════════════════════════════════════
+//  SHARE CATEGORY — kategoriya ulashish
+// ═══════════════════════════════════════════════════════════
+window.shareCat = async function(title, url, btn) {
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if (isMobile && navigator.share) {
+  try { await navigator.share({ title, text: title + ' — barcha resurslar!', url }); return; } catch(e) {}
+}
+try { await navigator.clipboard.writeText(url); }
+catch(e) {
+  const t=document.createElement('input');t.value=url;
+  document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
+}
+// Brief visual feedback on the button
+if(btn){
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-check text-[10px]"></i><span class="hidden sm:inline">Nusxalandi</span>';
+  btn.classList.add('text-emerald-500','border-emerald-200');
+  setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove('text-emerald-500','border-emerald-200'); }, 1800);
+}
+showToast(`"${title}" havolasi nusxalandi!`, 'fa-link text-violet-400');
+};
+
+
+// ═══════════════════════════════════════════════════════════
 //  SHARE CARD — har bir kartochka uchun ulashish
 // ═══════════════════════════════════════════════════════════
 window.shareCard = async function(name, url) {
-const shareData = { title: name + ' — E-Link UZ', text: name, url };
-if (navigator.share) {
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const shareData = { title: name + ' — E-Link UZ', text: name + ' — E-Link UZ da toping!', url };
+if (isMobile && navigator.share) {
   try { await navigator.share(shareData); return; } catch(e) {}
 }
+// Desktop: clipboard copy
 try { await navigator.clipboard.writeText(url); }
 catch(e) {
   const t=document.createElement('input');t.value=url;
@@ -1087,8 +1130,9 @@ showToast(`"${name}" havolasi nusxalandi!`, 'fa-link text-violet-400');
 
 function setupShare(){
 const fn=async()=>{
-  const d={title:"E-Link UZ — O'zbekiston onlayn resurslar",text:"300+ resurs bitta joyda! O'zbekiston aholisi uchun mukammal platforma",url:location.href};
-  if(navigator.share){try{await navigator.share(d);return;}catch(e){}}
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const d={title:"E-Link UZ — O'zbekiston onlayn resurslar",text:"300+ resurs bitta joyda! O'zbekiston aholisi uchun mukammal platforma",url:'https://elink.uz'};
+  if(isMobile && navigator.share){try{await navigator.share(d);return;}catch(e){}}
   try{await navigator.clipboard.writeText(location.href);}
   catch(e){const t=document.createElement('input');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}
   showToast('Havola nusxalandi!','fa-link text-violet-400');
@@ -1772,3 +1816,504 @@ window.setSortMode = function(val){
   if(menu) menu.classList.add('hidden');
   if(chev) chev.style.transform = '';
 };
+
+// ═══════════════════════════════════════════════════════════
+//  📤 RO'YXAT TUZISH VA ULASHISH TIZIMI
+//  Shaxsiy ro'yxat = faqat o'zi uchun (private)
+//  Bu tizim = do'stlar uchun alohida ro'yxat tuzish + ulashish
+// ═══════════════════════════════════════════════════════════
+
+// ── Compress / Decompress (LZ-string → 3-4x qisqa URL) ───
+function encodeShareList(data){
+  try{
+    const json = JSON.stringify(data);
+    if(typeof LZString !== 'undefined')
+      return LZString.compressToEncodedURIComponent(json);
+    return btoa(unescape(encodeURIComponent(json)));
+  }catch(e){ return null; }
+}
+function decodeShareList(str){
+  try{
+    let json;
+    if(typeof LZString !== 'undefined')
+      json = LZString.decompressFromEncodedURIComponent(str);
+    if(!json) json = decodeURIComponent(escape(atob(str))); // fallback eski format
+    return JSON.parse(json);
+  }catch(e){ return null; }
+}
+
+// ── Barcha resurslar (katalog + shaxsiy) ─────────────────
+function getAllCatalogItems(){
+  const all = [];
+  DATA.forEach(cat => {
+    if(cat.id === 'my_apps') return; // shaxsiy ro'yxatni chiqarma
+    cat.items.forEach(item => all.push({...item, _catId: cat.id, _catTitle: cat.title}));
+  });
+  return all;
+}
+
+// ── Yangi ro'yxat tuzish modali ──────────────────────────
+let _builderSelected = new Map(); // n → item
+
+window.openListBuilderModal = function(){
+  const existing = document.getElementById('listBuilderModal');
+  if(existing) existing.remove();
+  _builderSelected = new Map();
+
+  const allItems = getAllCatalogItems();
+  const cats = {};
+  allItems.forEach(i => {
+    if(!cats[i._catId]) cats[i._catId] = {title: i._catTitle, items:[]};
+    cats[i._catId].items.push(i);
+  });
+
+  const modal = document.createElement('div');
+  modal.id = 'listBuilderModal';
+  modal.className = 'fixed inset-0 z-[550] flex items-end sm:items-center justify-center';
+  modal.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeListBuilderModal()"></div>
+    <div id="listBuilderBox" class="relative glass w-full max-w-xl sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transform translate-y-4 opacity-0 transition-all duration-200" style="max-height:92dvh">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/60 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow shadow-violet-500/30 shrink-0">
+            <i class="fa-solid fa-list-check text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-slate-900 dark:text-white">Yangi ro'yxat tuzish</h3>
+            <p class="text-[10px] text-slate-400">Resurslarni tanlang, keyin ulashing</p>
+          </div>
+        </div>
+        <button onclick="closeListBuilderModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Search inside builder -->
+      <div class="px-4 pt-3 pb-2 shrink-0">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+          <input id="builderSearch" type="text" placeholder="Resurs qidirish..."
+            class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all"
+            oninput="filterBuilderItems(this.value)">
+        </div>
+      </div>
+
+      <!-- Items list -->
+      <div id="builderList" class="flex-1 overflow-y-auto px-3 pb-2 space-y-3">
+        ${Object.entries(cats).map(([catId, cat])=>`
+          <div class="builder-cat-group" data-cat="${catId}">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10">${cat.title}</p>
+            <div class="space-y-0.5">
+              ${cat.items.map(item=>{
+                const domain = getDomain(item.u||'');
+                const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
+                const key = item.n;
+                return `<label class="builder-item flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all group" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
+                  <input type="checkbox" class="builder-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\\'")}')">
+                  <div class="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    ${src ? `<img src="${src}" class="w-7 h-7 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
+                    ${item.d ? `<p class="text-[10px] text-slate-400 truncate">${item.d}</p>` : ''}
+                  </div>
+                </label>`;
+              }).join('')}
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Footer -->
+      <div class="shrink-0 border-t border-slate-200/60 dark:border-slate-700/60 px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm sm:rounded-b-3xl rounded-b-none">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="flex gap-3">
+            <button onclick="builderSelectAll(true)" class="text-[11px] font-bold text-violet-500 hover:text-violet-700 transition-colors">Barchasi</button>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <button onclick="builderSelectAll(false)" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Tozalash</button>
+          </div>
+          <span id="builderCount" class="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">0 tanlandi</span>
+        </div>
+        <button onclick="openBuilderShareStep()" id="builderNextBtn"
+          disabled
+          class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-arrow-right"></i> Davom etish
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  setTimeout(()=>{
+    const box = document.getElementById('listBuilderBox');
+    box.classList.remove('translate-y-4','opacity-0');
+    box.classList.add('translate-y-0','opacity-100');
+  },10);
+};
+
+window.builderToggle = function(chk, key){
+  const allItems = getAllCatalogItems();
+  const item = allItems.find(i => i.n === key);
+  if(chk.checked && item) _builderSelected.set(key, item);
+  else _builderSelected.delete(key);
+  updateBuilderCount();
+};
+
+window.filterBuilderItems = function(q){
+  const term = q.trim().toLowerCase();
+  document.querySelectorAll('.builder-item').forEach(el=>{
+    const match = !term || el.dataset.name?.includes(term) || el.dataset.desc?.includes(term);
+    el.style.display = match ? '' : 'none';
+  });
+  document.querySelectorAll('.builder-cat-group').forEach(g=>{
+    const visible = [...g.querySelectorAll('.builder-item')].some(el=>el.style.display!=='none');
+    g.style.display = visible ? '' : 'none';
+  });
+};
+
+window.builderSelectAll = function(val){
+  document.querySelectorAll('.builder-chk').forEach(chk=>{
+    if(chk.closest('.builder-item')?.style.display === 'none') return;
+    chk.checked = val;
+    const key = chk.dataset.key;
+    if(val){
+      const allItems = getAllCatalogItems();
+      const item = allItems.find(i=>i.n===key);
+      if(item) _builderSelected.set(key, item);
+    } else _builderSelected.delete(key);
+  });
+  updateBuilderCount();
+};
+
+function updateBuilderCount(){
+  const n = _builderSelected.size;
+  const el = document.getElementById('builderCount');
+  if(el) el.textContent = `${n} tanlandi`;
+  const btn = document.getElementById('builderNextBtn');
+  if(btn) btn.disabled = n === 0;
+}
+
+window.closeListBuilderModal = function(){
+  const modal = document.getElementById('listBuilderModal');
+  if(!modal) return;
+  const box = document.getElementById('listBuilderBox');
+  box.classList.add('translate-y-4','opacity-0');
+  setTimeout(()=>modal.remove(), 200);
+};
+
+// ── Step 2: Nom va muallif kiritib havola olish ───────────
+window.openBuilderShareStep = function(){
+  if(!_builderSelected.size) return;
+  const existing = document.getElementById('builderShareModal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'builderShareModal';
+  modal.className = 'fixed inset-0 z-[560] flex items-center justify-center px-4';
+  modal.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeBuilderShareModal()"></div>
+    <div id="builderShareBox" class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700">
+      <button onclick="closeBuilderShareModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+
+      <!-- Back -->
+      <button onclick="closeBuilderShareModal()" class="flex items-center gap-1.5 text-[11px] font-bold text-violet-500 hover:text-violet-700 mb-4 transition-colors">
+        <i class="fa-solid fa-chevron-left text-[10px]"></i> Orqaga
+      </button>
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/30 shrink-0">
+          <i class="fa-solid fa-share-nodes text-base"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-slate-900 dark:text-white">Ro'yxatni ulashish</h3>
+          <p class="text-[11px] text-slate-400">${_builderSelected.size} ta resurs tanlandi</p>
+        </div>
+      </div>
+
+      <!-- Preview favicons -->
+      <div class="flex items-center gap-1 mb-4 flex-wrap">
+        ${[..._builderSelected.values()].slice(0,7).map(i=>{
+          const domain = getDomain(i.u||'');
+          return `<div class="w-7 h-7 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
+            ${domain ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" class="w-6 h-6 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+          </div>`;
+        }).join('')}
+        ${_builderSelected.size > 7 ? `<span class="text-[11px] font-bold text-slate-400 ml-1">+${_builderSelected.size-7}</span>` : ''}
+      </div>
+
+      <!-- Form -->
+      <div class="space-y-3 mb-4">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ro'yxat nomi</label>
+          <input id="bsTitle" type="text" maxlength="40"
+            placeholder="Masalan: Dev vositalarim 🚀"
+            value="Mening tavsiyalarim"
+            class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Muallif <span class="font-normal normal-case">(ixtiyoriy)</span></label>
+          <input id="bsAuthor" type="text" maxlength="30"
+            placeholder="@telegram yoki ismingiz"
+            class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
+        </div>
+      </div>
+
+      <!-- Link output -->
+      <div id="bsLinkWrap" class="hidden mb-4">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tayyor havola</label>
+        <div class="flex gap-2">
+          <div class="flex-1 bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 rounded-xl px-3 py-2.5 text-[11px] font-mono text-violet-700 dark:text-violet-300 truncate cursor-default" id="bsLinkText"></div>
+          <button onclick="copyBuilderLink()" id="bsCopyBtn"
+            class="shrink-0 w-10 flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white rounded-xl transition-all active:scale-95">
+            <i class="fa-solid fa-copy text-xs"></i>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+          Serverga hech narsa yuklanmaydi — havola o'zida to'liq
+        </p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2">
+        <button onclick="generateBuilderLink()" id="bsGenBtn"
+          class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98]">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Havola yaratish
+        </button>
+        <button id="bsNativeBtn" onclick="nativeBuilderShare()" class="hidden shrink-0 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-600 transition-all items-center justify-center">
+          <i class="fa-solid fa-share-nodes text-sm"></i>
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  setTimeout(()=>{
+    document.getElementById('builderShareBox').classList.remove('scale-95','opacity-0');
+    document.getElementById('builderShareBox').classList.add('scale-100','opacity-100');
+  },10);
+  if(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && navigator.share){
+    const nb = document.getElementById('bsNativeBtn');
+    nb.classList.remove('hidden'); nb.classList.add('flex');
+  }
+};
+
+window.closeBuilderShareModal = function(){
+  const m = document.getElementById('builderShareModal');
+  if(!m) return;
+  document.getElementById('builderShareBox').classList.add('scale-95','opacity-0');
+  setTimeout(()=>m.remove(), 200);
+};
+
+window.generateBuilderLink = function(){
+  const title = document.getElementById('bsTitle')?.value.trim() || "Mening tavsiyalarim";
+  const author = document.getElementById('bsAuthor')?.value.trim() || '';
+  // Faqat zarur maydonlar — URL qisqa bo'lishi uchun
+  const items = [..._builderSelected.values()].map(i=>({
+    n: i.n,
+    u: i.u||'',
+    ...(i.d ? {d:i.d} : {}),
+    ...(i.t?.length ? {t:i.t} : {}),
+  }));
+  const data = { v:2, title, ...(author?{a:author}:{}), items };
+  const encoded = encodeShareList(data);
+  if(!encoded){ showToast("Xato yuz berdi", "fa-circle-xmark text-red-500"); return; }
+
+  const url = 'https://elink.uz/#s=' + encoded;
+  window._bsUrl = url;
+  window._bsTitle = title;
+
+  const wrap = document.getElementById('bsLinkWrap');
+  const txt = document.getElementById('bsLinkText');
+  wrap.classList.remove('hidden');
+  txt.textContent = url;
+  document.getElementById('bsGenBtn').innerHTML = '<i class="fa-solid fa-rotate-right"></i> Yangilash';
+};
+
+window.copyBuilderLink = async function(){
+  const url = window._bsUrl;
+  if(!url) return;
+  try{ await navigator.clipboard.writeText(url); }
+  catch(e){
+    const t=document.createElement('input');t.value=url;
+    document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
+  }
+  const btn = document.getElementById('bsCopyBtn');
+  if(btn){ btn.innerHTML='<i class="fa-solid fa-check text-xs"></i>'; btn.classList.add('bg-emerald-500'); }
+  showToast('Havola nusxalandi! 🎉', 'fa-link text-violet-400');
+  setTimeout(()=>{
+    const b = document.getElementById('bsCopyBtn');
+    if(b){ b.innerHTML='<i class="fa-solid fa-copy text-xs"></i>'; b.classList.remove('bg-emerald-500'); }
+  }, 2200);
+};
+
+window.nativeBuilderShare = async function(){
+  if(!window._bsUrl){ generateBuilderLink(); }
+  const url = window._bsUrl;
+  const title = window._bsTitle || "Mening tavsiyalarim";
+  try{ await navigator.share({ title: title + ' — E-Link UZ', text: `${_builderSelected.size} ta foydali resursni ko'ring!`, url }); }
+  catch(e){}
+};
+
+// ── IMPORT — havoladan kiritish ───────────────────────────
+function detectShareHash(){
+  const hash = location.hash;
+  const match = hash.match(/^#s=(.+)/);
+  if(!match) return;
+  const encoded = match[1];
+  history.replaceState(null,'', location.pathname + location.search);
+  const data = decodeShareList(encoded);
+  if(!data || !Array.isArray(data.items) || !data.items.length) return;
+  setTimeout(()=> showImportModal(data), 500);
+}
+
+function showImportModal(data){
+  const existing = document.getElementById('importListModal');
+  if(existing) existing.remove();
+  const items = data.items || [];
+  const title = data.title || "Ulashilgan ro'yxat";
+  const author = data.a || data.author || '';
+  const ts = data.ts ? new Date(data.ts).toLocaleDateString('uz-UZ') : '';
+  const existNames = new Set([
+    ...customApps.map(i=>i.n.toLowerCase()),
+    ...DATA.flatMap(c=>c.items.map(i=>i.n.toLowerCase()))
+  ]);
+
+  const modal = document.createElement('div');
+  modal.id = 'importListModal';
+  modal.className = 'fixed inset-0 z-[600] flex items-end sm:items-center justify-center';
+  modal.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div id="importListBox" class="relative glass w-full max-w-md sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transform translate-y-4 opacity-0 transition-all duration-200 overflow-hidden" style="max-height:92dvh">
+
+      <!-- Header gradient banner -->
+      <div class="bg-gradient-to-br from-violet-500 to-fuchsia-500 px-5 py-4 shrink-0">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-link text-white/70 text-xs"></i>
+              <span class="text-white/70 text-[10px] font-bold uppercase tracking-wider">Ulashilgan ro'yxat</span>
+            </div>
+            <h2 class="text-lg font-black text-white leading-tight truncate">${title}</h2>
+            <div class="flex items-center gap-3 mt-1.5 flex-wrap">
+              ${author ? `<span class="flex items-center gap-1 text-white/80 text-xs font-bold"><i class="fa-solid fa-user text-[9px]"></i>${author}</span>` : ''}
+              <span class="flex items-center gap-1 text-white/80 text-xs font-bold"><i class="fa-solid fa-boxes-stacked text-[9px]"></i>${items.length} ta resurs</span>
+              ${ts ? `<span class="text-white/60 text-[10px]">${ts}</span>` : ''}
+            </div>
+          </div>
+          <button onclick="closeImportModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all shrink-0">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Items list -->
+      <div class="flex-1 overflow-y-auto px-3 py-2 space-y-0.5" id="importItemsList">
+        ${items.map((item, idx) => {
+          const domain = getDomain(item.u||'');
+          const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
+          const alreadyExists = existNames.has((item.n||'').toLowerCase());
+          const isBepul = item.t?.includes('bepul');
+          const hasWeb = item.t?.includes('web');
+          const isMob = item.t?.includes('mobil');
+          return `
+          <label class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all ${alreadyExists ? 'opacity-50' : ''}">
+            <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${alreadyExists ? '' : 'checked'} ${alreadyExists ? 'disabled' : ''}>
+            <div class="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
+              ${src ? `<img src="${src}" class="w-7 h-7 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-sm font-bold text-slate-800 dark:text-white truncate">${item.n||''}</span>
+                ${alreadyExists ? `<span class="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 px-1.5 py-0.5 rounded-full">Mavjud</span>` : ''}
+              </div>
+              ${item.d ? `<p class="text-[10px] text-slate-400 truncate">${item.d}</p>` : ''}
+              <div class="flex gap-1 mt-0.5 flex-wrap">
+                ${isBepul ? `<span class="badge-bepul">✓ Bepul</span>` : ''}
+                ${hasWeb ? `<span class="badge-web" title="Web"><i class="fa-solid fa-globe text-[9px]"></i></span>` : ''}
+                ${isMob ? `<span class="badge-mob" title="Ilova"><i class="fa-solid fa-mobile-screen-button text-[9px]"></i></span>` : ''}
+              </div>
+            </div>
+          </label>`;
+        }).join('')}
+      </div>
+
+      <!-- Footer -->
+      <div class="shrink-0 px-4 py-3 border-t border-slate-200/60 dark:border-slate-700/60">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="flex items-center gap-3">
+            <button onclick="importToggleAll(true)" class="text-[11px] font-bold text-violet-500 hover:text-violet-700">Barchasi</button>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <button onclick="importToggleAll(false)" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">Hech biri</button>
+          </div>
+          <span id="importSelCount" class="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"></span>
+        </div>
+        <button onclick="doImport()" id="doImportBtn"
+          class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98]">
+          <i class="fa-solid fa-download"></i>
+          <span id="doImportBtnTxt">Shaxsiy ro'yxatga qo'shish</span>
+        </button>
+        <p class="text-[10px] text-slate-400 text-center mt-1.5">Tanlangan resurslar "Shaxsiy ro'yxat"ga qo'shiladi</p>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  window._importData = data;
+  setTimeout(()=>{
+    document.getElementById('importListBox').classList.remove('translate-y-4','opacity-0');
+    document.getElementById('importListBox').classList.add('translate-y-0','opacity-100');
+  },10);
+  updateImportSelCount();
+  modal.querySelectorAll('.import-chk').forEach(chk=>chk.addEventListener('change', updateImportSelCount));
+}
+
+function updateImportSelCount(){
+  const chks = document.querySelectorAll('.import-chk:not(:disabled)');
+  const n = [...chks].filter(c=>c.checked).length;
+  const el = document.getElementById('importSelCount');
+  if(el) el.textContent = `${n} tanlandi`;
+  const btn = document.getElementById('doImportBtnTxt');
+  if(btn) btn.textContent = n ? `${n} ta resursni qo'shish` : "Resurslarni qo'shish";
+}
+
+window.importToggleAll = function(val){
+  document.querySelectorAll('.import-chk:not(:disabled)').forEach(c=>c.checked=val);
+  updateImportSelCount();
+};
+
+window.closeImportModal = function(){
+  const m = document.getElementById('importListModal');
+  if(!m) return;
+  document.getElementById('importListBox').classList.add('translate-y-4','opacity-0');
+  setTimeout(()=>m.remove(), 200);
+};
+
+window.doImport = function(){
+  const data = window._importData;
+  if(!data) return;
+  const items = data.items||[];
+  const chks = document.querySelectorAll('.import-chk');
+  const selected = [...chks].filter(c=>c.checked&&!c.disabled).map(c=>items[+c.dataset.idx]).filter(Boolean);
+  if(!selected.length){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
+
+  const existNames = new Set(customApps.map(i=>i.n.toLowerCase()));
+  let added = 0;
+  selected.forEach(item=>{
+    if(existNames.has((item.n||'').toLowerCase())) return;
+    const clean = { n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true };
+    customApps.push(clean);
+    added++;
+  });
+
+  if(!added){ showToast("Allaqachon mavjud!", "fa-circle-info text-blue-500"); return; }
+  localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+  closeImportModal();
+  showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
+  if(activeCat!=='my_apps') setCat('my_apps');
+  else{ renderNav(); renderContent(); }
+};
+
+// ── Detect on load ───────────────────────────────────────
+detectShareHash();

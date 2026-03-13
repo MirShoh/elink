@@ -63,9 +63,9 @@ body{font-family:"Plus Jakarta Sans",sans-serif}
 .dark .badge-pullik{background:rgba(245,158,11,.15);color:#fbbf24}
 .badge-custom{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(237,233,254,.9);color:#7c3aed}
 .dark .badge-custom{background:rgba(139,92,246,.18);color:#a78bfa}
-.badge-web{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(219,234,254,.9);color:#2563eb}
+.badge-web{display:inline-flex;align-items:center;justify-content:center;width:20px;height:18px;border-radius:5px;background:rgba(219,234,254,.9);color:#2563eb}
 .dark .badge-web{background:rgba(59,130,246,.15);color:#60a5fa}
-.badge-mob{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(224,242,254,.9);color:#0369a1;border:1px solid rgba(14,165,233,.2)}
+.badge-mob{display:inline-flex;align-items:center;justify-content:center;width:20px;height:18px;border-radius:5px;background:rgba(224,242,254,.9);color:#0369a1;border:1px solid rgba(14,165,233,.2)}
 .dark .badge-mob{background:rgba(14,165,233,.12);color:#38bdf8;border-color:rgba(14,165,233,.25)}
 .badge-hot{display:inline-flex;align-items:center;gap:2px;font-size:8px;font-weight:900;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;letter-spacing:.2px;box-shadow:0 2px 6px rgba(239,68,68,.3)}
 
@@ -256,6 +256,51 @@ mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2
 .trend-card:hover .t-name{color:#7c3aed}
 .trend-card .t-count{display:flex;align-items:center;gap:2px;font-size:10px;font-weight:800;color:#f97316;margin-left:2px}
 
+/* ── LIST BUILDER MODAL ── */
+#builderList::-webkit-scrollbar{width:3px}
+#builderList::-webkit-scrollbar-track{background:transparent}
+#builderList::-webkit-scrollbar-thumb{background:rgba(139,92,246,.25);border-radius:99px}
+
+/* ── SHARE LIST MODAL ── */
+#shareListModal .select-text{-webkit-user-select:text!important;user-select:text!important}
+
+/* ── IMPORT LIST MODAL ── */
+#importItemsList::-webkit-scrollbar{width:3px}
+#importItemsList::-webkit-scrollbar-track{background:transparent}
+#importItemsList::-webkit-scrollbar-thumb{background:rgba(139,92,246,.25);border-radius:99px}
+#importItemsList label input[type=checkbox]{cursor:pointer}
+#importItemsList label.opacity-50{cursor:default}
+
+/* ── CARD ACTION BUTTONS ── */
+.card-action-btn{
+  width:32px;height:32px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+  flex-shrink:0;
+}
+.card-action-btn:hover{transform:scale(1.1)}
+@media(max-width:768px){
+  .card-action-btn{width:36px;height:36px;border-radius:12px;}
+}
+
+/* ── MOBILE MODAL BUTTONS — bigger touch targets ── */
+@media(max-width:768px){
+  #reportSubmitBtn{
+    padding-top:1rem!important;padding-bottom:1rem!important;
+    font-size:.9375rem!important;border-radius:1rem!important;
+    min-height:54px;
+  }
+  #suggestSubmitBtn{
+    padding-top:1rem!important;padding-bottom:1rem!important;
+    font-size:.9375rem!important;border-radius:1rem!important;
+    min-height:54px;
+  }
+  .reason-btn{
+    padding-top:.625rem!important;padding-bottom:.625rem!important;
+    font-size:.75rem!important;
+  }
+}
 /* ── XAVFSIZLIK: Tanlash va nusxalashni cheklash ── */
 body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
 input,textarea,select{-webkit-user-select:text!important;-moz-user-select:text!important;user-select:text!important}

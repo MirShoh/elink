@@ -6,10 +6,33 @@
 
 <!-- ═══ SEO META ═══ -->
 <title>E-Link.uz — O'zbekistondagi barcha to'liq onlayn resurslar katalogi</title>
-<meta name="description" content="O'zbekiston aholisi uchun 300+ onlayn resurs: davlat xizmatlari, tibbiyot, ta'lim, huquq, tarix, iqtisodiyot, AI vositalar, mobil ilovalar va ko'proq. Barchasini bir joydan toping!">
+<meta name="description" content="O'zbekiston aholisi uchun 300+ onlayn resurs: davlat xizmatlari, tibbiyot, ta'lim, huquq, iqtisodiyot, AI vositalar, mobil ilovalar va ko'proq. Barchasini bir joydan toping!">
 <meta name="keywords" content="o'zbekiston onlayn resurslar, uz ilovalar, my.gov.uz, dmed.uz, hemis.uz, lex.uz, payme, click, uzum, uzbekistan apps, o'zbek platformalar, davlat xizmatlari, tibbiyot portali, ta'lim portali, E-Link uz">
 <meta name="author" content="E-Link UZ">
 <meta name="theme-color" content="#8b5cf6">
+<link rel="canonical" href="https://elink.uz/">
+
+<!-- ═══ Open Graph ═══ -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://elink.uz/">
+<meta property="og:site_name" content="E-Link UZ">
+<meta property="og:title" content="E-Link.uz — O'zbekistondagi barcha onlayn resurslar katalogi">
+<meta property="og:description" content="O'zbekiston aholisi uchun 300+ onlayn resurs bitta joyda: davlat xizmatlari, AI vositalar, ta'lim, tibbiyot va ko'proq.">
+<meta property="og:image" content="https://elink.uz/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="uz_UZ">
+
+<!-- ═══ Twitter Card ═══ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://elink.uz/">
+<meta name="twitter:title" content="E-Link.uz — O'zbekistondagi barcha onlayn resurslar katalogi">
+<meta name="twitter:description" content="O'zbekiston aholisi uchun 300+ onlayn resurs bitta joyda.">
+<meta name="twitter:image" content="https://elink.uz/og-image.png">
+
+<!-- ═══ Favicon ═══ -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%238b5cf6'/><text y='22' x='5' font-size='20'>🔗</text></svg>">
+<link rel="apple-touch-icon" href="https://elink.uz/apple-touch-icon.png">
 
 <!-- Preload fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +40,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 
 <!-- Dark mode flicker fix -->
 <script>
@@ -62,22 +86,22 @@ tailwind.config={
 <div class="bg-app"></div>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
-<aside class="w-[17rem] hidden md:flex flex-col border-r border-slate-200/60 dark:border-slate-800/60 glass z-20 shrink-0 h-screen">
+<aside id="mainSidebar" class="w-[17rem] hidden md:flex flex-col border-r border-slate-200/60 dark:border-slate-800/60 glass z-20 shrink-0 h-screen">
 
   <div class="p-4 pb-1.5 shrink-0">
     <!-- Brand -->
-    <div class="flex items-center gap-3 mb-4">
+    <div class="sb-brand flex items-center gap-3 mb-4">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/35 shrink-0">
         <i class="fa-solid fa-layer-group text-sm"></i>
       </div>
-      <div class="min-w-0">
+      <div class="sb-logo-label min-w-0">
         <h1 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight tracking-tight">E-Link <span class="text-violet-500">UZ</span></h1>
         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest" id="sidebarCount">...</p>
       </div>
     </div>
 
     <!-- Search desk -->
-    <div class="search-wrapper mb-3" id="deskSWrap">
+    <div class="sb-search search-wrapper mb-3" id="deskSWrap">
       <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs pointer-events-none"></i>
       <input id="deskSrc" type="text" autocomplete="off" spellcheck="false"
         placeholder="Qidirish... (Ctrl+K)"
@@ -92,10 +116,10 @@ tailwind.config={
     </div>
 
     <!-- Filter chips -->
-    <div class="flex flex-wrap gap-1.5 mb-3" id="deskChips"></div>
+    <div class="sb-chips flex flex-wrap gap-1.5 mb-3" id="deskChips"></div>
 
     <!-- Sort + clear -->
-    <div class="flex items-center gap-2 mb-2.5">
+    <div class="sb-sort flex items-center gap-2 mb-2.5">
       <!-- Custom Sort Dropdown -->
       <div class="relative flex-1" id="sortDropWrap">
         <button id="sortDropBtn" onclick="toggleSortDrop()" class="w-full flex items-center justify-between gap-2 text-[11px] font-semibold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl px-3 py-2 text-slate-600 dark:text-slate-300 hover:border-violet-400 dark:hover:border-violet-500 transition-all shadow-sm cursor-pointer group">
@@ -138,7 +162,7 @@ tailwind.config={
   <!-- Nav — Shaxsiy pinned + scrollable categories -->
   <div id="sidebarPinned" class="shrink-0 px-3 pt-1 pb-2"></div>
 
-  <div class="shrink-0 px-3 pb-1.5">
+  <div class="sb-cat-label shrink-0 px-3 pb-1.5">
     <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-0.5">Kategoriyalar</p>
   </div>
 
@@ -146,13 +170,18 @@ tailwind.config={
 
   <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
     <!-- Taklif qilish -->
-    <button onclick="openSuggestModal()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
-      <i class="fa-solid fa-lightbulb"></i> Resurs taklif qilish
-    </button>
-    <button id="themeBtn" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
-      <i id="themeIco" class="fa-solid fa-moon"></i>
-      <span id="themeTxt">Tungi rejim</span>
-    </button>
+    <div class="sb-bottom-btns flex flex-col gap-2">
+      <button onclick="openListBuilderModal()" title="Ro'yxat tuzib ulashish" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-violet-500/20">
+        <i class="fa-solid fa-list-check"></i> <span class="sb-bottom-text">Ro'yxat tuzish</span>
+      </button>
+      <button onclick="openSuggestModal()" title="Resurs taklif qilish" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
+        <i class="fa-solid fa-lightbulb"></i> <span class="sb-bottom-text">Resurs taklif qilish</span>
+      </button>
+      <button id="themeBtn" title="Tema" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
+        <i id="themeIco" class="fa-solid fa-moon"></i>
+        <span id="themeTxt" class="sb-bottom-text">Tungi rejim</span>
+      </button>
+    </div>
   </div>
 </aside>
 
@@ -169,11 +198,13 @@ tailwind.config={
         <span class="font-black text-slate-900 dark:text-white text-[15px]">E-Link <span class="text-violet-500">UZ</span></span>
       </div>
       <div class="flex gap-2">
-
+        <button onclick="openListBuilderModal()" class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400" title="Ro'yxat tuzish">
+          <i class="fa-solid fa-list-check text-sm"></i>
+        </button>
         <button id="themeBtnMob" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <i id="themeIcoMob" class="fa-solid fa-moon text-sm"></i>
         </button>
-        <button id="shareBtn" class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
+        <button id="shareBtn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
           <i class="fa-solid fa-share-nodes text-sm"></i>
         </button>
       </div>
@@ -414,7 +445,7 @@ tailwind.config={
       </div>
     </div>
 
-    <button id="reportSubmitBtn" onclick="submitReport()" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl py-3 transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98] text-sm">
+    <button id="reportSubmitBtn" onclick="submitReport()" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 md:py-3 transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98] text-sm md:text-sm text-base">
       <i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish
     </button>
   </div>
@@ -453,7 +484,7 @@ tailwind.config={
         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Telegram / Telefon (ixtiyoriy)</label>
         <input type="text" id="suggestContact" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="@username yoki +998...">
       </div>
-      <button id="suggestSubmitBtn" onclick="submitSuggest()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] text-sm">
+      <button id="suggestSubmitBtn" onclick="submitSuggest()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold rounded-xl py-4 md:py-3.5 transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] text-sm">
         <i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish
       </button>
       <p class="text-[10px] text-slate-400 text-center leading-relaxed">Taklifingiz ko'rib chiqilgach, ma'qullansa katalogga qo'shiladi</p>
