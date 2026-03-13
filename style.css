@@ -306,3 +306,22 @@ body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-se
 input,textarea,select{-webkit-user-select:text!important;-moz-user-select:text!important;user-select:text!important}
 img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
 .card img{pointer-events:auto} /* kartalar bosilsin */
+/* ── PERFORMANCE OPTIMIZATIONS ── */
+/* GPU acceleration for animated elements */
+.card,.trend-card,.chip,.filter-chip,.fav-btn,.share-card-btn{will-change:transform}
+/* Reduce layout thrashing on scroll */
+.card-logo-wrap img,.trend-card .t-logo img{contain:strict}
+/* Smooth font rendering */
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeSpeed}
+/* Faster modal animations */
+[id$="Modal"],[id$="Box"]{contain:layout style}
+/* Prevent repaints on hover for safe elements */
+.nav-active,.pill-active,.chip.on{will-change:auto}
+/* Hardware-accelerated spinner */
+.fa-spin{animation:fa-spin .75s linear infinite;will-change:transform}
+
+/* ── BUILDER ADD FORM ── */
+#builderAddForm{transition:none}
+#builderAddChevron{display:inline-block;transition:transform .2s cubic-bezier(.4,0,.2,1)}
+.builder-custom-group .builder-item{background:rgba(139,92,246,.05)}
+.dark .builder-custom-group .builder-item{background:rgba(139,92,246,.1)}

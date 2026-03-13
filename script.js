@@ -1890,24 +1890,55 @@ window.openListBuilderModal = function(){
         </button>
       </div>
 
-      <!-- Search inside builder -->
-      <div class="px-4 pt-3 pb-2 shrink-0">
+      <!-- Search + "O'z resursimni qo'shish" -->
+      <div class="px-4 pt-3 pb-2 shrink-0 space-y-2">
+        <!-- Search -->
         <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs pointer-events-none"></i>
           <input id="builderSearch" type="text" placeholder="Resurs qidirish..."
             class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all"
             oninput="filterBuilderItems(this.value)">
+        </div>
+        <!-- Shaxsiy resurs qo'shish paneli -->
+        <div id="builderAddWrap" class="rounded-2xl border border-dashed border-violet-300/60 dark:border-violet-600/40 overflow-hidden">
+          <button onclick="toggleBuilderAddForm()" id="builderAddToggleBtn"
+            class="w-full flex items-center gap-2 px-3.5 py-2 text-[11px] font-bold text-violet-500 hover:bg-violet-50/80 dark:hover:bg-violet-500/10 transition-all">
+            <div class="w-5 h-5 rounded-md bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-plus text-[9px]"></i>
+            </div>
+            O'z resursimni qo'shish
+            <i id="builderAddChevron" class="fa-solid fa-chevron-down text-[9px] ml-auto text-slate-400 transition-transform duration-200"></i>
+          </button>
+          <div id="builderAddForm" class="hidden px-3 pb-3 space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Nomi <span class="text-red-400">*</span></label>
+                <input id="bcName" type="text" placeholder="Masalan: Mening blogim" maxlength="40"
+                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Tavsif</label>
+                <input id="bcDesc" type="text" placeholder="Qisqacha..." maxlength="60"
+                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200">
+              </div>
+            </div>
+            <input id="bcUrl" type="url" placeholder="https://sayt.uz"
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200">
+            <button onclick="addBuilderCustomItem()"
+              class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl py-2 text-xs transition-all hover:opacity-90 active:scale-[0.98] shadow-sm">
+              <i class="fa-solid fa-plus-circle"></i> Ro'yxatga qo'shish
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Items list -->
       <div id="builderList" class="flex-1 overflow-y-auto px-3 pb-2 space-y-3">
         <!-- Shaxsiy qo'shilgan resurslar -->
-        <div id="builderCustomGroup" class="builder-custom-group hidden">
+        <div id="builderCustomGroup" class="hidden">
           <p class="text-[10px] font-black text-violet-400 uppercase tracking-wider px-2 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10"><i class="fa-solid fa-star mr-1"></i>O'zim qo'shganlarim</p>
           <div id="builderCustomItems" class="space-y-0.5"></div>
         </div>
-
         ${Object.entries(cats).map(([catId, cat])=>`
           <div class="builder-cat-group" data-cat="${catId}">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10">${cat.title}</p>
@@ -1919,7 +1950,7 @@ window.openListBuilderModal = function(){
                 return `<label class="builder-item flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all group" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
                   <input type="checkbox" class="builder-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\\'")}')">
                   <div class="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                    ${src ? `<img src="${src}" class="w-7 h-7 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+                    ${src ? `<img src="${src}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
@@ -1929,40 +1960,6 @@ window.openListBuilderModal = function(){
               }).join('')}
             </div>
           </div>`).join('')}
-      </div>
-
-      <!-- Shaxsiy resurs qo'shish paneli -->
-      <div class="shrink-0 px-3 pb-2">
-        <div id="builderAddWrap" class="rounded-2xl border border-dashed border-violet-300/70 dark:border-violet-600/40 overflow-hidden">
-          <button onclick="toggleBuilderAddForm()" id="builderAddToggleBtn"
-            class="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-bold text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-all">
-            <div class="w-5 h-5 rounded-md bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-plus text-[9px]"></i>
-            </div>
-            O'z resursimni qo'shish
-            <i id="builderAddChevron" class="fa-solid fa-chevron-down text-[9px] ml-auto text-slate-400 transition-transform duration-200"></i>
-          </button>
-          <div id="builderAddForm" class="hidden px-3.5 pb-3.5 space-y-2">
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Nomi <span class="text-red-400">*</span></label>
-                <input id="bcName" type="text" placeholder="Masalan: Mening Blogim" maxlength="40"
-                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
-              </div>
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Tavsif</label>
-                <input id="bcDesc" type="text" placeholder="Qisqacha tavsif..." maxlength="60"
-                  class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
-              </div>
-            </div>
-            <input id="bcUrl" type="url" placeholder="https://sayt.uz" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
-            <button onclick="addBuilderCustomItem()"
-              class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl py-2 text-xs transition-all hover:opacity-90 active:scale-[0.98] shadow-sm shadow-violet-500/25">
-              <i class="fa-solid fa-plus-circle"></i> Ro'yxatga qo'shish
-            </button>
-          </div>
-        </div>
       </div>
 
       <!-- Footer -->
@@ -1984,13 +1981,11 @@ window.openListBuilderModal = function(){
     </div>`;
 
   document.body.appendChild(modal);
-  setTimeout(()=>{
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
     const box = document.getElementById('listBuilderBox');
-    box.classList.remove('translate-y-4','opacity-0');
-    box.classList.add('translate-y-0','opacity-100');
-  },10);
+    if(box){ box.classList.remove('translate-y-4','opacity-0'); box.classList.add('translate-y-0','opacity-100'); }
+  }));
 };
-
 window.builderToggle = function(chk, key){
   const allItems = getAllCatalogItems();
   const item = allItems.find(i => i.n === key);
@@ -2033,15 +2028,15 @@ function updateBuilderCount(){
   if(btn) btn.disabled = n === 0;
 }
 
-// ── Builder: shaxsiy resurs qo'shish formasi ─────────────
+// ── Builder: shaxsiy resurs qo'shish ────────────────────
 window.toggleBuilderAddForm = function(){
   const form = document.getElementById('builderAddForm');
-  const chevron = document.getElementById('builderAddChevron');
+  const chev = document.getElementById('builderAddChevron');
   if(!form) return;
-  const isHidden = form.classList.contains('hidden');
-  form.classList.toggle('hidden', !isHidden);
-  if(chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
-  if(isHidden) setTimeout(()=> document.getElementById('bcName')?.focus(), 100);
+  const hidden = form.classList.contains('hidden');
+  form.classList.toggle('hidden', !hidden);
+  if(chev) chev.style.transform = hidden ? 'rotate(180deg)' : '';
+  if(hidden) setTimeout(()=> document.getElementById('bcName')?.focus(), 80);
 };
 
 window.addBuilderCustomItem = function(){
@@ -2049,52 +2044,50 @@ window.addBuilderCustomItem = function(){
   const urlEl  = document.getElementById('bcUrl');
   const descEl = document.getElementById('bcDesc');
   const name = nameEl?.value.trim();
-  const url  = urlEl?.value.trim();
+  const url  = urlEl?.value.trim() || '';
   const desc = descEl?.value.trim() || '';
   if(!name){ showToast("Nomi kiritilishi shart!", "fa-circle-xmark text-red-500"); nameEl?.focus(); return; }
-  const key = '__custom__' + name;
+  const key = '__c__' + name;
   if(_builderSelected.has(key)){ showToast("Bu resurs allaqachon qo'shilgan!", "fa-triangle-exclamation text-amber-500"); return; }
-  const item = { n: name, u: url||'', d: desc, t:[], isCustom:true, _catId:'custom', _catTitle:"O'zim qo'shganlarim" };
-  _builderSelected.set(key, item);
+  _builderSelected.set(key, { n:name, u:url, d:desc, t:[], isCustom:true });
   updateBuilderCount();
-
-  // DOM ga qo'shish
+  // DOM row
   const group = document.getElementById('builderCustomGroup');
   const list  = document.getElementById('builderCustomItems');
   if(group) group.classList.remove('hidden');
   if(list){
-    const domain = getDomain(url||'');
-    const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
+    const domain = getDomain(url);
     const row = document.createElement('div');
-    row.className = 'builder-item flex items-center gap-3 px-2 py-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 group animate-fade-up';
+    row.className = 'builder-item flex items-center gap-3 px-2 py-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 animate-fade-up';
     row.dataset.customKey = key;
     row.innerHTML = `
       <i class="fa-solid fa-check-circle text-violet-500 text-sm shrink-0"></i>
-      <div class="w-8 h-8 rounded-lg overflow-hidden border border-violet-200 dark:border-violet-600/40 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-        ${src ? `<img src="${src}" class="w-7 h-7 object-contain" onerror="this.parentNode.innerHTML='<i class=&quot;fa-solid fa-globe text-slate-300 text-xs&quot;></i>'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+      <div class="w-8 h-8 rounded-lg overflow-hidden border border-violet-200/60 dark:border-violet-600/30 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
+        ${domain ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" class="w-7 h-7 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-bold text-violet-700 dark:text-violet-300 truncate">${name}</p>
-        ${desc ? `<p class="text-[10px] text-slate-400 truncate">${desc}</p>` : (url ? `<p class="text-[10px] text-slate-400 truncate">${url}</p>` : '')}
+        <p class="text-[10px] text-slate-400 truncate">${desc || url || ''}</p>
       </div>
-      <button onclick="removeBuilderCustomItem('${key.replace(/'/g,"\\'")}', this.closest('[data-custom-key]'))" class="w-6 h-6 rounded-full flex items-center justify-center text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shrink-0">
+      <button onclick="removeBuilderCustomItem('${key.replace(/'/g,"\'")}',this.closest('[data-custom-key]'))"
+        class="w-6 h-6 rounded-full flex items-center justify-center text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shrink-0">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>`;
     list.appendChild(row);
   }
-  if(nameEl) nameEl.value = '';
-  if(urlEl)  urlEl.value  = '';
-  if(descEl) descEl.value = '';
-  showToast(`"${name}" ro'yxatga qo'shildi! ✨`, 'fa-circle-check text-violet-400');
+  if(nameEl) nameEl.value=''; if(urlEl) urlEl.value=''; if(descEl) descEl.value='';
+  showToast(`"${name}" qo'shildi ✨`, 'fa-circle-check text-violet-400');
 };
 
 window.removeBuilderCustomItem = function(key, rowEl){
   _builderSelected.delete(key);
   updateBuilderCount();
-  if(rowEl){ rowEl.style.opacity='0'; rowEl.style.transform='scale(.95)'; rowEl.style.transition='all .15s'; setTimeout(()=>rowEl.remove(), 150); }
-  const list = document.getElementById('builderCustomItems');
-  const group = document.getElementById('builderCustomGroup');
-  if(list && group && !list.querySelector('[data-custom-key]')) group.classList.add('hidden');
+  if(rowEl){ rowEl.style.transition='all .15s'; rowEl.style.opacity='0'; rowEl.style.transform='scale(.95)'; setTimeout(()=>rowEl.remove(),150); }
+  setTimeout(()=>{
+    const list = document.getElementById('builderCustomItems');
+    const group = document.getElementById('builderCustomGroup');
+    if(list && group && !list.querySelector('[data-custom-key]')) group.classList.add('hidden');
+  },200);
 };
 
 window.closeListBuilderModal = function(){
@@ -2171,8 +2164,8 @@ window.openBuilderShareStep = function(){
           <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tayyor havola</label>
           <span id="bsLinkBadge" class="text-[10px] font-bold text-emerald-500"></span>
         </div>
-        <div class="flex gap-2 mb-2">
-          <div class="flex-1 bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 rounded-xl px-3 py-2.5 text-[11px] font-mono text-violet-700 dark:text-violet-300 truncate cursor-default" id="bsLinkText"></div>
+        <div class="flex gap-2 mb-2.5">
+          <div class="flex-1 bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 rounded-xl px-3 py-2.5 text-[11px] font-mono text-violet-700 dark:text-violet-300 truncate cursor-default select-text" id="bsLinkText"></div>
           <button onclick="copyBuilderLink()" id="bsCopyBtn"
             class="shrink-0 w-10 flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white rounded-xl transition-all active:scale-95">
             <i class="fa-solid fa-copy text-xs"></i>
@@ -2180,19 +2173,19 @@ window.openBuilderShareStep = function(){
         </div>
         <!-- Ulashish tugmalari -->
         <div class="grid grid-cols-3 gap-1.5">
-          <button onclick="shareVia('tg')" class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#2AABEE]/10 hover:bg-[#2AABEE]/20 text-[#2AABEE] text-[11px] font-bold transition-all border border-[#2AABEE]/20">
+          <button onclick="shareVia('tg')" class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#2AABEE]/10 hover:bg-[#2AABEE]/20 text-[#2AABEE] text-[11px] font-bold transition-all border border-[#2AABEE]/20 active:scale-95">
             <i class="fa-brands fa-telegram text-sm"></i> Telegram
           </button>
-          <button onclick="shareVia('wa')" class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] text-[11px] font-bold transition-all border border-[#25D366]/20">
+          <button onclick="shareVia('wa')" class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] text-[11px] font-bold transition-all border border-[#25D366]/20 active:scale-95">
             <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
           </button>
-          <button onclick="shareVia('qr')" class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-slate-600 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 text-[11px] font-bold transition-all border border-slate-200 dark:border-slate-700">
+          <button onclick="shareVia('qr')" id="bsQrBtn" class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-slate-600 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 text-[11px] font-bold transition-all border border-slate-200 dark:border-slate-700 active:scale-95">
             <i class="fa-solid fa-qrcode text-sm"></i> QR kod
           </button>
         </div>
-        <!-- QR kod paneli -->
+        <!-- QR panel -->
         <div id="bsQrWrap" class="hidden mt-2 flex items-center justify-center py-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <canvas id="bsQrCanvas"></canvas>
+          <img id="bsQrImg" src="" class="rounded-lg" alt="QR kod" width="150" height="150">
         </div>
       </div>
 
@@ -2226,69 +2219,62 @@ window.closeBuilderShareModal = function(){
   setTimeout(()=>m.remove(), 200);
 };
 
-// ── Qisqa kod generatori (8 ta belgi: a-z0-9) ────────────
+// ── Qisqa kod: 8 ta belgi a-z0-9 ─────────────────────────
 function genShortCode(len){
-  len = len || 8;
-  var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  var s = '';
-  for(var i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
-  return s;
+  len = len||8;
+  const ch='abcdefghijklmnopqrstuvwxyz0123456789';
+  let s=''; for(let i=0;i<len;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s;
 }
 
 window.generateBuilderLink = async function(){
-  var genBtn = document.getElementById('bsGenBtn');
-  var title  = document.getElementById('bsTitle')?.value.trim() || "Mening tavsiyalarim";
-  var author = document.getElementById('bsAuthor')?.value.trim() || '';
+  const genBtn = document.getElementById('bsGenBtn');
+  const title  = document.getElementById('bsTitle')?.value.trim() || "Mening tavsiyalarim";
+  const author = document.getElementById('bsAuthor')?.value.trim() || '';
+  if(genBtn){ genBtn.disabled=true; genBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saqlanmoqda...'; }
 
-  if(genBtn){ genBtn.disabled=true; genBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Saqlanmoqda...'; }
+  const items = [..._builderSelected.values()].map(i=>({
+    n:i.n, u:i.u||'',
+    ...(i.d?{d:i.d}:{}),
+    ...(i.t&&i.t.length?{t:i.t}:{}),
+    ...(i.isCustom?{c:1}:{})
+  }));
+  const data = {v:3, title, ...(author?{a:author}:{}), items, ts:Date.now()};
 
-  var items = [..._builderSelected.values()].map(function(i){ return {
-    n: i.n,
-    u: i.u||'',
-    ...(i.d ? {d:i.d} : {}),
-    ...(i.t && i.t.length ? {t:i.t} : {}),
-    ...(i.isCustom ? {isCustom:true} : {}),
-  }; });
-  var data = { v:3, title: title, ...(author?{a:author}:{}), items: items, ts: Date.now() };
-
-  var shortCode = null;
+  let shortCode=null;
   try{
-    var code = genShortCode(8);
-    var res = await fetch(SUPA_PROXY, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        path: '/rest/v1/shared_lists',
-        method:'POST',
-        body:{ id: code, data: JSON.stringify(data), views: 0 }
-      })
+    const code = genShortCode(8);
+    const res = await fetch(SUPA_PROXY,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({path:'/rest/v1/shared_lists',method:'POST',body:{id:code,data:JSON.stringify(data),views:0}})
     });
-    if(res.ok) shortCode = code;
-  }catch(e){ console.warn('[share]', e.message); }
+    if(res.ok) shortCode=code;
+  }catch(e){console.warn('[share]',e.message);}
 
-  var url;
+  let url;
   if(shortCode){
-    url = 'https://elink.uz/#l=' + shortCode;
+    url='https://elink.uz/#l='+shortCode;
   } else {
-    var encoded = encodeShareList(data);
-    if(!encoded){ showToast("Xato yuz berdi", "fa-circle-xmark text-red-500");
-      if(genBtn){ genBtn.disabled=false; genBtn.innerHTML='<i class="fa-solid fa-wand-magic-sparkles"></i> Havola yaratish'; } return; }
-    url = 'https://elink.uz/#s=' + encoded;
+    const enc=encodeShareList(data);
+    if(!enc){showToast("Xato yuz berdi","fa-circle-xmark text-red-500");
+      if(genBtn){genBtn.disabled=false;genBtn.innerHTML='<i class="fa-solid fa-wand-magic-sparkles"></i> Havola yaratish';} return;}
+    url='https://elink.uz/#s='+enc;
   }
+  window._bsUrl=url; window._bsTitle=title;
 
-  window._bsUrl   = url;
-  window._bsTitle = title;
-  window._bsCode  = shortCode;
-
-  var wrap = document.getElementById('bsLinkWrap');
-  var txt  = document.getElementById('bsLinkText');
+  const wrap=document.getElementById('bsLinkWrap');
+  const txt=document.getElementById('bsLinkText');
   if(wrap) wrap.classList.remove('hidden');
-  if(txt)  txt.textContent = url;
-  var badge = document.getElementById('bsLinkBadge');
-  if(badge) badge.textContent = shortCode ? (url.length + ' belgi ✓') : "Offline havola";
-  if(genBtn){ genBtn.disabled=false; genBtn.innerHTML='<i class="fa-solid fa-rotate-right"></i> Yangilash'; }
-};
+  if(txt)  txt.textContent=url;
+  const badge=document.getElementById('bsLinkBadge');
+  if(badge) badge.textContent = shortCode ? `✓ ${url.length} belgi` : '(offline)';
+  if(genBtn){genBtn.disabled=false; genBtn.innerHTML='<i class="fa-solid fa-rotate-right mr-1"></i> Yangilash';}
 
+  // Native share button show
+  if(/Mobi|Android|iPhone/i.test(navigator.userAgent)&&navigator.share){
+    const nb=document.getElementById('bsNativeBtn');
+    if(nb){nb.classList.remove('hidden');nb.classList.add('flex');}
+  }
+};
 window.copyBuilderLink = async function(){
   const url = window._bsUrl;
   if(!url) return;
@@ -2314,56 +2300,83 @@ window.nativeBuilderShare = async function(){
   catch(e){}
 };
 
+
+
+// ── Ulashish helperlari ───────────────────────────────────
+window.shareVia = function(via){
+  const url   = window._bsUrl;
+  const title = window._bsTitle||"E-Link ro'yxati";
+  if(!url){showToast('Avval havola yarating!','fa-circle-xmark text-amber-500');return;}
+  if(via==='tg') window.open('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(title+' — E-Link UZ'),'_blank');
+  else if(via==='wa') window.open('https://wa.me/?text='+encodeURIComponent(title+' — E-Link UZ\n'+url),'_blank');
+  else if(via==='qr') toggleBuilderQr(url);
+};
+
+function toggleBuilderQr(url){
+  const wrap = document.getElementById('bsQrWrap');
+  const img  = document.getElementById('bsQrImg');
+  const btn  = document.getElementById('bsQrBtn');
+  if(!wrap) return;
+  if(!wrap.classList.contains('hidden')){
+    wrap.classList.add('hidden');
+    if(btn) btn.classList.remove('bg-violet-100','dark:bg-violet-500/20','text-violet-600','dark:text-violet-400');
+    return;
+  }
+  if(img) img.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(url)+'&color=6D28D9&bgcolor=FFFFFF&qzone=1&margin=8';
+  wrap.classList.remove('hidden');
+  if(btn) btn.classList.add('bg-violet-100','dark:bg-violet-500/20','text-violet-600','dark:text-violet-400');
+}
+
 // ── IMPORT — havoladan kiritish ───────────────────────────
 async function detectShareHash(){
   const hash = location.hash;
+  if(!hash || hash.length < 3) return;
   history.replaceState(null,'', location.pathname + location.search);
 
-  // Qisqa kod (#l=xxxxxxxx)
-  const shortMatch = hash.match(/^#l=([a-z0-9]{4,12})$/);
+  // Qisqa URL: #l=xxxxxxxx
+  const shortMatch = hash.match(/^#l=([a-z0-9]{4,16})$/);
   if(shortMatch){
     const code = shortMatch[1];
     try{
-      const res = await fetch(SUPA_PROXY, {
+      const res = await fetch(SUPA_PROXY,{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ path: '/rest/v1/shared_lists?id=eq.'+code+'&select=data,views', method:'GET' })
+        body:JSON.stringify({path:'/rest/v1/shared_lists?id=eq.'+code+'&select=data,views',method:'GET'})
       });
       if(res.ok){
         const rows = await res.json();
-        if(Array.isArray(rows) && rows[0]){
+        if(Array.isArray(rows)&&rows[0]){
           const data = JSON.parse(rows[0].data);
-          if(data && Array.isArray(data.items) && data.items.length){
-            // Ko'rishlar sonini oshirish (background)
+          if(data&&Array.isArray(data.items)&&data.items.length){
+            // Increment views silently
             fetch(SUPA_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
               body:JSON.stringify({path:'/rest/v1/rpc/increment_list_views',method:'POST',body:{p_id:code}})
             }).catch(()=>{});
-            setTimeout(()=> showListPage(data, code, rows[0].views||0), 500);
+            setTimeout(()=> showListPage(data, code, (rows[0].views||0)+1), 400);
             return;
           }
         }
       }
-    }catch(e){ console.warn('[share]', e.message); }
-    showToast("Ro'yxat topilmadi yoki muddati o'tgan", 'fa-circle-xmark text-red-500');
+    }catch(e){console.warn('[share]',e.message);}
+    showToast("Ro'yxat topilmadi yoki muddati o'tgan","fa-circle-xmark text-red-500");
     return;
   }
 
-  // LZString to'liq URL (#s=...)
-  const match = hash.match(/^#s=(.+)/);
-  if(!match) return;
-  const encoded = match[1];
-  const data = decodeShareList(encoded);
-  if(!data || !Array.isArray(data.items) || !data.items.length) return;
-  setTimeout(()=> showListPage(data, null, 0), 500);
+  // To'liq URL: #s=...
+  const fullMatch = hash.match(/^#s=(.+)/);
+  if(!fullMatch) return;
+  const data = decodeShareList(fullMatch[1]);
+  if(!data||!Array.isArray(data.items)||!data.items.length) return;
+  setTimeout(()=> showListPage(data, null, 0), 400);
 }
 
-// ── Chiroyli ro'yxat sahifasi (import + ko'rib chiqish) ───
+// ── Chiroyli ulashilgan ro'yxat sahifasi ─────────────────
 function showListPage(data, shortCode, viewCount){
   const existing = document.getElementById('importListModal');
   if(existing) existing.remove();
-  const items = data.items || [];
-  const title = data.title || "Ulashilgan ro'yxat";
-  const author = data.a || data.author || '';
-  const ts = data.ts ? new Date(data.ts).toLocaleDateString('uz-UZ', {day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  const items    = data.items||[];
+  const title    = data.title||"Ulashilgan ro'yxat";
+  const author   = data.a||data.author||'';
+  const ts       = data.ts ? new Date(data.ts).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
   const shareUrl = shortCode ? `https://elink.uz/#l=${shortCode}` : location.href;
   const existNames = new Set([
     ...customApps.map(i=>i.n.toLowerCase()),
@@ -2377,83 +2390,80 @@ function showListPage(data, shortCode, viewCount){
     <div class="absolute inset-0 bg-slate-900/75 backdrop-blur-md"></div>
     <div id="importListBox" class="relative glass w-full max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transform translate-y-4 opacity-0 transition-all duration-200 overflow-hidden" style="max-height:92dvh">
 
-      <!-- Header gradient banner -->
-      <div class="relative bg-gradient-to-br from-violet-600 via-fuchsia-500 to-pink-500 px-5 pt-5 pb-6 shrink-0 overflow-hidden">
-        <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle at 20% 50%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:24px 24px"></div>
+      <!-- Gradient banner -->
+      <div class="relative bg-gradient-to-br from-violet-600 via-fuchsia-500 to-pink-500 px-5 pt-5 pb-5 shrink-0 overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle,white 1px,transparent 1px);background-size:20px 20px"></div>
         <div class="relative flex items-start justify-between gap-2">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 mb-2">
               <span class="bg-white/25 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">E-Link UZ · Ulashilgan ro'yxat</span>
             </div>
-            <h2 class="text-xl font-black text-white leading-tight mb-2">${title}</h2>
-            <div class="flex items-center gap-3 flex-wrap">
-              ${author ? `<span class="flex items-center gap-1.5 bg-white/20 text-white text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-user text-[9px]"></i>${author}</span>` : ''}
-              <span class="flex items-center gap-1.5 bg-white/20 text-white text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-boxes-stacked text-[9px]"></i>${items.length} ta resurs</span>
-              ${viewCount ? `<span class="flex items-center gap-1.5 bg-white/20 text-white text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-eye text-[9px]"></i>${viewCount.toLocaleString()} ko'rildi</span>` : ''}
-              ${ts ? `<span class="text-white/60 text-[10px]">${ts}</span>` : ''}
+            <h2 class="text-xl font-black text-white leading-tight mb-2 pr-8">${title}</h2>
+            <div class="flex items-center gap-2 flex-wrap">
+              ${author ? `<span class="flex items-center gap-1 bg-white/25 text-white text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-user text-[9px]"></i>${author}</span>` : ''}
+              <span class="flex items-center gap-1 bg-white/25 text-white text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-boxes-stacked text-[9px]"></i>${items.length} ta resurs</span>
+              ${viewCount ? `<span class="flex items-center gap-1 bg-white/25 text-white text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-eye text-[9px]"></i>${viewCount.toLocaleString()}</span>` : ''}
+              ${ts ? `<span class="text-white/60 text-[10px] ml-1">${ts}</span>` : ''}
             </div>
           </div>
-          <button onclick="closeImportModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center transition-all shrink-0 mt-0.5">
+          <button onclick="closeImportModal()" class="w-9 h-9 rounded-full bg-white/25 hover:bg-white/40 text-white flex items-center justify-center transition-all shrink-0 absolute top-0 right-0">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
         <!-- Favicon strip -->
         <div class="flex items-center gap-1.5 mt-3 flex-wrap">
-          ${items.slice(0,10).map(item=>{
-            const domain = getDomain(item.u||'');
-            return domain ? `<div class="w-7 h-7 rounded-lg bg-white/30 overflow-hidden flex items-center justify-center border border-white/30 shrink-0">
-              <img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+          ${items.slice(0,12).map(item=>{
+            const d=getDomain(item.u||'');
+            return d ? `<div class="w-7 h-7 rounded-lg bg-white/25 overflow-hidden flex items-center justify-center shrink-0 border border-white/20">
+              <img src="https://www.google.com/s2/favicons?domain=${d}&sz=32" class="w-5 h-5" loading="lazy" onerror="this.style.display='none'">
             </div>` : '';
           }).join('')}
-          ${items.length > 10 ? `<span class="text-white/70 text-[11px] font-bold ml-1">+${items.length-10}</span>` : ''}
+          ${items.length>12?`<span class="text-white/70 text-[11px] font-bold">+${items.length-12}</span>`:''}
         </div>
       </div>
 
-      <!-- Ulashish bar -->
-      <div class="shrink-0 px-4 py-2.5 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center gap-2">
-        <div class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">${shareUrl}</div>
-        <button onclick="copyImportUrl('${shareUrl}')" class="shrink-0 w-8 h-8 flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all active:scale-95" title="Nusxalash">
+      <!-- Share bar -->
+      <div class="shrink-0 px-3 py-2 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center gap-2">
+        <div class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate select-text">${shareUrl}</div>
+        <button onclick="copyImportUrl('${shareUrl.replace(/'/g,"\\'")}','this')" class="w-8 h-8 flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all active:scale-95 shrink-0" title="Nusxalash">
           <i class="fa-solid fa-copy text-xs"></i>
         </button>
-        <button onclick="shareImportVia('tg','${shareUrl}','${title.replace(/'/g,"\\'")}' )" class="shrink-0 w-8 h-8 flex items-center justify-center bg-[#2AABEE]/15 hover:bg-[#2AABEE]/30 text-[#2AABEE] rounded-lg transition-all active:scale-95" title="Telegram">
+        <button onclick="window.open('https://t.me/share/url?url='+encodeURIComponent('${shareUrl}')+'&text='+encodeURIComponent('${title.replace(/'/g,"\\'")} — E-Link UZ'),'_blank')"
+          class="w-8 h-8 flex items-center justify-center bg-[#2AABEE]/15 hover:bg-[#2AABEE]/30 text-[#2AABEE] rounded-lg transition-all active:scale-95 shrink-0" title="Telegram">
           <i class="fa-brands fa-telegram text-sm"></i>
         </button>
-        <button onclick="shareImportVia('wa','${shareUrl}','${title.replace(/'/g,"\\'")}' )" class="shrink-0 w-8 h-8 flex items-center justify-center bg-[#25D366]/15 hover:bg-[#25D366]/30 text-[#25D366] rounded-lg transition-all active:scale-95" title="WhatsApp">
+        <button onclick="window.open('https://wa.me/?text='+encodeURIComponent('${title.replace(/'/g,"\\'")} — E-Link UZ\n${shareUrl}'),'_blank')"
+          class="w-8 h-8 flex items-center justify-center bg-[#25D366]/15 hover:bg-[#25D366]/30 text-[#25D366] rounded-lg transition-all active:scale-95 shrink-0" title="WhatsApp">
           <i class="fa-brands fa-whatsapp text-sm"></i>
         </button>
       </div>
 
-      <!-- Items list -->
+      <!-- Items -->
       <div class="flex-1 overflow-y-auto px-3 py-2 space-y-0.5" id="importItemsList">
-        ${items.map((item, idx) => {
+        ${items.map((item,idx)=>{
           const domain = getDomain(item.u||'');
-          const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
-          const alreadyExists = existNames.has((item.n||'').toLowerCase());
-          const isBepul = item.t?.includes('bepul');
-          const hasWeb = item.t?.includes('web');
-          const isMob = item.t?.includes('mobil');
-          const isCustom = item.isCustom;
-          return `
-          <label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all group ${alreadyExists ? 'opacity-60' : ''}">
-            <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${alreadyExists ? '' : 'checked'} ${alreadyExists ? 'disabled' : ''}>
+          const src    = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
+          const exists = existNames.has((item.n||'').toLowerCase());
+          const isBepul= (item.t||[]).includes('bepul');
+          const hasWeb = (item.t||[]).includes('web');
+          const isMob  = (item.t||[]).includes('mobil');
+          const isCustom = item.isCustom || item.c;
+          return `<label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group ${exists?'opacity-60':''}">
+            <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${exists?'':'checked'} ${exists?'disabled':''}>
             <div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
-              ${src ? `<img src="${src}" class="w-7 h-7 object-contain" onerror="this.parentNode.innerHTML='<i class=\\"fa-solid fa-${isCustom?'star':'globe'} text-${isCustom?'violet':'slate'}-300 text-xs\\"></i>'">` : `<i class="fa-solid fa-${isCustom?'star':'globe'} text-${isCustom?'violet':'slate'}-300 text-xs"></i>`}
+              ${src?`<img src="${src}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-${isCustom?'star':'globe'} text-${isCustom?'violet':'slate'}-300 text-xs"></i>`}
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="text-sm font-bold text-slate-800 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n||''}</span>
-                ${alreadyExists ? `<span class="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 px-1.5 py-0.5 rounded-full">Mavjud</span>` : ''}
-                ${isCustom ? `<span class="text-[9px] font-bold bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-star text-[8px]"></i> Shaxsiy</span>` : ''}
+                ${exists?`<span class="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 px-1.5 py-0.5 rounded-full">Mavjud</span>`:''}
+                ${isCustom?`<span class="text-[9px] font-bold bg-violet-100 dark:bg-violet-500/15 text-violet-600 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-star text-[8px] mr-0.5"></i>Shaxsiy</span>`:''}
               </div>
-              ${item.d ? `<p class="text-[10px] text-slate-400 truncate mt-0.5">${item.d}</p>` : ''}
-              ${item.u ? `<p class="text-[10px] text-slate-300 dark:text-slate-600 truncate font-mono">${getDomain(item.u)||''}</p>` : ''}
-              <div class="flex gap-1 mt-0.5 flex-wrap">
-                ${isBepul ? `<span class="badge-bepul">✓ Bepul</span>` : ''}
-                ${hasWeb ? `<span class="badge-web" title="Web"><i class="fa-solid fa-globe text-[9px]"></i></span>` : ''}
-                ${isMob ? `<span class="badge-mob" title="Ilova"><i class="fa-solid fa-mobile-screen-button text-[9px]"></i></span>` : ''}
-              </div>
+              ${item.d?`<p class="text-[10px] text-slate-400 truncate mt-0.5">${item.d}</p>`:''}
+              ${domain?`<p class="text-[10px] text-slate-300 dark:text-slate-600 truncate font-mono">${domain}</p>`:''}
+              <div class="flex gap-1 mt-0.5">${isBepul?`<span class="badge-bepul">✓ Bepul</span>`:''} ${hasWeb?`<span class="badge-web"><i class="fa-solid fa-globe text-[9px]"></i></span>`:''} ${isMob?`<span class="badge-mob"><i class="fa-solid fa-mobile-screen-button text-[9px]"></i></span>`:''}</div>
             </div>
-            ${item.u && !alreadyExists ? `<a href="${item.u}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-500 transition-all" title="Ochish"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>` : ''}
+            ${item.u&&!exists?`<a href="${item.u}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-500 transition-all" title="Ochish"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`:''}
           </label>`;
         }).join('')}
       </div>
@@ -2461,10 +2471,10 @@ function showListPage(data, shortCode, viewCount){
       <!-- Footer -->
       <div class="shrink-0 px-4 py-3 border-t border-slate-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm sm:rounded-b-3xl">
         <div class="flex items-center justify-between mb-2.5">
-          <div class="flex items-center gap-3">
-            <button onclick="importToggleAll(true)" class="text-[11px] font-bold text-violet-500 hover:text-violet-700 transition-colors">Barchasi</button>
+          <div class="flex gap-3">
+            <button onclick="importToggleAll(true)" class="text-[11px] font-bold text-violet-500 hover:text-violet-700">Barchasi</button>
             <span class="text-slate-300 dark:text-slate-600">|</span>
-            <button onclick="importToggleAll(false)" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Hech biri</button>
+            <button onclick="importToggleAll(false)" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">Hech biri</button>
           </div>
           <span id="importSelCount" class="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"></span>
         </div>
@@ -2479,56 +2489,69 @@ function showListPage(data, shortCode, viewCount){
 
   document.body.appendChild(modal);
   window._importData = data;
-  setTimeout(()=>{
-    document.getElementById('importListBox').classList.remove('translate-y-4','opacity-0');
-    document.getElementById('importListBox').classList.add('translate-y-0','opacity-100');
-  },10);
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    const box = document.getElementById('importListBox');
+    if(box){box.classList.remove('translate-y-4','opacity-0');box.classList.add('translate-y-0','opacity-100');}
+  }));
   updateImportSelCount();
-  modal.querySelectorAll('.import-chk').forEach(chk=>chk.addEventListener('change', updateImportSelCount));
+  modal.querySelectorAll('.import-chk').forEach(c=>c.addEventListener('change',updateImportSelCount));
 }
 
-// Backward compat alias
-function showImportModal(data){ showListPage(data, null, 0); }
+// Eski nom bilan compat alias
+function showImportModal(data){ showListPage(data,null,0); }
 
-// Nusxalash va ulashish helperlari
+// ── Nusxalash helper ──────────────────────────────────────
 window.copyImportUrl = async function(url){
   try{ await navigator.clipboard.writeText(url); }
   catch(e){ const t=document.createElement('input');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
-  showToast('Havola nusxalandi! 🎉', 'fa-link text-violet-400');
+  showToast('Havola nusxalandi! 🎉','fa-link text-violet-400');
 };
 
-window.shareImportVia = function(via, url, title){
-  if(via==='tg') window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title+' — E-Link UZ')}`,'_blank');
-  else if(via==='wa') window.open(`https://wa.me/?text=${encodeURIComponent(title+' — E-Link UZ\n'+url)}`,'_blank');
-};
 
-// Builder ulashish
-window.shareVia = function(via){
-  const url = window._bsUrl;
-  const title = window._bsTitle || 'E-Link ro\'yxati';
-  if(!url){ showToast('Avval havola yarating!','fa-circle-xmark text-amber-500'); return; }
-  if(via==='tg') window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title+' — E-Link UZ')}`,'_blank');
-  else if(via==='wa') window.open(`https://wa.me/?text=${encodeURIComponent(title+' — E-Link UZ\n'+url)}`,'_blank');
-  else if(via==='qr'){ toggleBuilderQr(url); }
-};
-
-function toggleBuilderQr(url){
-  const wrap = document.getElementById('bsQrWrap');
-  if(!wrap) return;
-  if(!wrap.classList.contains('hidden')){
-    wrap.classList.add('hidden'); return;
-  }
-  wrap.classList.remove('hidden');
-  const canvas = document.getElementById('bsQrCanvas');
-  if(!canvas) return;
-  // Simple QR via Google Charts API (no external library needed)
-  const img = document.createElement('img');
-  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}&color=6D28D9&bgcolor=FFFFFF&qzone=1`;
-  img.className = 'rounded-xl';
-  img.alt = 'QR kod';
-  canvas.replaceWith(img);
-  img.id = 'bsQrCanvas';
+function updateImportSelCount(){
+  const chks = document.querySelectorAll('.import-chk:not(:disabled)');
+  const n = [...chks].filter(c=>c.checked).length;
+  const el = document.getElementById('importSelCount');
+  if(el) el.textContent = `${n} tanlandi`;
+  const btn = document.getElementById('doImportBtnTxt');
+  if(btn) btn.textContent = n ? `${n} ta resursni qo'shish` : "Shaxsiy ro'yxatga qo'shish";
 }
+
+window.importToggleAll = function(val){
+  document.querySelectorAll('.import-chk:not(:disabled)').forEach(c=>{ c.checked=val; });
+  updateImportSelCount();
+};
+
+window.closeImportModal = function(){
+  const m = document.getElementById('importListModal');
+  if(!m) return;
+  const box = document.getElementById('importListBox');
+  if(box){ box.classList.add('translate-y-4','opacity-0'); }
+  setTimeout(()=>m.remove(), 200);
+};
+
+window.doImport = function(){
+  const data = window._importData;
+  if(!data) return;
+  const items = data.items||[];
+  const chks  = document.querySelectorAll('.import-chk');
+  const selected = [...chks].filter(c=>c.checked&&!c.disabled).map(c=>items[+c.dataset.idx]).filter(Boolean);
+  if(!selected.length){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
+
+  const existNames = new Set(customApps.map(i=>i.n.toLowerCase()));
+  let added=0;
+  selected.forEach(item=>{
+    if(existNames.has((item.n||'').toLowerCase())) return;
+    customApps.push({ n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true });
+    added++;
+  });
+  if(!added){ showToast("Allaqachon mavjud!", "fa-circle-info text-blue-500"); return; }
+  localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+  window.closeImportModal();
+  showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
+  if(activeCat!=='my_apps') setCat('my_apps');
+  else{ renderNav(); renderContent(); }
+};
 
 
 // ── Detect on load ───────────────────────────────────────
