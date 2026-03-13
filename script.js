@@ -1881,7 +1881,7 @@ window.openListBuilderModal = function(){
             <i class="fa-solid fa-list-check text-sm"></i>
           </div>
           <div>
-            <h3 class="text-sm font-black text-slate-900 dark:text-white">Yangi ro'yxat tuzish</h3>
+            <h3 class="text-sm font-black text-slate-900 dark:text-white">Ro'yxat tuzish va ulashish</h3>
             <p class="text-[10px] text-slate-400">Resurslarni tanlang yoki o'zinikini qo'shing</p>
           </div>
         </div>
@@ -1890,14 +1890,27 @@ window.openListBuilderModal = function(){
         </button>
       </div>
 
-      <!-- Search + "O'z resursimni qo'shish" -->
+      <!-- Search + count/select bar + "O'z resursimni qo'shish" -->
       <div class="px-4 pt-3 pb-2 shrink-0 space-y-2">
-        <!-- Search -->
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs pointer-events-none"></i>
+        <!-- Search with X clear button -->
+        <div class="relative flex items-center">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-300 text-xs pointer-events-none"></i>
           <input id="builderSearch" type="text" placeholder="Resurs qidirish..."
-            class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all"
-            oninput="filterBuilderItems(this.value)">
+            class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all"
+            oninput="filterBuilderItems(this.value); builderSearchToggleX(this.value)">
+          <button id="builderSearchX" onclick="clearBuilderSearch()" title="Tozalash"
+            class="absolute right-2.5 hidden w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-300 hover:bg-red-100 hover:text-red-500 transition-all flex items-center justify-center">
+            <i class="fa-solid fa-xmark text-[10px]"></i>
+          </button>
+        </div>
+        <!-- Select all / clear / count bar -->
+        <div class="flex items-center justify-between px-0.5">
+          <div class="flex gap-3">
+            <button onclick="builderSelectAll(true)" class="text-[11px] font-bold text-violet-500 hover:text-violet-700 transition-colors">Barchasi</button>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <button onclick="builderSelectAll(false)" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Tozalash</button>
+          </div>
+          <span id="builderCount" class="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">0 tanlandi</span>
         </div>
         <!-- Shaxsiy resurs qo'shish paneli -->
         <div id="builderAddWrap" class="rounded-2xl border border-dashed border-violet-300/60 dark:border-violet-600/40 overflow-hidden">
@@ -2003,20 +2016,12 @@ window.openListBuilderModal = function(){
             </div>
           </div>`).join('')}
       </div>
-      <!-- Footer -->
+      <!-- Footer — faqat "Davom etish" tugmasi -->
       <div class="shrink-0 border-t border-slate-200/60 dark:border-slate-700/60 px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm sm:rounded-b-3xl rounded-b-none">
-        <div class="flex items-center justify-between mb-2.5">
-          <div class="flex gap-3">
-            <button onclick="builderSelectAll(true)" class="text-[11px] font-bold text-violet-500 hover:text-violet-700 transition-colors">Barchasi</button>
-            <span class="text-slate-300 dark:text-slate-600">|</span>
-            <button onclick="builderSelectAll(false)" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Tozalash</button>
-          </div>
-          <span id="builderCount" class="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">0 tanlandi</span>
-        </div>
         <button onclick="openBuilderShareStep()" id="builderNextBtn"
           disabled
           class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
-          <i class="fa-solid fa-arrow-right"></i> Davom etish
+          <i class="fa-solid fa-share-nodes text-sm"></i> Davom etish va ulashish
         </button>
       </div>
     </div>`;
@@ -2081,6 +2086,24 @@ function updateBuilderCount(){
 }
 
 // ── Builder: shaxsiy resurs qo'shish ────────────────────
+// ── Builder qidiruv X tugmasi ─────────────────────────────
+window.builderSearchToggleX = function(val){
+  const xBtn = document.getElementById('builderSearchX');
+  if(!xBtn) return;
+  if(val && val.trim()){
+    xBtn.classList.remove('hidden'); xBtn.classList.add('flex');
+  } else {
+    xBtn.classList.add('hidden'); xBtn.classList.remove('flex');
+  }
+};
+window.clearBuilderSearch = function(){
+  const inp = document.getElementById('builderSearch');
+  if(inp){ inp.value=''; inp.focus(); }
+  filterBuilderItems('');
+  const xBtn = document.getElementById('builderSearchX');
+  if(xBtn){ xBtn.classList.add('hidden'); xBtn.classList.remove('flex'); }
+};
+
 window.toggleBuilderAddForm = function(){
   const form = document.getElementById('builderAddForm');
   const chev = document.getElementById('builderAddChevron');
