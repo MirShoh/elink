@@ -1872,7 +1872,7 @@ window.openListBuilderModal = function(){
   modal.className = 'fixed inset-0 z-[550] flex items-end sm:items-center justify-center';
   modal.innerHTML = `
     <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeListBuilderModal()"></div>
-    <div id="listBuilderBox" class="relative glass w-full max-w-xl sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transform translate-y-4 opacity-0 transition-all duration-200" style="max-height:92dvh">
+    <div id="listBuilderBox" class="relative glass w-full max-w-3xl sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transform translate-y-4 opacity-0 transition-all duration-200" style="max-height:92dvh">
 
       <!-- Header -->
       <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/60 shrink-0">
@@ -1982,12 +1982,12 @@ window.openListBuilderModal = function(){
         <!-- Shaxsiy qo'shilgan resurslar -->
         <div id="builderCustomGroup" class="hidden">
           <p class="text-[10px] font-black text-violet-400 uppercase tracking-wider px-1 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10"><i class="fa-solid fa-star mr-1"></i>O'zim qo'shganlarim</p>
-          <div id="builderCustomItems" class="grid grid-cols-2 gap-1.5"></div>
+          <div id="builderCustomItems" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
         </div>
         ${Object.entries(cats).map(([catId, cat])=>`
           <div class="builder-cat-group" data-cat="${catId}">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1 py-1.5 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10">${cat.title}</p>
-            <div class="grid grid-cols-2 gap-1.5">
+            <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1 py-2 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-slate-800/80 mb-1">${cat.title}</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               ${cat.items.map(item=>{
                 const domain = getDomain(item.u||'');
                 const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
@@ -1995,20 +1995,20 @@ window.openListBuilderModal = function(){
                 const hasMob  = item.t?.includes('mobil');
                 const hasWeb  = item.t?.includes('web');
                 const isBepul = item.t?.includes('bepul');
-                return `<label class="builder-item flex items-start gap-2 p-2.5 rounded-2xl border border-transparent hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50 dark:has-[:checked]:bg-violet-500/15 dark:has-[:checked]:border-violet-500/60" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
-                  <input type="checkbox" class="builder-chk mt-0.5 w-3.5 h-3.5 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
+                return `<label class="builder-item flex items-start gap-3 p-3 rounded-2xl border border-transparent hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50 dark:has-[:checked]:bg-violet-500/15 dark:has-[:checked]:border-violet-500/60" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
+                  <input type="checkbox" class="builder-chk mt-0.5 w-4 h-4 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5 mb-0.5">
-                      <div class="w-6 h-6 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 flex items-center justify-center shrink-0">
-                        ${src ? `<img src="${src}" class="w-5 h-5 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-[9px]"></i>`}
+                      <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 flex items-center justify-center shrink-0">
+                        ${src ? `<img src="${src}" class="w-6 h-6 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
                       </div>
-                      <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
+                      <p class="text-[13px] font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
                     </div>
-                    ${item.d ? `<p class="text-[9px] text-slate-400 truncate leading-snug">${item.d}</p>` : ''}
+                    ${item.d ? `<p class="text-[11px] text-slate-400 truncate leading-snug mt-0.5">${item.d}</p>` : ''}
                     <div class="flex gap-1 mt-1 flex-wrap">
-                      ${isBepul ? `<span class="text-[8px] font-black bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">Bepul</span>` : ''}
-                      ${hasWeb  ? `<span class="text-[8px] font-black bg-blue-100 dark:bg-blue-500/15 text-blue-500 dark:text-blue-400 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-globe text-[7px] mr-0.5"></i>Web</span>` : ''}
-                      ${hasMob  ? `<span class="text-[8px] font-black bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-mobile-screen-button text-[7px] mr-0.5"></i>Ilova</span>` : ''}
+                      ${isBepul ? `<span class="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full">Bepul</span>` : ''}
+                      ${hasWeb  ? `<span class="text-[9px] font-bold bg-blue-100 dark:bg-blue-500/15 text-blue-500 dark:text-blue-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-globe text-[8px] mr-0.5"></i>Web</span>` : ''}
+                      ${hasMob  ? `<span class="text-[9px] font-bold bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-mobile-screen-button text-[8px] mr-0.5"></i>Ilova</span>` : ''}
                     </div>
                   </div>
                 </label>`;
