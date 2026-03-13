@@ -2346,7 +2346,7 @@ window.generateBuilderLink = async function(){
 
   let url;
   if(shortCode){
-    url='https://elink.uz/#l='+shortCode;
+    url='https://elink.uz/share-'+shortCode;
   } else {
     const enc=encodeShareList(data);
     if(!enc){showToast("Xato yuz berdi","fa-circle-xmark text-red-500");
@@ -2423,14 +2423,20 @@ function toggleBuilderQr(url){
 
 // ── IMPORT — havoladan kiritish ───────────────────────────
 async function detectShareHash(){
-  const hash = location.hash;
-  if(!hash || hash.length < 3) return;
-  history.replaceState(null,'', location.pathname + location.search);
+  // Format 1: /share-XXXXXXXX (yangi format)
+  const pathMatch = location.pathname.match(/\/share-([a-z0-9]{4,16})$/i);
+  // Format 2: #l=XXXXXXXX (eski uygunlik)
+  const hashLMatch = !pathMatch && location.hash.match(/^#l=([a-z0-9]{4,16})$/);
 
-  // Qisqa URL: #l=xxxxxxxx
-  const shortMatch = hash.match(/^#l=([a-z0-9]{4,16})$/);
-  if(shortMatch){
-    const code = shortMatch[1];
+  const code = (pathMatch||hashLMatch)?.[1];
+  if(code){
+    // URL ni tozalash (path bo'lsa)
+    if(pathMatch) history.replaceState(null,'', '/');
+    else history.replaceState(null,'', location.pathname + location.search);
+
+    // Modal tezkor: avval skeleton ko'rsat
+    showListPage({title:'Yuklanmoqda...', items:[]}, code, 0);
+
     try{
       const res = await fetch(SUPA_PROXY,{
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -2441,26 +2447,34 @@ async function detectShareHash(){
         if(Array.isArray(rows)&&rows[0]){
           const data = JSON.parse(rows[0].data);
           if(data&&Array.isArray(data.items)&&data.items.length){
-            // Increment views silently
             fetch(SUPA_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
               body:JSON.stringify({path:'/rest/v1/rpc/increment_list_views',method:'POST',body:{p_id:code}})
             }).catch(()=>{});
-            setTimeout(()=> showListPage(data, code, (rows[0].views||0)+1), 400);
+            // Mavjud modalni yangilash
+            const existing = document.getElementById('importListModal');
+            if(existing) existing.remove();
+            showListPage(data, code, (rows[0].views||0)+1);
             return;
           }
         }
       }
     }catch(e){console.warn('[share]',e.message);}
+    // Skeleton modalni yopib xato
+    const existing = document.getElementById('importListModal');
+    if(existing) existing.remove();
     showToast("Ro'yxat topilmadi yoki muddati o'tgan","fa-circle-xmark text-red-500");
     return;
   }
 
-  // To'liq URL: #s=...
+  // Format 3: #s=... (offline fallback)
+  const hash = location.hash;
+  if(!hash || hash.length < 3) return;
+  history.replaceState(null,'', location.pathname + location.search);
   const fullMatch = hash.match(/^#s=(.+)/);
   if(!fullMatch) return;
   const data = decodeShareList(fullMatch[1]);
   if(!data||!Array.isArray(data.items)||!data.items.length) return;
-  setTimeout(()=> showListPage(data, null, 0), 400);
+  showListPage(data, null, 0);
 }
 
 // ── Chiroyli ulashilgan ro'yxat sahifasi ─────────────────
@@ -2471,7 +2485,7 @@ function showListPage(data, shortCode, viewCount){
   const title    = data.title||"Ulashilgan ro'yxat";
   const author   = data.a||data.author||'';
   const ts       = data.ts ? new Date(data.ts).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
-  const shareUrl = shortCode ? `https://elink.uz/#l=${shortCode}` : location.href;
+  const shareUrl = shortCode ? `https://elink.uz/share-${shortCode}` : location.href;
   const existNames = new Set([
     ...customApps.map(i=>i.n.toLowerCase()),
     ...DATA.flatMap(c=>c.items.map(i=>i.n.toLowerCase()))
@@ -2542,22 +2556,26 @@ function showListPage(data, shortCode, viewCount){
           const hasWeb = (item.t||[]).includes('web');
           const isMob  = (item.t||[]).includes('mobil');
           const isCustom = item.isCustom || item.c;
-          return `<label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group ${exists?'opacity-60':''}">
-            <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${exists?'':'checked'} ${exists?'disabled':''}>
-            <div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
+          const openUrl  = item.u || item.android || item.ios || '';
+          return `<label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group ${exists?'bg-emerald-50/40 dark:bg-emerald-500/5':''}">
+            <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${exists?'':'checked'}>
+            <div class="w-9 h-9 rounded-xl overflow-hidden border ${exists?'border-emerald-200 dark:border-emerald-600/30':'border-slate-100 dark:border-slate-700/60'} bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm relative">
               ${src?`<img src="${src}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-${isCustom?'star':'globe'} text-${isCustom?'violet':'slate'}-300 text-xs"></i>`}
+              ${exists?`<div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm"><i class="fa-solid fa-check text-white text-[7px]"></i></div>`:''}
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="text-sm font-bold text-slate-800 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n||''}</span>
-                ${exists?`<span class="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 px-1.5 py-0.5 rounded-full">Mavjud</span>`:''}
+                ${exists?`<span class="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-check text-[7px] mr-0.5"></i>Saqlangan</span>`:''}
                 ${isCustom?`<span class="text-[9px] font-bold bg-violet-100 dark:bg-violet-500/15 text-violet-600 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-star text-[8px] mr-0.5"></i>Shaxsiy</span>`:''}
               </div>
               ${item.d?`<p class="text-[10px] text-slate-400 truncate mt-0.5">${item.d}</p>`:''}
               ${domain?`<p class="text-[10px] text-slate-300 dark:text-slate-600 truncate font-mono">${domain}</p>`:''}
               <div class="flex gap-1 mt-0.5">${isBepul?`<span class="badge-bepul">✓ Bepul</span>`:''} ${hasWeb?`<span class="badge-web"><i class="fa-solid fa-globe text-[9px]"></i></span>`:''} ${isMob?`<span class="badge-mob"><i class="fa-solid fa-mobile-screen-button text-[9px]"></i></span>`:''}</div>
             </div>
-            ${item.u&&!exists?`<a href="${item.u}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-500 transition-all" title="Ochish"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`:''}
+            <div class="flex flex-col gap-1 shrink-0">
+              ${openUrl?`<a href="${openUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="w-7 h-7 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:text-blue-500 transition-all" title="Ochib ko'rish"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`:''}
+            </div>
           </label>`;
         }).join('')}
       </div>
@@ -2603,7 +2621,7 @@ window.copyImportUrl = async function(url){
 
 
 function updateImportSelCount(){
-  const chks = document.querySelectorAll('.import-chk:not(:disabled)');
+  const chks = document.querySelectorAll('.import-chk');
   const n = [...chks].filter(c=>c.checked).length;
   const el = document.getElementById('importSelCount');
   if(el) el.textContent = `${n} tanlandi`;
@@ -2612,7 +2630,7 @@ function updateImportSelCount(){
 }
 
 window.importToggleAll = function(val){
-  document.querySelectorAll('.import-chk:not(:disabled)').forEach(c=>{ c.checked=val; });
+  document.querySelectorAll('.import-chk').forEach(c=>{ c.checked=val; });
   updateImportSelCount();
 };
 
@@ -2629,17 +2647,19 @@ window.doImport = function(){
   if(!data) return;
   const items = data.items||[];
   const chks  = document.querySelectorAll('.import-chk');
-  const selected = [...chks].filter(c=>c.checked&&!c.disabled).map(c=>items[+c.dataset.idx]).filter(Boolean);
+  const selected = [...chks].filter(c=>c.checked).map(c=>items[+c.dataset.idx]).filter(Boolean);
   if(!selected.length){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
 
-  const existNames = new Set(customApps.map(i=>i.n.toLowerCase()));
-  let added=0;
+  let added=0, skipped=0;
   selected.forEach(item=>{
-    if(existNames.has((item.n||'').toLowerCase())) return;
-    customApps.push({ n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true });
+    const already = customApps.some(a=>a.n.toLowerCase()===(item.n||'').toLowerCase());
+    if(already){ skipped++; return; }
+    customApps.push({ n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true,
+      ...(item.android?{android:item.android}:{}), ...(item.ios?{ios:item.ios}:{}) });
     added++;
   });
-  if(!added){ showToast("Allaqachon mavjud!", "fa-circle-info text-blue-500"); return; }
+  if(!added && skipped){ showToast("Tanlangan resurslar allaqachon mavjud!", "fa-circle-info text-blue-500"); return; }
+  if(!added){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
   window.closeImportModal();
   showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
