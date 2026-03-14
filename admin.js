@@ -366,7 +366,7 @@ function getClickCount(name) {
 function renderResStats() {
   const all     = getAllStaticResources();
   const cats    = getCats();
-  const withApp = all.filter(r => r.android || r.ios).length;
+  const withApp = all.filter(r => (r.t || []).includes('mobil')).length;
   const total   = allClicks.reduce((a, c) => a + (c.count || 0), 0);
 
   const el = document.getElementById('resStatGrid');
@@ -403,6 +403,10 @@ function renderResources() {
 
   let all = getAllStaticResources();
 
+  // Yashirilgan resurslarni filtrlash
+  const hiddenRes = JSON.parse(localStorage.getItem('adm_hidden_res') || '[]');
+  all = all.filter(r => !hiddenRes.includes(r.n));
+
   // Supabase da qo'shilgan, data.js da yo'q resurslar
   supaResources.forEach(sr => {
     const exists = all.some(a => a.n?.toLowerCase() === sr.name?.toLowerCase());
@@ -438,12 +442,16 @@ function renderResources() {
     return;
   }
 
+  // Global cache — onclick da index orqali chaqiriladi (maxsus belgilar muammosini hal qiladi)
+  window._resCache = all;
+
   const rows = all.map((r, i) => {
     const clk  = getClickCount(r.n);
     const pct  = Math.round((clk / maxClicks) * 100);
     const dom  = getDomain(r.u);
     const supaMatch = supaResources.find(s => s.name === r.n);
     const sid  = supaMatch?.id || r._supaId;
+    const isMobil = (r.t || []).includes('mobil');
 
     return `<tr>
       <td><span class="res-num">${i + 1}</span></td>
@@ -470,7 +478,7 @@ function renderResources() {
       <td>
         <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:110px">
           ${(r.t || []).slice(0, 4).map(t => `<span class="badge-tag">${esc(t)}</span>`).join('')}
-          ${(r.android || r.ios) ? '<span class="badge-tag" style="color:var(--emerald)">📱</span>' : ''}
+          ${isMobil ? '<span class="badge-tag" style="color:var(--emerald)">📱</span>' : ''}
         </div>
       </td>
       <td>
@@ -483,16 +491,18 @@ function renderResources() {
       </td>
       <td>
         <div class="act-btns">
-          <button class="act-btn edit"
-            onclick='openResModal(${JSON.stringify({ n: r.n, u: r.u, d: r.d, t: r.t, android: r.android || '', ios: r.ios || '', v: r.v, _catId: r._catId, _sid: sid })})'>
+          <button class="act-btn edit" onclick="openResModal(${i})">
             <i class="fa-solid fa-pen"></i> Tahrirlash
           </button>
-          ${sid ? `<button class="act-btn delete" onclick="deleteResource('${sid}','${esc(r.n || '')}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+          ${sid
+            ? `<button class="act-btn delete" onclick="deleteResource('${sid}','${esc(r.n || '')}')"><i class="fa-solid fa-trash"></i></button>`
+            : `<button class="act-btn delete" onclick="hideStaticResource(${i})"><i class="fa-solid fa-eye-slash"></i></button>`
+          }
           <a href="${esc(r.u || '#')}" target="_blank" class="act-btn view"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>
       </td>
     </tr>`;
-  }).join('');
+    }).join('');
 
   document.getElementById('resTable').innerHTML = `
     <div style="overflow-x:auto">
@@ -507,7 +517,13 @@ function renderResources() {
 }
 
 // ── Resource Modal ──────────────────────────────────────
-function openResModal(data = null) {
+function openResModal(dataOrIdx = null) {
+  // Index (raqam) bo'lsa — cache dan olish
+  let data = dataOrIdx;
+  if (typeof dataOrIdx === 'number') {
+    data = window._resCache ? window._resCache[dataOrIdx] : null;
+  }
+
   resTagsArr = [];
   document.querySelectorAll('#tagWrap .tag-chip').forEach(e => e.remove());
   document.getElementById('tagInput').value = '';
@@ -608,6 +624,24 @@ async function deleteResource(id, name) {
         renderResources();
         renderResStats();
       } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+    }, false
+  );
+}
+
+// ── Statik resursni yashirish (localStorage) ─────────────
+function hideStaticResource(idx) {
+  const r = window._resCache ? window._resCache[idx] : null;
+  if (!r) return;
+  confirm2(
+    `"${r.n}" resursini yashirasizmi?`,
+    'Bu resurs foydalanuvchilarga ko\'rsatilmaydi. Sozlamalar → "Yashirilganlar" dan qaytarishingiz mumkin.',
+    () => {
+      const hidden = JSON.parse(localStorage.getItem('adm_hidden_res') || '[]');
+      if (!hidden.includes(r.n)) hidden.push(r.n);
+      localStorage.setItem('adm_hidden_res', JSON.stringify(hidden));
+      toast(`"${r.n}" yashirildi 👁️`);
+      renderResources();
+      renderResStats();
     }, false
   );
 }
@@ -941,6 +975,24 @@ function clearAllClicks() {
       toast("Barcha kliklar o'chirildi");
     } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
   }, false);
+}
+
+function getHiddenResources() {
+  return JSON.parse(localStorage.getItem('adm_hidden_res') || '[]');
+}
+
+function restoreHiddenResources() {
+  const hidden = getHiddenResources();
+  if (!hidden.length) { toast("Yashirilgan resurslar yo'q"); return; }
+  confirm2(
+    `${hidden.length} ta yashirilgan resursni qaytarasizmi?`,
+    hidden.slice(0, 5).join(', ') + (hidden.length > 5 ? '...' : ''),
+    () => {
+      localStorage.removeItem('adm_hidden_res');
+      toast(`${hidden.length} ta resurs qaytarildi ✅`);
+      renderResources(); renderResStats();
+    }, true
+  );
 }
 
 function clearCustomResources() {
