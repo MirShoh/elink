@@ -596,14 +596,20 @@ async function saveResource() {
   };
 
   try {
-    if (id) {
-      await supa(`/rest/v1/site_resources?id=eq.${id}`, 'PATCH', payload, 'return=minimal');
+    // Mavjud supabase ID bo'lsa — yangilash, yo'q bo'lsa — yangi yozuv sifatida saqlash
+    // (statik data.js resurslarini ham shu yo'l bilan "override" qilish mumkin)
+    const existingInSupa = supaResources.find(s => s.name === document.getElementById('resName').value.trim());
+    const realId = id || existingInSupa?.id;
+
+    if (realId) {
+      await supa(`/rest/v1/site_resources?id=eq.${realId}`, 'PATCH', payload, 'return=minimal');
       toast('Resurs yangilandi ✅');
     } else {
       payload.created_at = new Date().toISOString();
       await supa('/rest/v1/site_resources', 'POST', payload, 'return=minimal');
-      toast("Yangi resurs qo'shildi ✅");
+      toast("Resurs saqlandi ✅");
     }
+    
     closeResModal();
     await loadSupaResources();
     renderResources();
