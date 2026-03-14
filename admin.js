@@ -1,0 +1,1067 @@
+// ═══════════════════════════════════════════════════════════
+//  admin.js — Elink UZ Admin Panel Logic
+//  Versiya: 2.0 | 2026
+// ═══════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════
+//  CONFIG — LocalStorage wrappers
+// ════════════════════════════════════════════════════
+const LS = {
+  url:    () => localStorage.getItem('adm_url') || '',
+  key:    () => localStorage.getItem('adm_key') || '',
+  pass:   () => localStorage.getItem('adm_pass') || btoa('admin123'),
+  user:   () => localStorage.getItem('adm_user') || 'admin',
+  authed: () => sessionStorage.getItem('adm_authed') === '1',
+};
+
+// ════════════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════════════
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+
+  if (!user || !pass) { showLoginErr('Login va parol kiritilishi shart!'); return; }
+  if (user !== LS.user() || btoa(pass) !== LS.pass()) {
+    showLoginErr("Noto'g'ri foydalanuvchi nomi yoki parol!");
+    const card = document.getElementById('loginCard');
+    card.classList.add('login-shake');
+    setTimeout(() => card.classList.remove('login-shake'), 500);
+    return;
+  }
+
+  sessionStorage.setItem('adm_authed', '1');
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'flex';
+  document.getElementById('sbUsername').textContent = capitalize(user);
+  document.getElementById('curUsername').textContent = user;
+  initApp();
+}
+
+function showLoginErr(msg) {
+  const e = document.getElementById('loginErr');
+  document.getElementById('loginErrTxt').textContent = msg;
+  e.style.display = 'flex';
+}
+
+function logout() {
+  sessionStorage.removeItem('adm_authed');
+  location.reload();
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ════════════════════════════════════════════════════
+//  SUPABASE DIRECT FETCH (admin uses direct URL+key)
+// ════════════════════════════════════════════════════
+async function supa(path, method = 'GET', body = null, prefer = null) {
+  if (!LS.url() || !LS.key()) throw new Error('Supabase sozlanmagan!');
+  const url = LS.url() + path;
+  const headers = {
+    'apikey': LS.key(),
+    'Authorization': 'Bearer ' + LS.key(),
+    'Content-Type': 'application/json',
+  };
+  if (prefer) headers['Prefer'] = prefer;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (res.status === 204) return null;
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return text; }
+}
+
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
+let allClicks = [], allUsers = [], allSugg = [], allReports = [], supaResources = [];
+let suggFilter = 'all', repFilter = 'all';
+let resTagsArr = [];
+let _topChart = null, _catChart = null, _clicksChart = null;
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+async function initApp() {
+  tickClock();
+  setInterval(tickClock, 1000);
+  populateSettingsFields();
+  populateCatFilters();
+  document.getElementById('curUsername').textContent = LS.user();
+
+  const ok = await checkConnection();
+  const connEl = document.getElementById('connStatus');
+  const dotEl  = document.querySelector('.sb-status-dot');
+  if (ok) {
+    connEl.textContent = 'Supabase ulangan';
+  } else {
+    connEl.textContent = 'Ulanmagan';
+    connEl.style.color = 'var(--rose)';
+    if (dotEl) { dotEl.style.background = 'var(--rose)'; dotEl.style.animation = 'none'; }
+  }
+
+  await Promise.all([
+    loadClicks(), loadUsers(), loadSugg(), loadReports(), loadSupaResources()
+  ]);
+  renderOverview();
+  renderResStats();
+}
+
+async function checkConnection() {
+  try {
+    if (!LS.url() || !LS.key()) return false;
+    const r = await supa('/rest/v1/clicks?select=name&limit=1');
+    return Array.isArray(r);
+  } catch { return false; }
+}
+
+function tickClock() {
+  const now = new Date();
+  document.getElementById('tbTime').textContent =
+    now.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+    '  ' + now.toLocaleDateString('uz', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+// ════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════
+const TAB_TITLES = {
+  overview: '📊 Umumiy statistika',
+  resources: '📦 Resurslar boshqaruvi',
+  clicks: '🖱️ Kliklar statistikasi',
+  suggestions: '💡 Resurs takliflari',
+  reports: '⚠️ Muammo bildirish',
+  users: '👥 Foydalanuvchilar',
+  settings: '⚙️ Sozlamalar',
+};
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById('tbTitle').textContent = TAB_TITLES[id] || id;
+
+  if (id === 'clicks')      { renderClickChart(); renderClickList(); }
+  if (id === 'users')       renderUsers();
+  if (id === 'resources')   renderResources();
+  if (id === 'suggestions') renderSuggestions();
+  if (id === 'reports')     renderReports();
+}
+
+// ════════════════════════════════════════════════════
+//  DATA LOADING
+// ════════════════════════════════════════════════════
+async function loadClicks() {
+  try {
+    const r = await supa('/rest/v1/clicks?select=name,count&order=count.desc&limit=1000');
+    if (Array.isArray(r)) allClicks = r.filter(x => x.count > 0);
+  } catch (e) { console.warn('[clicks]', e.message); }
+}
+
+async function loadUsers() {
+  try {
+    // user_data jadval: user_id, favorites (jsonb[]), custom_apps (jsonb[]), created_at
+    const r = await supa('/rest/v1/user_data?select=user_id,favorites,custom_apps,created_at&order=created_at.desc&limit=1000');
+    if (Array.isArray(r)) allUsers = r;
+  } catch (e) { console.warn('[users]', e.message); }
+}
+
+async function loadSugg() {
+  try {
+    // suggestions jadval: id, name, url, description, contact, status, created_at
+    const r = await supa('/rest/v1/suggestions?select=*&order=created_at.desc&limit=500');
+    if (Array.isArray(r)) allSugg = r;
+  } catch (e) { console.warn('[sugg]', e.message); }
+}
+
+async function loadReports() {
+  try {
+    // reports jadval: id, site_name, site_url, reason, status, created_at
+    // (script.js tomonidan yuboriladi)
+    const r = await supa('/rest/v1/reports?select=*&order=created_at.desc&limit=500');
+    if (Array.isArray(r)) allReports = r;
+  } catch (e) { console.warn('[reports]', e.message); }
+}
+
+async function loadSupaResources() {
+  try {
+    const r = await supa('/rest/v1/site_resources?select=*&order=created_at.desc');
+    if (Array.isArray(r)) supaResources = r;
+  } catch { supaResources = []; }
+}
+
+async function refreshAll() {
+  toast('Yangilanmoqda...', 'fa-rotate-right spin', false);
+  await Promise.all([loadClicks(), loadUsers(), loadSugg(), loadReports(), loadSupaResources()]);
+  renderOverview();
+  renderResStats();
+  const active = document.querySelector('.tab-panel.active')?.id.replace('tab-', '');
+  if (active === 'suggestions') renderSuggestions();
+  if (active === 'reports')     renderReports();
+  if (active === 'clicks')      { renderClickList(); renderClickChart(); }
+  if (active === 'users')       renderUsers();
+  if (active === 'resources')   renderResources();
+  toast('Yangilandi! ✅');
+}
+
+// ════════════════════════════════════════════════════
+//  OVERVIEW
+// ════════════════════════════════════════════════════
+function renderOverview() {
+  const totalClicks  = allClicks.reduce((a, r) => a + (r.count || 0), 0);
+  const pendingSugg  = allSugg.filter(s => !s.status || s.status === 'pending').length;
+  const openReps     = allReports.filter(r => !r.status || r.status === 'open').length;
+  const totalFavs    = allUsers.reduce((a, u) => a + (u.favorites?.length || 0), 0);
+  const allRes       = getAllStaticResources();
+
+  setKpi('kpiClicks',    totalClicks.toLocaleString());
+  setKpi('kpiUsers',     allUsers.length);
+  setKpi('kpiResources', allRes.length);
+  const subEl = document.getElementById('kpiResSub');
+  if (subEl) subEl.textContent = `${getCats().length} kategoriya`;
+  setKpi('kpiSugg', pendingSugg, pendingSugg > 0 ? 'amber' : null);
+  setKpi('kpiRep',  openReps,   openReps  > 0 ? 'rose'  : null);
+  setKpi('kpiFavs', totalFavs.toLocaleString());
+
+  setBadge('sugBadge', pendingSugg);
+  setBadge('repBadge', openReps);
+
+  renderTopChart();
+  renderCatChart();
+  renderRecentReports();
+  renderRecentSugg();
+}
+
+function renderTopChart() {
+  const top = allClicks.slice(0, 10);
+  const ctx = document.getElementById('topChart')?.getContext('2d');
+  if (!ctx) return;
+  if (_topChart) { _topChart.destroy(); _topChart = null; }
+  if (!top.length) return;
+  _topChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: top.map(r => r.name),
+      datasets: [{
+        data: top.map(r => r.count),
+        backgroundColor: top.map((_, i) => `hsla(${260 + i * 12},80%,${60 + i * 2}%,.85)`),
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.raw + ' klik' } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 10, weight: '700' } } },
+      }
+    }
+  });
+}
+
+function renderCatChart() {
+  const ctx = document.getElementById('catChart')?.getContext('2d');
+  if (!ctx) return;
+  if (_catChart) { _catChart.destroy(); _catChart = null; }
+  const cats = getCats().slice(0, 12);
+  if (!cats.length) return;
+  const colors = ['#8b5cf6','#06b6d4','#10b981','#f59e0b','#f43f5e','#d946ef',
+                  '#3b82f6','#14b8a6','#84cc16','#fb923c','#a855f7','#ec4899'];
+  _catChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: cats.map(c => stripEmoji(c.title).substring(0, 20)),
+      datasets: [{
+        data: cats.map(c => (c.items || []).length),
+        backgroundColor: colors,
+        borderWidth: 2, borderColor: '#0d1225',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 9 }, boxWidth: 10, padding: 8 } },
+        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} ta` } },
+      }
+    }
+  });
+}
+
+function renderRecentReports() {
+  const el = document.getElementById('recentReports');
+  if (!el) return;
+  const recent = allReports.slice(0, 5);
+  if (!recent.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-check-circle"></i><p>Muammolar yo'q</p></div>`;
+    return;
+  }
+  el.innerHTML = recent.map(r => `
+    <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${esc(r.site_name || r.resource_name || r.title || 'Nomsiz')}
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${esc((r.reason || r.message || r.description || '').substring(0, 70))}
+        </div>
+      </div>
+      <span class="badge ${(r.status || 'open') === 'resolved' ? 'badge-resolved' : 'badge-open'}">
+        ${(r.status || 'open') === 'resolved' ? '✅ Hal' : '🔴 Ochiq'}
+      </span>
+    </div>`).join('');
+}
+
+function renderRecentSugg() {
+  const el = document.getElementById('recentSugg');
+  if (!el) return;
+  const recent = allSugg.slice(0, 5);
+  if (!recent.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-lightbulb"></i><p>Takliflar yo'q</p></div>`;
+    return;
+  }
+  el.innerHTML = recent.map(s => `
+    <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(s.name || '—')}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${esc(s.url || s.description || '')}
+        </div>
+      </div>
+      ${statusBadge(s.status || 'pending', 'sugg')}
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  RESOURCES
+// ════════════════════════════════════════════════════
+function getAllStaticResources() {
+  if (typeof DATA === 'undefined') return [];
+  return DATA.flatMap(cat =>
+    (cat.items || []).map(item => ({ ...item, _catId: cat.id, _catTitle: cat.title }))
+  );
+}
+
+function getCats() {
+  if (typeof DATA === 'undefined') return [];
+  return DATA.filter(c => c.id !== 'my_apps');
+}
+
+function populateCatFilters() {
+  const cats = getCats();
+  const sel1 = document.getElementById('resCatFilter');
+  const sel2 = document.getElementById('resCatId');
+  cats.forEach(cat => {
+    const label = stripEmoji(cat.title).substring(0, 36);
+    if (sel1) { const o = document.createElement('option'); o.value = cat.id; o.textContent = label; sel1.appendChild(o); }
+    if (sel2) { const o = document.createElement('option'); o.value = cat.id; o.textContent = label; sel2.appendChild(o); }
+  });
+}
+
+function getClickCount(name) {
+  const r = allClicks.find(c => c.name === name);
+  return r ? r.count : 0;
+}
+
+function renderResStats() {
+  const all     = getAllStaticResources();
+  const cats    = getCats();
+  const withApp = all.filter(r => r.android || r.ios).length;
+  const total   = allClicks.reduce((a, c) => a + (c.count || 0), 0);
+
+  const el = document.getElementById('resStatGrid');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(139,92,246,.15)"><i class="fa-solid fa-layer-group" style="color:var(--violet)"></i></div>
+      <div class="sc-val">${all.length.toLocaleString()}</div>
+      <div class="sc-label">Jami resurslar</div>
+      <div class="sc-sub">${supaResources.length} ta admin qo'shgan</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(16,185,129,.12)"><i class="fa-solid fa-folder-open" style="color:var(--emerald)"></i></div>
+      <div class="sc-val">${cats.length}</div>
+      <div class="sc-label">Kategoriyalar</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(14,165,233,.12)"><i class="fa-solid fa-mobile-screen-button" style="color:var(--sky)"></i></div>
+      <div class="sc-val">${withApp}</div>
+      <div class="sc-label">Mobil ilovali</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(245,158,11,.12)"><i class="fa-solid fa-arrow-pointer" style="color:var(--amber)"></i></div>
+      <div class="sc-val">${total.toLocaleString()}</div>
+      <div class="sc-label">Jami kliklar</div>
+    </div>`;
+}
+
+function renderResources() {
+  const q    = (document.getElementById('resSearch')?.value || '').toLowerCase();
+  const catF = document.getElementById('resCatFilter')?.value || '';
+  const tagF = document.getElementById('resTagFilter')?.value || '';
+  const sort = document.getElementById('resSortFilter')?.value || 'clicks';
+
+  let all = getAllStaticResources();
+
+  // Supabase da qo'shilgan, data.js da yo'q resurslar
+  supaResources.forEach(sr => {
+    const exists = all.some(a => a.n?.toLowerCase() === sr.name?.toLowerCase());
+    if (!exists) {
+      all.push({
+        n: sr.name, u: sr.url, d: sr.description,
+        t: sr.tags || [], android: sr.android, ios: sr.ios,
+        v: sr.verified,
+        _catId: sr.category_id || '_custom',
+        _catTitle: getCats().find(c => c.id === sr.category_id)?.title || '➕ Qo\'shilgan',
+        _supaId: sr.id, _isCustom: true
+      });
+    }
+  });
+
+  // Filter
+  if (q)    all = all.filter(r => (r.n || '').toLowerCase().includes(q) || (r.u || '').toLowerCase().includes(q) || (r.d || '').toLowerCase().includes(q));
+  if (catF) all = all.filter(r => r._catId === catF);
+  if (tagF) all = all.filter(r => (r.t || []).includes(tagF));
+
+  // Sort
+  if (sort === 'clicks') all.sort((a, b) => getClickCount(b.n) - getClickCount(a.n));
+  else if (sort === 'alpha') all.sort((a, b) => (a.n || '').localeCompare(b.n || ''));
+  else if (sort === 'cat')   all.sort((a, b) => (a._catTitle || '').localeCompare(b._catTitle || ''));
+  else if (sort === 'custom') all = all.filter(r => r._isCustom).concat(all.filter(r => !r._isCustom));
+
+  const maxClicks = Math.max(...all.map(r => getClickCount(r.n)), 1);
+  const countEl = document.getElementById('resCount');
+  if (countEl) countEl.textContent = `${all.length} ta resurs`;
+
+  if (!all.length) {
+    document.getElementById('resTable').innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i><p>Resurslar topilmadi</p></div>`;
+    return;
+  }
+
+  const rows = all.map((r, i) => {
+    const clk  = getClickCount(r.n);
+    const pct  = Math.round((clk / maxClicks) * 100);
+    const dom  = getDomain(r.u);
+    const supaMatch = supaResources.find(s => s.name === r.n);
+    const sid  = supaMatch?.id || r._supaId;
+
+    return `<tr>
+      <td><span class="res-num">${i + 1}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="res-favicon">
+            <img src="https://www.google.com/s2/favicons?domain=${dom}&sz=32" loading="lazy"
+              onerror="this.style.display='none'">
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px">
+              ${esc(r.n || '—')}
+              ${r.v ? '<i class="fa-solid fa-circle-check" style="color:var(--sky);font-size:9px" title="Tasdiqlangan"></i>' : ''}
+              ${r._isCustom ? '<span class="badge badge-violet" style="font-size:8px;padding:1px 5px">Yangi</span>' : ''}
+            </div>
+            <div style="font-size:10px;color:var(--muted);margin-top:1px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              ${esc(r.d || '—')}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td><a href="${esc(r.u || '#')}" target="_blank" class="tbl-link">${esc(dom || '—')}</a></td>
+      <td><span class="badge-tag">${esc(stripEmoji(r._catTitle || '—').substring(0, 22))}</span></td>
+      <td>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:110px">
+          ${(r.t || []).slice(0, 4).map(t => `<span class="badge-tag">${esc(t)}</span>`).join('')}
+          ${(r.android || r.ios) ? '<span class="badge-tag" style="color:var(--emerald)">📱</span>' : ''}
+        </div>
+      </td>
+      <td>
+        <div class="click-bar-wrap">
+          <div class="click-bar-bg" style="width:65px">
+            <div class="click-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="click-val">${clk > 0 ? clk.toLocaleString() : '—'}</span>
+        </div>
+      </td>
+      <td>
+        <div class="act-btns">
+          <button class="act-btn edit"
+            onclick='openResModal(${JSON.stringify({ n: r.n, u: r.u, d: r.d, t: r.t, android: r.android || '', ios: r.ios || '', v: r.v, _catId: r._catId, _sid: sid })})'>
+            <i class="fa-solid fa-pen"></i> Tahrirlash
+          </button>
+          ${sid ? `<button class="act-btn delete" onclick="deleteResource('${sid}','${esc(r.n || '')}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+          <a href="${esc(r.u || '#')}" target="_blank" class="act-btn view"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('resTable').innerHTML = `
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>#</th><th>Resurs</th><th>URL</th><th>Kategoriya</th>
+          <th>Teglar</th><th>Kliklar</th><th>Amallar</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Resource Modal ──────────────────────────────────────
+function openResModal(data = null) {
+  resTagsArr = [];
+  document.querySelectorAll('#tagWrap .tag-chip').forEach(e => e.remove());
+  document.getElementById('tagInput').value = '';
+
+  const fields = ['resMId', 'resName', 'resUrl', 'resDesc', 'resAndroid', 'resIos'];
+  fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('resVerified').checked = true;
+  document.getElementById('resCatId').value = '';
+
+  if (data && typeof data === 'object') {
+    document.getElementById('resModalTitle').textContent = 'Resursni tahrirlash';
+    document.getElementById('resSaveTxt').textContent = 'Yangilash';
+    document.getElementById('resMId').value    = data._sid || '';
+    document.getElementById('resName').value   = data.n || '';
+    document.getElementById('resUrl').value    = data.u || '';
+    document.getElementById('resDesc').value   = data.d || '';
+    document.getElementById('resAndroid').value = data.android || '';
+    document.getElementById('resIos').value    = data.ios || '';
+    document.getElementById('resVerified').checked = !!data.v;
+    if (data._catId) document.getElementById('resCatId').value = data._catId;
+    (data.t || []).forEach(addTag);
+  } else {
+    document.getElementById('resModalTitle').textContent = "Yangi resurs qo'shish";
+    document.getElementById('resSaveTxt').textContent = 'Saqlash';
+  }
+
+  document.getElementById('resModal').classList.add('open');
+  setTimeout(() => document.getElementById('resName').focus(), 100);
+}
+
+function closeResModal() {
+  document.getElementById('resModal').classList.remove('open');
+}
+
+// Tags
+function addTag(val) {
+  val = val.toLowerCase().trim().replace(/[,;]/g, '').trim();
+  if (!val || resTagsArr.includes(val)) return;
+  resTagsArr.push(val);
+  const chip = document.createElement('div');
+  chip.className = 'tag-chip';
+  chip.dataset.tag = val;
+  chip.innerHTML = `${esc(val)}<button type="button" onclick="removeTag('${val}')"><i class="fa-solid fa-xmark"></i></button>`;
+  document.getElementById('tagWrap').insertBefore(chip, document.getElementById('tagInput'));
+}
+
+function removeTag(val) {
+  resTagsArr = resTagsArr.filter(t => t !== val);
+  document.querySelector(`.tag-chip[data-tag="${val}"]`)?.remove();
+}
+
+async function saveResource() {
+  const id      = document.getElementById('resMId').value;
+  const name    = document.getElementById('resName').value.trim();
+  const url     = document.getElementById('resUrl').value.trim();
+  const desc    = document.getElementById('resDesc').value.trim();
+  const catId   = document.getElementById('resCatId').value;
+  const android = document.getElementById('resAndroid').value.trim();
+  const ios     = document.getElementById('resIos').value.trim();
+  const verified = document.getElementById('resVerified').checked;
+
+  if (!name) { toast("Resurs nomi kiritilishi shart!", 'fa-circle-xmark', true, true); return; }
+  if (!url)  { toast("URL kiritilishi shart!", 'fa-circle-xmark', true, true); return; }
+  if (!catId){ toast("Kategoriya tanlanishi shart!", 'fa-circle-xmark', true, true); return; }
+
+  const payload = {
+    name, url, description: desc, category_id: catId,
+    tags: resTagsArr, android: android || null, ios: ios || null,
+    verified, updated_at: new Date().toISOString()
+  };
+
+  try {
+    if (id) {
+      await supa(`/rest/v1/site_resources?id=eq.${id}`, 'PATCH', payload, 'return=minimal');
+      toast('Resurs yangilandi ✅');
+    } else {
+      payload.created_at = new Date().toISOString();
+      await supa('/rest/v1/site_resources', 'POST', payload, 'return=minimal');
+      toast("Yangi resurs qo'shildi ✅");
+    }
+    closeResModal();
+    await loadSupaResources();
+    renderResources();
+    renderResStats();
+    renderOverview();
+  } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+}
+
+async function deleteResource(id, name) {
+  confirm2(
+    `"${name}" resursini o'chirasizmi?`,
+    "Bu amal faqat admin qo'shgan resursni o'chiradi.",
+    async () => {
+      try {
+        await supa(`/rest/v1/site_resources?id=eq.${id}`, 'DELETE', null, 'return=minimal');
+        toast(`"${name}" o'chirildi`);
+        await loadSupaResources();
+        renderResources();
+        renderResStats();
+      } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+    }, false
+  );
+}
+
+// ════════════════════════════════════════════════════
+//  CLICKS
+// ════════════════════════════════════════════════════
+function renderClickList() {
+  const q = (document.getElementById('clickSearch')?.value || '').toLowerCase();
+  let data = q ? allClicks.filter(r => (r.name || '').toLowerCase().includes(q)) : allClicks;
+  const max = data[0]?.count || 1;
+  const el = document.getElementById('clickList');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-arrow-pointer"></i><p>Kliklar topilmadi</p></div>`;
+    return;
+  }
+  el.innerHTML = data.map((r, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span style="font-size:10px;font-weight:800;color:var(--muted);width:24px;text-align:right;flex-shrink:0">${i + 1}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}</div>
+        <div class="click-bar-wrap" style="margin-top:5px">
+          <div class="click-bar-bg"><div class="click-bar-fill" style="width:${Math.round((r.count / max) * 100)}%"></div></div>
+          <span class="click-val">${r.count.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderClickChart() {
+  const top = allClicks.slice(0, 20);
+  const ctx = document.getElementById('clicksChart')?.getContext('2d');
+  if (!ctx) return;
+  if (_clicksChart) { _clicksChart.destroy(); _clicksChart = null; }
+  if (!top.length) return;
+  _clicksChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: top.map(r => r.name),
+      datasets: [{
+        data: top.map(r => r.count),
+        backgroundColor: top.map((_, i) => `hsla(${260 + i * 8},75%,${58 + i * 1.5}%,.85)`),
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.raw + ' klik' } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 10, weight: '700' }, maxTicksLimit: 20 } },
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  SUGGESTIONS
+// ════════════════════════════════════════════════════
+function setSuggFilter(f, btn) {
+  suggFilter = f;
+  document.querySelectorAll('[data-sf]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSuggestions();
+}
+
+function renderSuggestions() {
+  const q = (document.getElementById('suggSearch')?.value || '').toLowerCase();
+  let data = allSugg;
+  if (suggFilter !== 'all') data = data.filter(s => (s.status || 'pending') === suggFilter);
+  if (q) data = data.filter(s => (s.name + s.url + (s.description || '')).toLowerCase().includes(q));
+
+  const el = document.getElementById('suggTable');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-lightbulb"></i><p>Takliflar topilmadi</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr>
+      <th>#</th><th>Nomi</th><th>URL</th><th>Tavsif</th>
+      <th>Muallif</th><th>Status</th><th>Sana</th><th>Amallar</th>
+    </tr></thead>
+    <tbody>${data.map((s, i) => `<tr>
+      <td style="color:var(--muted)">${i + 1}</td>
+      <td><span style="font-weight:700;color:#fff">${esc(s.name || '—')}</span></td>
+      <td>${s.url ? `<a href="${esc(s.url)}" target="_blank" class="tbl-link">${esc(s.url.substring(0, 35))}…</a>` : '—'}</td>
+      <td style="color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        ${esc((s.description || '').substring(0, 60))}
+      </td>
+      <td style="color:var(--muted);font-size:11px">${esc(s.contact || '—')}</td>
+      <td>${statusBadge(s.status || 'pending', 'sugg')}</td>
+      <td style="color:var(--muted);white-space:nowrap;font-size:11px">${fmtDate(s.created_at)}</td>
+      <td>
+        <div class="act-btns">
+          ${(!s.status || s.status === 'pending') ? `
+            <button class="act-btn approve" onclick="setSuggStatus('${s.id}','approved')">
+              <i class="fa-solid fa-check"></i> Tasdiqlash
+            </button>
+            <button class="act-btn reject" onclick="setSuggStatus('${s.id}','rejected')">
+              <i class="fa-solid fa-xmark"></i> Rad
+            </button>
+            <button class="act-btn edit" onclick='openResModal({n:${JSON.stringify(s.name || '')},u:${JSON.stringify(s.url || "")},d:${JSON.stringify(s.description || "")}})'>
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          ` : ''}
+          <button class="act-btn delete" onclick="deleteSugg('${s.id}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+async function setSuggStatus(id, status) {
+  try {
+    await supa(`/rest/v1/suggestions?id=eq.${id}`, 'PATCH', { status }, 'return=minimal');
+    const s = allSugg.find(x => x.id === id);
+    if (s) s.status = status;
+    renderSuggestions(); renderOverview();
+    toast(status === 'approved' ? 'Tasdiqlandi ✅' : 'Rad etildi');
+  } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+}
+
+async function deleteSugg(id) {
+  confirm2("Taklifni o'chirasizmi?", "Bu amalni qaytarib bo'lmaydi.", async () => {
+    try {
+      await supa(`/rest/v1/suggestions?id=eq.${id}`, 'DELETE', null, 'return=minimal');
+      allSugg = allSugg.filter(s => s.id !== id);
+      renderSuggestions(); renderOverview();
+      toast("Taklif o'chirildi");
+    } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+  }, false);
+}
+
+// ════════════════════════════════════════════════════
+//  REPORTS  (script.js → site_name, site_url, reason)
+// ════════════════════════════════════════════════════
+function setRepFilter(f, btn) {
+  repFilter = f;
+  document.querySelectorAll('[data-rf]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReports();
+}
+
+function renderReports() {
+  const q = (document.getElementById('repSearch')?.value || '').toLowerCase();
+  let data = allReports;
+  if (repFilter !== 'all') data = data.filter(r => (r.status || 'open') === repFilter);
+  if (q) data = data.filter(r =>
+    (r.site_name || r.resource_name || r.title || '').toLowerCase().includes(q) ||
+    (r.reason || r.message || '').toLowerCase().includes(q)
+  );
+
+  const el = document.getElementById('repTable');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Muammolar topilmadi</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr>
+      <th>#</th><th>Resurs nomi</th><th>Sayt URL</th>
+      <th>Sabab</th><th>Status</th><th>Sana</th><th>Amallar</th>
+    </tr></thead>
+    <tbody>${data.map((r, i) => {
+      // script.js dan kelgan field nomlari: site_name, site_url, reason
+      const name = r.site_name || r.resource_name || r.title || 'Nomsiz';
+      const url  = r.site_url  || r.url  || '';
+      const msg  = r.reason    || r.message || r.description || '';
+      return `<tr>
+        <td style="color:var(--muted)">${i + 1}</td>
+        <td><span style="font-weight:700;color:#fff">${esc(name)}</span></td>
+        <td>${url ? `<a href="${esc(url)}" target="_blank" class="tbl-link">${esc(getDomain(url) || url.substring(0, 30))}</a>` : '—'}</td>
+        <td style="color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${esc(msg.substring(0, 80))}
+        </td>
+        <td>${statusBadge(r.status || 'open', 'rep')}</td>
+        <td style="color:var(--muted);white-space:nowrap;font-size:11px">${fmtDate(r.created_at)}</td>
+        <td>
+          <div class="act-btns">
+            ${(!r.status || r.status === 'open') ? `
+              <button class="act-btn resolve" onclick="resolveReport('${r.id}')">
+                <i class="fa-solid fa-check"></i> Hal qilish
+              </button>` : ''}
+            <button class="act-btn delete" onclick="deleteReport('${r.id}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+async function resolveReport(id) {
+  try {
+    await supa(`/rest/v1/reports?id=eq.${id}`, 'PATCH', { status: 'resolved' }, 'return=minimal');
+    const r = allReports.find(x => x.id === id);
+    if (r) r.status = 'resolved';
+    renderReports(); renderOverview();
+    toast('Muammo hal qilindi ✅');
+  } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+}
+
+async function deleteReport(id) {
+  confirm2("Xabarni o'chirasizmi?", "Bu amalni qaytarib bo'lmaydi.", async () => {
+    try {
+      await supa(`/rest/v1/reports?id=eq.${id}`, 'DELETE', null, 'return=minimal');
+      allReports = allReports.filter(r => r.id !== id);
+      renderReports(); renderOverview();
+      toast("Xabar o'chirildi");
+    } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+  }, false);
+}
+
+// ════════════════════════════════════════════════════
+//  USERS
+// ════════════════════════════════════════════════════
+function renderUsers() {
+  const totalFavs   = allUsers.reduce((a, u) => a + (u.favorites?.length || 0), 0);
+  const totalCustom = allUsers.reduce((a, u) => a + (u.custom_apps?.length || 0), 0);
+  const withFavs    = allUsers.filter(u => u.favorites?.length > 0).length;
+
+  const kpi = document.getElementById('usersKpi');
+  if (kpi) kpi.innerHTML = `
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(14,165,233,.12)"><i class="fa-solid fa-users" style="color:var(--sky)"></i></div>
+      <div class="sc-val">${allUsers.length}</div>
+      <div class="sc-label">Jami foydalanuvchi</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(244,63,94,.12)"><i class="fa-solid fa-heart" style="color:var(--rose)"></i></div>
+      <div class="sc-val">${totalFavs}</div>
+      <div class="sc-label">Jami sevimlilar</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(217,70,239,.12)"><i class="fa-solid fa-folder" style="color:var(--fuchsia)"></i></div>
+      <div class="sc-val">${totalCustom}</div>
+      <div class="sc-label">Shaxsiy resurslar</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-ico" style="background:rgba(16,185,129,.12)"><i class="fa-solid fa-user-check" style="color:var(--emerald)"></i></div>
+      <div class="sc-val">${withFavs}</div>
+      <div class="sc-label">Sevimli saqlagan</div>
+    </div>`;
+
+  const q = (document.getElementById('usrSearch')?.value || '').toLowerCase();
+  let data = allUsers;
+  if (q) data = data.filter(u => (u.user_id || '').toLowerCase().includes(q));
+
+  const el = document.getElementById('usersTable');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-users"></i><p>Foydalanuvchilar topilmadi</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr>
+      <th>#</th><th>User ID</th><th>Sevimlilar</th>
+      <th>Shaxsiy resurslar</th><th>Ro'yxatga olingan</th>
+    </tr></thead>
+    <tbody>${data.map((u, i) => `<tr>
+      <td style="color:var(--muted)">${i + 1}</td>
+      <td><code class="tbl-mono">${esc(u.user_id || '—')}</code></td>
+      <td>
+        <span class="badge badge-violet">${u.favorites?.length || 0} ❤️</span>
+      </td>
+      <td>
+        <span class="badge badge-violet">${u.custom_apps?.length || 0} 📁</span>
+      </td>
+      <td style="color:var(--muted);white-space:nowrap;font-size:11px">${fmtDate(u.created_at)}</td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ════════════════════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════════════════════
+function populateSettingsFields() {
+  const u = document.getElementById('cfgUrl2');
+  const k = document.getElementById('cfgKey2');
+  if (u) u.value = LS.url();
+  if (k) k.value = LS.key();
+}
+
+function saveConfig() {
+  const url = (document.getElementById('cfgUrl2').value || '').trim().replace(/\/$/, '');
+  const key = (document.getElementById('cfgKey2').value || '').trim();
+  if (!url || !key) { toast('URL va Key kiritilishi shart', 'fa-circle-xmark', true, true); return; }
+  localStorage.setItem('adm_url', url);
+  localStorage.setItem('adm_key', key);
+  toast('Sozlamalar saqlandi ✅');
+}
+
+async function testConnection() {
+  toast('Tekshirilmoqda...', 'fa-wifi spin', false);
+  try {
+    const r = await supa('/rest/v1/clicks?select=name&limit=1');
+    if (Array.isArray(r)) toast('Ulanish muvaffaqiyatli! ✅');
+    else toast("Javob noto'g'ri formatda", 'fa-circle-xmark', true, true);
+  } catch (e) { toast("Ulanib bo'lmadi: " + e.message, 'fa-circle-xmark', true, true); }
+}
+
+function changeCredentials() {
+  const username = (document.getElementById('newUsername').value || '').trim();
+  const p1 = document.getElementById('newPass1').value;
+  const p2 = document.getElementById('newPass2').value;
+  if (p1 && p1.length < 4) { toast("Parol kamida 4 belgi bo'lishi kerak", 'fa-circle-xmark', true, true); return; }
+  if (p1 && p1 !== p2) { toast("Parollar mos kelmadi", 'fa-circle-xmark', true, true); return; }
+  if (username) localStorage.setItem('adm_user', username);
+  if (p1) localStorage.setItem('adm_pass', btoa(p1));
+  document.getElementById('newPass1').value = '';
+  document.getElementById('newPass2').value = '';
+  const cur = document.getElementById('curUsername');
+  if (cur) cur.textContent = LS.user();
+  toast("Ma'lumotlar yangilandi 🔐");
+}
+
+function clearAllClicks() {
+  confirm2('Barcha kliklarni nolga qaytarasizmi?', "Bu amalni qaytarib bo'lmaydi!", async () => {
+    try {
+      await supa('/rest/v1/clicks', 'DELETE', null, 'return=minimal');
+      allClicks = [];
+      renderOverview(); renderClickList();
+      toast("Barcha kliklar o'chirildi");
+    } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+  }, false);
+}
+
+function clearCustomResources() {
+  confirm2("Admin qo'shgan resurslarni o'chirasizmi?", "Bu amalni qaytarib bo'lmaydi!", async () => {
+    try {
+      await supa('/rest/v1/site_resources', 'DELETE', null, 'return=minimal');
+      supaResources = [];
+      renderResources(); renderResStats();
+      toast("Resurslar tozalandi");
+    } catch (e) { toast('Xato: ' + e.message, 'fa-circle-xmark', true, true); }
+  }, false);
+}
+
+// ════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; }
+}
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function stripEmoji(s) {
+  return (s || '').replace(/[\u{1F000}-\u{1FFFF}]|[\u2600-\u27FF]|[\uFE00-\uFEFF]/gu, '').trim();
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('uz', { day: '2-digit', month: '2-digit', year: '2-digit' })
+    + ' ' + dt.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' });
+}
+function setKpi(id, val, color = null) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  if (color) el.style.color = `var(--${color})`;
+}
+function setBadge(id, count) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = count > 0 ? '' : 'none';
+  el.textContent = count;
+}
+function statusBadge(status, type) {
+  if (type === 'sugg') {
+    const m = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected' };
+    const l = { pending: '⏳ Kutmoqda', approved: '✅ Tasdiqlandi', rejected: '❌ Rad etildi' };
+    return `<span class="badge ${m[status] || 'badge-pending'}">${l[status] || status}</span>`;
+  }
+  if (status === 'resolved') return `<span class="badge badge-resolved">✅ Hal qilindi</span>`;
+  return `<span class="badge badge-open">🔴 Ochiq</span>`;
+}
+
+// Toast
+function toast(msg, ico = 'fa-circle-check', autoHide = true, isErr = false) {
+  const t = document.getElementById('adminToast');
+  document.getElementById('toastIco').className = 'fa-solid ' + ico;
+  document.getElementById('toastIco').style.color = isErr ? 'var(--rose)' : 'var(--emerald)';
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  if (autoHide !== false) setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Confirm dialog
+let _confirmCbFn = null;
+function confirm2(title, msg, cb, safe = true) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const ok = document.getElementById('confirmOkBtn');
+  ok.className = 'confirm-ok' + (safe ? ' safe' : '');
+  ok.textContent = safe ? 'Tasdiqlash' : "Ha, o'chirish";
+  _confirmCbFn = cb;
+  document.getElementById('confirmDlg').classList.add('show');
+}
+function confirmAction() { if (_confirmCbFn) _confirmCbFn(); hideConfirm(); }
+function hideConfirm() { document.getElementById('confirmDlg').classList.remove('show'); _confirmCbFn = null; }
+
+// ════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Dialog click-outside
+  document.getElementById('confirmDlg').addEventListener('click', e => {
+    if (e.target === e.currentTarget) hideConfirm();
+  });
+  document.getElementById('resModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeResModal();
+  });
+
+  // Tags input
+  const tagInp = document.getElementById('tagInput');
+  if (tagInp) {
+    tagInp.addEventListener('keydown', e => {
+      if ((e.key === ',' || e.key === 'Enter') && tagInp.value.trim()) {
+        e.preventDefault();
+        addTag(tagInp.value.replace(',', '').trim());
+        tagInp.value = '';
+      }
+      if (e.key === 'Backspace' && !tagInp.value && resTagsArr.length) {
+        removeTag(resTagsArr[resTagsArr.length - 1]);
+      }
+    });
+    tagInp.addEventListener('blur', () => {
+      if (tagInp.value.trim()) { addTag(tagInp.value.trim()); tagInp.value = ''; }
+    });
+  }
+
+  // Login enter key
+  ['loginUser', 'loginPass'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  });
+
+  // Already authed?
+  if (LS.authed()) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'flex';
+    document.getElementById('sbUsername').textContent = capitalize(LS.user());
+    initApp();
+  }
+});
