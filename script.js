@@ -144,366 +144,14 @@ let customApps = safeParse('lh_custom_apps', []);
   }
 })();
 
-const DATA = [
-{id:'my_apps', title:"🛠️ Shaxsiy Ilovalarim", icon:"fa-folder-plus", gr:"from-slate-500 to-gray-500", items:customApps},
 
-{id:'uzbekistan',title:"O'zbekiston (Mahalliy)",icon:"fa-star-and-crescent",gr:"from-blue-600 to-emerald-500",
-items:[
-{n:"Payme", u:"https://payme.uz/", d:"Ishonchli to'lovlar va o'tkazmalar", t:['uz','bepul','web','mobil'],v:true},
-{n:"Click", u:"https://click.uz/", d:"Tezkor to'lov tizimi va keshbeklar", t:['uz','bepul','web','mobil'],v:true},
-{n:"Uzum Market", u:"https://uzum.uz/", d:"1 kunda bepul yetkazib beriladigan market", t:['uz','bepul','web','mobil'],v:true},
-{n:"Uzum Nasiya", u:"https://uzumnasiya.uz/", d:"Muddatli to'lovga muddatli xaridlar qilish", t:['uz','bepul','mobil']},
-{n:"Uzum Tezkor", u:"https://tezkor.uzum.uz/", d:"Oziq-ovqat va taomlarni tezkor yetkazib berish", t:['uz','bepul','mobil']},
-{n:"Mutolaa", u:"https://mutolaa.uz/", d:"Kitoblar va audiokitoblar milliy platformasi", t:['uz','bepul','web','mobil']},
-{n:"Ustoz AI", u:"https://ustoz.ai/", d:"O'zbek tilidagi mukammal ta'lim yordamchisi", t:['uz','bepul','web']},
-{n:"Ibrat academy", u:"https://ibrat.uz/", d:"Xorijiy tillarni bepul o'rganish loyihasi", t:['uz','bepul','web','mobil']},
-{n:"Bek va lola", u:"https://bekvalola.uz/", d:"Bolalar kiyimlari va o'yinchoqlar online do'koni", t:['uz','bepul','web','mobil']},
-{n:"My.gov.uz", u:"https://my.gov.uz/", d:"Yagona elektron davlat xizmatlari", t:['uz','bepul','web','mobil'],v:true},
-{n:"MyTaxi", u:"https://mytaxi.uz/", d:"Milliy taksi va yetkazib berish xizmati", t:['uz','bepul','mobil']},
-{n:"eMaktab", u:"https://emaktab.uz/", d:"Elektron kundalik va raqamli ta'lim tizimi", t:['uz','bepul','web','mobil'],v:true},
-{n:"Soliq.uz", u:"https://soliq.uz/", d:"Soliq xizmatlari, keshbek va hisobotlar", t:['uz','bepul','web','mobil'],v:true},
-{n:"OLX.uz", u:"https://www.olx.uz/", d:"Eng yirik bepul e'lonlar doskasi", t:['uz','bepul','web','mobil']},
-{n:"Humans.uz", u:"https://humans.uz/", d:"Milliy mobil operator va keshbek bank", t:['uz','bepul','web','mobil']},
-{n:"Macbro", u:"https://macbro.uz/", d:"Apple texnika va gadjetlar premium do'koni", t:['uz','bepul','web']},
-{n:"Asaxiy", u:"https://asaxiy.uz/", d:"Internet do'kon va mashhur jahon kitoblari", t:['uz','bepul','web']},
-{n:"Texnomart", u:"https://texnomart.uz/", d:"Maishiy texnika va muddatli to'lov do'koni", t:['uz','bepul','web']},
-{n:"Express24", u:"https://express24.uz/", d:"Tezkor ovqat va dorilar yetkazib berish xizmati", t:['uz','bepul','web','mobil']},
-{n:"Yandex Go", u:"https://go.yandex/", d:"Taksi, kurier xizmatlari tarmog'i", t:['uz','bepul','mobil']},
-{n:"Yandex Eats", u:"https://eda.yandex.uz/", d:"Restoran va kafelardan taom buyurtma qilish", t:['uz','bepul','mobil']},
-{n:"Uzum Bank", u:"https://uzumbank.uz/", d:"Raqamli bank va qulay xizmatlar", t:['uz','bepul','mobil']},
-{n:"Anorbank", u:"https://anorbank.uz/", d:"Birinchi raqamli tijorat banki", t:['uz','bepul','mobil']},
-{n:"TBC Bank", u:"https://tbcbank.uz/", d:"Raqamli mikromoliya va innovatsion bank xizmati", t:['uz','bepul','mobil']},
-{n:"Kapitalbank", u:"https://kapitalbank.uz/", d:"Xususiy aksiyadorlik tijorat banki ilovasi", t:['uz','bepul','mobil']},
-{n:"Ipak Yuli Mobile", u:"https://ipakyulibank.uz/", d:"Ipak yuli bankining zamonaviy mobil ilovasi", t:['uz','bepul','mobil']},
-{n:"Kun.uz", u:"https://kun.uz/", d:"O'zbekistonning eng yirik yangiliklar portali", t:['uz','bepul','web','mobil'],v:true},
-{n:"Daryo.uz", u:"https://daryo.uz/", d:"Milliy media va tezkor yangiliklar portali", t:['uz','bepul','web','mobil']},
-{n:"Gazeta.uz", u:"https://www.gazeta.uz/", d:"Ijtimoiy-iqtisodiy ob'ektiv tahliliy yangiliklar", t:['uz','bepul','web']},
-{n:"Qalampir.uz", u:"https://qalampir.uz/", d:"Siyosiy va jamiyatga oid qaynoq yangiliklar", t:['uz','bepul','web']},
-{n:"Zamin.uz", u:"https://zamin.uz/", d:"Milliy axborot agentligi va ob-havo xabarlari", t:['uz','bepul','web']},
-{n:"Podrobno.uz", u:"https://podrobno.uz/", d:"O'zbekistonning so'nggi va tezkor yangiliklari", t:['uz','bepul','web']},
-{n:"Afisha.uz", u:"https://afisha.uz/", d:"Toshkent tadbirlari va kino, teatr afishasi", t:['uz','bepul','web']},
-{n:"Ticketon.uz", u:"https://ticketon.uz/", d:"Konsert, teatr va sport chiptalariga buyurtma", t:['uz','bepul','web']},
-{n:"iTicket.uz", u:"https://iticket.uz/", d:"Elektron tadbir chiptalari xarid qilish portali", t:['uz','bepul','web']},
-{n:"UzAuto Tickets", u:"https://uzavtotrans.uz/", d:"Avtobus chiptalarini onlayn xarid qilish xizmati", t:['uz','bepul','web'],v:true},
-{n:"UzRailways", u:"https://chipta.railway.uz/", d:"Poyezd chiptalarini elektron onlayn bron qilish", t:['uz','bepul','web'],v:true},
-{n:"Makro", u:"https://makromarket.uz/", d:"Oziq-ovqat va mahsulotlar supermarketlar tarmog'i", t:['uz','bepul','web']},
-{n:"Korzinka", u:"https://korzinka.uz/", d:"Supermarketlar tarmog'i va onlayn yetkazib berish", t:['uz','bepul','web']},
-{n:"ZiyoNET", u:"https://ziyonet.uz/", d:"Ta'limga oid milliy elektron resurslar tarmog'i", t:['uz','bepul','web'],v:true},
-{n:"Lex.uz", u:"https://lex.uz/", d:"O'zbekiston Respublikasi qonun hujjatlari bazasi", t:['uz','bepul','web'],v:true},
-{n:"Xarid.uz", u:"https://xarid.uzex.uz/", d:"Davlat xaridlari shaffof elektron portali", t:['uz','bepul','web'],v:true},
-{n:"E-qaror", u:"https://e-qaror.gov.uz/", d:"Hokimlik qarorlari ochiq elektron portali", t:['uz','bepul','web'],v:true},
-{n:"Mening Fikrim", u:"https://meningfikrim.uz/", d:"Jamoaviy jamoat murojaatlari ochiq portali", t:['uz','bepul','web'],v:true},
-{n:"Dtm.uz", u:"https://uzbmb.uz/", d:"Bilim va malakalarni baholash agentligi (Sobiq DTM)", t:['uz','bepul','web'],v:true},
-{n:"Hemis", u:"https://hemis.uz/", d:"Oliy ta'lim tizimi va talabalar platformasi", t:['uz','bepul','web'],v:true},
-{n:"Dmed.uz", u:"https://dmed.uz/", d:"Sog'liqni saqlash vazirligi rasmiy portali", t:['uz','bepul','web'],v:true},
-{n:"Beeline Uz", u:"https://beeline.uz/", d:"Beeline aloqa operatori shaxsiy kabineti", t:['uz','bepul','mobil']},
-{n:"Ucell", u:"https://ucell.uz/", d:"Ucell abonentlari uchun raqamli xizmatlar", t:['uz','bepul','mobil']},
-{n:"Uztelecom", u:"https://uztelecom.uz/", d:"Milliy operator aloqa va internet xizmati", t:['uz','bepul','mobil']}
-]},
+// DATA massivi data.js dan yuklanadi (tezlik uchun)
+// my_apps kategoriyasiga customApps ni bog'lash
+function initCustomApps() {
+  const myAppsCategory = DATA.find(c => c.id === 'my_apps');
+  if (myAppsCategory) myAppsCategory.items = customApps;
+}
 
-{id:'ai_chat',title:"AI Chat va Qidiruv",icon:"fa-robot",gr:"from-indigo-500 to-blue-500",
-items:[
-{n:"ChatGPT", u:"https://chatgpt.com/", d:"Eng mashhur va ko'p funksiyali aqlli AI yordamchi", t:['dunyo','bepul','web','mobil'],v:true},
-{n:"Gemini", u:"https://gemini.google.com/", d:"Google'ning so'nggi kuchli multimodal modeli", t:['dunyo','bepul','web','mobil']},
-{n:"Copilot", u:"https://copilot.microsoft.com/", d:"Microsoftning bepul internetli yordamchisi", t:['dunyo','bepul','web','mobil']},
-{n:"Claude", u:"https://claude.ai/", d:"Katta matnlar, xujjatlar va kodlash uchun ideal AI", t:['dunyo','bepul','web','mobil']},
-{n:"Grok", u:"https://grok.com/", d:"xAI tomonidan yasalgan real-vaqt ma'lumotli aqlli bot", t:['dunyo','bepul','web']},
-{n:"Perplexity", u:"https://www.perplexity.ai/", d:"Internetdan faktlarni tezkor va aniq qidiruv tizimi", t:['dunyo','bepul','web','mobil']},
-{n:"Google AI Studio", u:"https://aistudio.google.com/", d:"Eng so'nggi Gemini modellarini bepul sinash muhiti", t:['dunyo','bepul','web'],v:true},
-{n:"Google flow", u:"https://cloud.google.com/dialogflow", d:"Biznes uchun suhbat botlari yaratish platformasi", t:['dunyo','bepul','web']},
-{n:"Poe", u:"https://poe.com/", d:"Barcha turdagi AI modellar to'plangan bitta joy", t:['dunyo','bepul','web','mobil']},
-{n:"Mistral", u:"https://chat.mistral.ai/", d:"Evropaning eng kuchli open-source AI modeli", t:['dunyo','bepul','web']},
-{n:"DeepSeek", u:"https://chat.deepseek.com/", d:"Matematika va kodlashga ixtisoslashgan kuchli model", t:['dunyo','bepul','web']},
-{n:"Character.AI", u:"https://character.ai/", d:"Minglab rol o'ynovchi AI personajlar bilan suhbat", t:['dunyo','bepul','web','mobil']},
-{n:"HuggingChat", u:"https://huggingface.co/chat/", d:"Llama va boshqa ochiq modellar bilan bepul chat", t:['dunyo','bepul','web']},
-{n:"Pi.ai", u:"https://pi.ai/", d:"Sizning shaxsiy va hissiyotli AI psixolog hamrohingiz", t:['dunyo','bepul','web']},
-{n:"ChatSonic", u:"https://writesonic.com/chat", d:"Faktlarni tekshirib kontent yozish uchun maxsus AI", t:['dunyo','bepul','web']},
-{n:"Ora.ai", u:"https://ora.ai/", d:"O'z shaxsiy AI botingizni bitta joyda yig'ish tizimi", t:['dunyo','bepul','web']},
-{n:"Replika", u:"https://replika.com/", d:"Doimiy virtual AI do'st va suhbatdosh avatar", t:['dunyo','bepul','mobil']},
-{n:"Llama 3", u:"https://huggingface.co/meta-llama", d:"Meta'ning bepul, sifatli va tezkor matn modeli", t:['dunyo','bepul','web']},
-{n:"Qwen", u:"https://chat.qwenlm.ai/", d:"Alibaba kompaniyasining yuqori mantiqli ochiq modeli", t:['dunyo','bepul','web']},
-{n:"Falcon", u:"https://falconllm.tii.ae/", d:"Kuchli va eng katta tekin open-source modellaridan biri", t:['dunyo','bepul','web']},
-{n:"Cohere", u:"https://cohere.com/", d:"Biznes va Enterprise xizmatlar uchun murakkab AI", t:['dunyo','pullik','web']},
-{n:"Jasper", u:"https://www.jasper.ai/", d:"Professional kopirayting va SMM kontent yozish", t:['dunyo','pullik','web']},
-{n:"Writesonic", u:"https://writesonic.com/", d:"Maqolalar, blog va SEO matnlarni yaratuvchi AI", t:['dunyo','bepul','web']},
-{n:"Copy.ai", u:"https://www.copy.ai/", d:"Sotuv va marketing matnlarini osongina yaratish", t:['dunyo','bepul','web']},
-{n:"Rytr", u:"https://rytr.me/", d:"Arzon va tezkor xat yoki maqola yozib beruvchi neyrotarmoq", t:['dunyo','bepul','web']},
-{n:"You.com", u:"https://you.com/", d:"AI hamda kodlash bilan birlashgan xavfsiz qidiruv", t:['dunyo','bepul','web']},
-{n:"Phind", u:"https://www.phind.com/", d:"Dasturchilar uchun kod xatolarini izlovchi maxsus qidiruv", t:['dunyo','bepul','web']}
-]},
-
-{id:'ai_image',title:"AI Rasm va Dizayn",icon:"fa-image",gr:"from-pink-500 to-rose-500",
-items:[
-{n:"Midjourney", u:"https://www.midjourney.com/", d:"Dunyodagi eng san'atkorona va chiroyli rasm AI", t:['dunyo','pullik','web']},
-{n:"Designer", u:"https://designer.microsoft.com/", d:"Microsoft DALL-E yordamida tekin rasm generatsiyasi", t:['dunyo','bepul','web']},
-{n:"Freepik", u:"https://www.freepik.com/", d:"Dizaynerlar va oddiy foydalanuvchilar uchun AI rasm tizimi", t:['dunyo','bepul','web']},
-{n:"DALL-E 3", u:"https://openai.com/dall-e-3", d:"ChatGPT ning preimum rasmlar chizuvchi qismi", t:['dunyo','pullik','web']},
-{n:"Leonardo AI", u:"https://leonardo.ai/", d:"Midjourney ning eng kuchli bepul alternativasi", t:['dunyo','bepul','web']},
-{n:"Ideogram", u:"https://ideogram.ai/", d:"Rasmga sifatli va to'g'ri inglizcha yozuv qo'shuvchi AI", t:['dunyo','bepul','web']},
-{n:"Civitai", u:"https://civitai.com/", d:"Katta formatli AI rasm modellarining tekin bazasi", t:['dunyo','bepul','web']},
-{n:"Canva AI", u:"https://www.canva.com/ai-image-generator/", d:"Canva platformasi ichiga qurilgan qulay generator", t:['dunyo','bepul','web']},
-{n:"Adobe Firefly", u:"https://firefly.adobe.com/", d:"Rasmga ob'ekt qo'shish va generatsiya uchun eng xavfsizi", t:['dunyo','bepul','web']},
-{n:"Flux AI", u:"https://flux.ai/", d:"Mantiqiyligi bilan mashhur yangi avlod chizuvchi modeli", t:['dunyo','bepul','web']},
-{n:"Playground AI", u:"https://playgroundai.com/", d:"Bepul onlayn mukammal rasm yaratish va oson tahrirlash", t:['dunyo','bepul','web']},
-{n:"Lexica", u:"https://lexica.art/", d:"Stable Diffusion orqali ishlangan rasm va promp qidiruvi", t:['dunyo','bepul','web']},
-{n:"Artbreeder", u:"https://www.artbreeder.com/", d:"Yuzlarni va rasmlarni genetik usulda birlashtirish", t:['dunyo','bepul','web']},
-{n:"SeaArt", u:"https://seaart.ai/", d:"Juda murakkab san'at asarlarini bepul yaratish interfeysi", t:['dunyo','bepul','web']},
-{n:"Krea", u:"https://www.krea.ai/", d:"Tezlikda, aynan siz chizayotgan vaqtda tasvir tuzuvchi AI", t:['dunyo','bepul','web']},
-{n:"NightCafe", u:"https://creator.nightcafe.studio/", d:"Oson, hamma tushunadigan AI rasm san'at vositasi", t:['dunyo','bepul','web']},
-{n:"Tensor.art", u:"https://tensor.art/", d:"Barcha qimmat rasm modellarini onlayn ishlatish markazi", t:['dunyo','bepul','web']},
-{n:"PromeAI", u:"https://promeai.com/", d:"Soddagina 2D eskizlarni professional 3D renderga aylantirish", t:['dunyo','bepul','web']},
-{n:"Recraft", u:"https://www.recraft.ai/", d:"Vektorli ikonka va illustratsiyalar chizuvchi generator", t:['dunyo','bepul','web']},
-{n:"Craiyon", u:"https://www.craiyon.com/", d:"Sobiq matnli rasm izlovchi DALL-E mini platformasi", t:['dunyo','bepul','web']},
-{n:"Mage.space", u:"https://www.mage.space/", d:"Stable Diffusion ning mutlaqo bepul variantlar markazi", t:['dunyo','bepul','web']},
-{n:"DreamStudio", u:"https://beta.dreamstudio.ai/", d:"Stability AI ning rasmiy yuqori tezlikdagi dasturi", t:['dunyo','pullik','web']},
-{n:"InvokeAI", u:"https://invoke.com/", d:"Studio mutaxassislari uchun maxsus rasm arxitekturasi", t:['dunyo','pullik','web']}
-]},
-
-{id:'ai_media',title:"AI Video va Audio",icon:"fa-film",gr:"from-fuchsia-500 to-purple-500",
-items:[
-{n:"Runway", u:"https://runwayml.com/", d:"Kino va reklama darajasidagi AI video generatori (Gen-3)", t:['dunyo','bepul','web']},
-{n:"Hedra video", u:"https://www.hedra.com/", d:"Rasmdagi yuzlarni va xarakterlarni gapirtiradigan vosita", t:['dunyo','bepul','web']},
-{n:"Voice AI", u:"https://voice.ai/", d:"Real vaqt rejimida qahramonlar ovozini klonlash va o'zgartirish", t:['dunyo','bepul','web']},
-{n:"Ovoz AI", u:"https://ovoz.ai/", d:"O'zbek matnlarini aniq va tabiiy ravishda o'qib beruvchi", t:['uz','bepul','web']},
-{n:"Luma Dream Machine", u:"https://lumalabs.ai/dream-machine", d:"Rasmdan yuqori sifatli golografik videolarni yaratish", t:['dunyo','bepul','web']},
-{n:"HeyGen", u:"https://www.heygen.com/", d:"Matn orqali boshlovchi AI avatarli prezetatsiya videolar", t:['dunyo','bepul','web']},
-{n:"Suno", u:"https://suno.com/", d:"Prodyusserlik darajasidagi qo'shiq va kuylarni yarating", t:['dunyo','bepul','web']},
-{n:"Udio", u:"https://www.udio.com/", d:"Raqobatchilardan baland ovoz sifatidagi musiqiy tarmoq", t:['dunyo','bepul','web']},
-{n:"ElevenLabs", u:"https://elevenlabs.io/", d:"Ovoz yaratish va 29+ tilda jumladan o'zbekchada gapirish", t:['dunyo','bepul','web']},
-{n:"Kling AI", u:"https://klingai.com/", d:"Fizika qonunlariga bo'ysunuvchi eng realistik videobot", t:['dunyo','bepul','web']},
-{n:"Pika Labs", u:"https://pika.art/", d:"Videolarga matn bilan animatsion effektlar bering", t:['dunyo','bepul','web']},
-{n:"Synthesia", u:"https://www.synthesia.io/", d:"Yuzlab tillarda sun'iy boshlovchi ishtirokidagi e'lonlar", t:['dunyo','pullik','web']},
-{n:"Murf.ai", u:"https://murf.ai/", d:"Videolar uchun professional ovoz beruvchi dublyaj studiyasi", t:['dunyo','bepul','web']},
-{n:"Invideo", u:"https://invideo.io/", d:"Yozuvli skript orqali vizual kadrlarni yig'ib beruvchi algoritm", t:['dunyo','bepul','web']},
-{n:"D-ID", u:"https://www.d-id.com/", d:"Oddiy rasmga ovoz berib haqiqiy harakatlantiruvchi platform", t:['dunyo','bepul','web']},
-{n:"Fliki", u:"https://fliki.ai/", d:"Blog post va maqolalaringizni tayyor videoga aylantiradi", t:['dunyo','bepul','web']},
-{n:"Descript", u:"https://www.descript.com/", d:"Video o'rniga matnni tahrirlab videoni qirqadigan innovatsiya", t:['dunyo','bepul','web']},
-{n:"Veed.io", u:"https://www.veed.io/", d:"Avtomatik subtitr qadovchi va vizual tahrirlash portali", t:['dunyo','bepul','web']},
-{n:"Vocal Remover", u:"https://vocalremover.org/", d:"Istalgan taronadan inson ovozini va instrumentalni ajratish", t:['dunyo','bepul','web']},
-{n:"CapCut AI", u:"https://www.capcut.com/", d:"Mobil dunyodagi eng zo'r kesish, effektlar va AI shablonlari", t:['dunyo','bepul','web','mobil']},
-{n:"Opus Clip", u:"https://www.opus.pro/", d:"YouTube/Podcast formatidan o'nlab TikTok/Reels kesib oling", t:['dunyo','bepul','web']},
-{n:"Pictory", u:"https://pictory.ai/", d:"Skript yozib stok kadrlardan iborat ajoyib videolar yig'ish", t:['dunyo','pullik','web']},
-{n:"Kaiber", u:"https://kaiber.ai/", d:"Rasmlarni musiqaga moslab psixodelik videolarga o'girish", t:['dunyo','pullik','web']}
-]},
-
-{id:'developer',title:"Dasturlash va Web",icon:"fa-code",gr:"from-cyan-500 to-blue-600",
-items:[
-{n:"Lovable | Sayt va MVP", u:"https://lovable.dev/", d:"AI bilan bir zumda dizayn va kodni ishga tushirish", t:['dunyo','bepul','web']},
-{n:"Cursor", u:"https://cursor.sh/", d:"Yangi avlod, ichiga kuchli AI o'rnatilgan kod yozish dasturi", t:['dunyo','bepul','web']},
-{n:"GitHub Copilot", u:"https://github.com/features/copilot", d:"Minglab qatorlarni davom ettiruvchi yordamchi AI", t:['dunyo','pullik','web']},
-{n:"v0 by Vercel", u:"https://v0.dev/", d:"Faqat matn orqali to'liq React UI va ko'rinish yasash", t:['dunyo','bepul','web']},
-{n:"Bolt.new", u:"https://bolt.new/", d:"Brauzerni yopmasdan turib Full-Stack ilovalarni kodlash", t:['dunyo','bepul','web']},
-{n:"Windsurf", u:"https://codeium.com/windsurf", d:"Mustaqil masalalarni hal qiladigan Agentik AI IDE", t:['dunyo','bepul','web']},
-{n:"GitHub", u:"https://github.com/", d:"Dunyodagi eng yirik jamoaviy va ochiq kodlar maydoni", t:['dunyo','bepul','web'],v:true},
-{n:"GitLab", u:"https://about.gitlab.com/", d:"Korporativ CI/CD quvvatiga ega markazlashtirilgan repo", t:['dunyo','bepul','web']},
-{n:"Bitbucket", u:"https://bitbucket.org/", d:"Jira hamda Trello tizimlariga integratsiyalashgan bulut", t:['dunyo','bepul','web']},
-{n:"Firebase", u:"https://firebase.google.com/", d:"Autentifikatsiya, bildirishnomalar va bulutli backend", t:['dunyo','bepul','web']},
-{n:"Supabase", u:"https://supabase.com/", d:"Ochiq kodli va oson Postgres ma'lumotlar bazasi backend", t:['dunyo','bepul','web']},
-{n:"Appwrite", u:"https://appwrite.io/", d:"Serverless ishlovchilar uchun qulay hisob boshqaruvi", t:['dunyo','bepul','web']},
-{n:"Cloudflare", u:"https://www.cloudflare.com/", d:"Vebsayt xavfsizligi, CDN tarmoqlari va domen himoyasi", t:['dunyo','bepul','web']},
-{n:"Vercel", u:"https://vercel.com/", d:"Next.js yaratuvchilaridan loyihani bepul va tezkor host qilish", t:['dunyo','bepul','web']},
-{n:"Netlify", u:"https://www.netlify.com/", d:"Frontend ilovalarni avtomatik deploy va onlayn qilish", t:['dunyo','bepul','web']},
-{n:"Render", u:"https://render.com/", d:"Murakkab bo'lmagan backend serverlari va DB host qilish", t:['dunyo','bepul','web']},
-{n:"Railway", u:"https://railway.app/", d:"Terminal va sozlamalarsiz loyihalarni internetga yuklash", t:['dunyo','bepul','web']},
-{n:"Heroku", u:"https://www.heroku.com/", d:"Python, Node va PHP ni host qiluvchi mashhur klassik cloud", t:['dunyo','pullik','web']},
-{n:"Stack Overflow", u:"https://stackoverflow.com/", d:"Dasturchilar yo'liqadigan barcha xatolar uchun savol-javob", t:['dunyo','bepul','web']},
-{n:"Tailwind CSS", u:"https://tailwindcss.com/", d:"Zamonaviy loyihalar uchun yengil Utility CSS tizimi", t:['dunyo','bepul','web']},
-{n:"Replit", u:"https://replit.com/", d:"Hech nima o'rnatmasdan brauzer yoki telefonda kod yozish", t:['dunyo','bepul','web','mobil']},
-{n:"Codeium", u:"https://codeium.com/", d:"VS Code va boshqalar uchun bepul Copilot alternativi", t:['dunyo','bepul','web']},
-{n:"Docker", u:"https://www.docker.com/", d:"Loyiha arxitekturasini istalgan tizimda o'zgarishsiz ishlashi", t:['dunyo','bepul','web']},
-{n:"Postman", u:"https://www.postman.com/", d:"REST va GraphQL API larni chaqirish hamda hujjatlashtirish", t:['dunyo','bepul','web']},
-{n:"CodePen", u:"https://codepen.io/", d:"O'rgatuvchi HTML, CSS, JS komponentlarni onlayn izlash", t:['dunyo','bepul','web']},
-{n:"CodeSandbox", u:"https://codesandbox.io/", d:"Veb dasturlarni papkalari bilan onlayn muharrirda yozish", t:['dunyo','bepul','web']},
-{n:"PlanetScale", u:"https://planetscale.com/", d:"Uzilishlarsiz ishlovchi va katta tezlikdagi MySQL bazasi", t:['dunyo','bepul','web']}
-]},
-
-{id:'business',title:"Biznes va SMM",icon:"fa-chart-line",gr:"from-orange-500 to-red-500",
-items:[
-{n:"SMM AI", u:"https://predis.ai/", d:"Biznesingiz uchun tayyor ijtimoiy tarmoq postlari va g'oyalar", t:['dunyo','bepul','web']},
-{n:"Notion", u:"https://www.notion.so/", d:"Kompaniya xodimlari uchun yagona ish joyi, ro'yxat va maqolalar", t:['dunyo','bepul','web','mobil']},
-{n:"Trello", u:"https://trello.com/", d:"Kichik jamoalar uchun vizual topshiriq va doskalar (Kanban)", t:['dunyo','bepul','web','mobil']},
-{n:"Slack", u:"https://slack.com/", d:"Ishchi guruhlar va loyihalar uchun chat, qo'ng'iroq, fayllar", t:['dunyo','bepul','web','mobil']},
-{n:"Canva", u:"https://www.canva.com/", d:"Dizayner bo'lmaganlar uchun tezkor SMM va post shablonlari", t:['dunyo','bepul','web','mobil']},
-{n:"Gamma", u:"https://gamma.app/", d:"Sarlavha yozilsa o'zi dizaynli prezentatsiyalarni qilib beradi", t:['dunyo','bepul','web']},
-{n:"Asana", u:"https://asana.com/", d:"Muddatli loyihalarni katta guruhlar bo'lib birgalikda boshqarish", t:['dunyo','bepul','web','mobil']},
-{n:"Zoom", u:"https://zoom.us/", d:"Onlayn video konferensiyalar, uchrashuvlar va displey ulashish", t:['dunyo','bepul','web','mobil']},
-{n:"Google Meet", u:"https://meet.google.com/", d:"Google akkaunti orqali bepul 100 kishilik onlayn qo'ng'iroqlar", t:['dunyo','bepul','web','mobil']},
-{n:"Microsoft Teams", u:"https://www.microsoft.com/en-us/microsoft-teams/group-chat-software", d:"Korporativ miqyosda onlayn ofis hamda hujjatlarni yuritish", t:['dunyo','bepul','web','mobil']},
-{n:"Jira", u:"https://www.atlassian.com/software/jira", d:"Dasturiy ta'minot kompaniyalari uchun bug va sprint trekeri", t:['dunyo','pullik','web']},
-{n:"Monday.com", u:"https://monday.com/", d:"Barcha ish tizimini va hisobotlarni bir platformaga yig'ish", t:['dunyo','bepul','web']},
-{n:"ClickUp", u:"https://clickup.com/", d:"Vazifalar, xujjatlar va chatlarni mujassam etgan yagona app", t:['dunyo','bepul','web']},
-{n:"HubSpot", u:"https://www.hubspot.com/", d:"Sotuv (CRM), marketing avtomatizatsiyasi va mijozlarga xizmat", t:['dunyo','bepul','web']},
-{n:"Buffer", u:"https://buffer.com/", d:"Telegram, Instagramga postlarni belgilangan vaqtda yuklash", t:['dunyo','bepul','web']},
-{n:"Hootsuite", u:"https://www.hootsuite.com/", d:"Turli SMM tarmoqlarni yagona oynadan kuzatish va nashr", t:['dunyo','pullik','web']},
-{n:"Mailchimp", u:"https://mailchimp.com/", d:"Mijozlarga professional elektron xat (email) larni yuborish", t:['dunyo','bepul','web']},
-{n:"Miro", u:"https://miro.com/", d:"Onlayn chizish, sxema va fikrlarni vizualizatsiya qilish doskasi", t:['dunyo','bepul','web']},
-{n:"Metricool", u:"https://metricool.com/", d:"Tarmoqlar obunachilari statistikasi va aktivlik darajasi tahlili", t:['dunyo','bepul','web']},
-{n:"Later", u:"https://later.com/", d:"Instagram vizual ko'rinishini postlarni qo'yishdan avval tekshirish", t:['dunyo','bepul','web']},
-{n:"Airtable", u:"https://airtable.com/", d:"Excel kabi ko'rinishga ega qudratli relyatsion baza va dastur", t:['dunyo','bepul','web']}
-]},
-
-{id:'design',title:"Dizayn va Kreativ",icon:"fa-palette",gr:"from-rose-500 to-pink-500",
-items:[
-{n:"Behance", u:"https://www.behance.net/", d:"Dunyodagi eng kuchli dizaynerlar portfoliosi va kesyslar portali", t:['dunyo','bepul','web','mobil']},
-{n:"Pinterest", u:"https://www.pinterest.com/", d:"Barcha mavzulardagi rasm, g'oya, va vizual ilhomlar izlash uchun", t:['dunyo','bepul','web','mobil']},
-{n:"Figma", u:"https://www.figma.com/", d:"Guruh bo'lib veb-sayt va ilovalarga chiroyli dizayn va prototip chizish", t:['dunyo','bepul','web']},
-{n:"Framer", u:"https://www.framer.com/", d:"No-code yo'li bilan super tezkor va harakatlanuvchi saytlar yasash", t:['dunyo','bepul','web']},
-{n:"Webflow", u:"https://webflow.com/", d:"Hech qanday kod yozmasdan vizual interfeys orqali professional HTML tuzish", t:['dunyo','bepul','web']},
-{n:"Coolors", u:"https://coolors.co/", d:"Sayt yoki brend uchun mos keluvchi ranglar uyg'unligini avto topish", t:['dunyo','bepul','web']},
-{n:"Unsplash", u:"https://unsplash.com/", d:"100% litsenziyasiz, tijorat maqsadida ishlatiladigan fotografiyalar", t:['dunyo','bepul','web']},
-{n:"Pexels", u:"https://www.pexels.com/", d:"Ijtimoiy tarmoq videolari va postlari uchun bepul fond kadrlari", t:['dunyo','bepul','web']},
-{n:"Flaticon", u:"https://www.flaticon.com/", d:"Taqdimotlar va saytlar uchun millionlab png, svg formati ikonkalar", t:['dunyo','bepul','web']},
-{n:"Dribbble", u:"https://dribbble.com/", d:"Logotiplar, animatsiyalar va zamonaviy UX interfeyslarni izlash joyi", t:['dunyo','bepul','web']},
-{n:"Adobe Color", u:"https://color.adobe.com/", d:"Professional dizaynerlik g'ildiragi va rasm ranglarini sug'urib olish", t:['dunyo','bepul','web']},
-{n:"LottieFiles", u:"https://lottiefiles.com/", d:"Ilovalarga gif lardan ko'ra 10 barobar yengil bo'lgan interaktiv elementlar", t:['dunyo','bepul','web']},
-{n:"Spline", u:"https://spline.design/", d:"Web 3D modellarini, effektlarni va ob'ektlarni brauzer orqali yaratish", t:['dunyo','bepul','web']},
-{n:"Sketch", u:"https://www.sketch.com/", d:"Apple Mac kompyuterlaridagi eng silliq vektorli dizayn ilovasi", t:['dunyo','pullik','web']},
-{n:"InVision", u:"https://www.invisionapp.com/", d:"Mijozlarga dizayn qanday ishlashini klikli versiyada ko'rsatib berish", t:['dunyo','bepul','web']},
-{n:"Pixabay", u:"https://pixabay.com/", d:"Tijoriy litsenziya talab etmaydigan bepul video effektlar va MP3 lar", t:['dunyo','bepul','web']},
-{n:"Iconify", u:"https://iconify.design/", d:"Kod orqali kiritish mumkin bo'lgan dasturchilar uchun ikonka kutubxonasi", t:['dunyo','bepul','web']},
-{n:"FontAwesome", u:"https://fontawesome.com/", d:"Web-saytlar uchun standart va eng ko'p ishlatiladigan vektor ikonlar", t:['dunyo','bepul','web']},
-{n:"Google Fonts", u:"https://fonts.google.com/", d:"Saytlarga ulash uchun tekin va barcha qurilmaga tushadigan shriftlar", t:['dunyo','bepul','web']},
-{n:"UXwing", u:"https://uxwing.com/", d:"Eng kerakli xavfsiz va chiroyli SVG va veb ikonkalar (mutlaqo bepul)", t:['dunyo','bepul','web']},
-{n:"ColorHunt", u:"https://colorhunt.co/", d:"Mutaxassislar tomonidan tanlangan palitralarning eng didli variantlari", t:['dunyo','bepul','web']}
-]},
-
-{id:'mobile_apps',title:"Top Mobil Ilovalar",icon:"fa-mobile-screen-button",gr:"from-yellow-500 to-amber-500",
-items:[
-{n:"Telegram", u:"https://telegram.org/", d:"Eng tezkor va fayllar uzatish bo'yicha kuchli chat va messenjer", t:['dunyo','bepul','mobil']},
-{n:"WhatsApp", u:"https://www.whatsapp.com/", d:"Butun dunyo bo'ylab ommabop, ishonchli xabarlar va aloqa vositasi", t:['dunyo','bepul','mobil']},
-{n:"Instagram", u:"https://www.instagram.com/", d:"Rasmlar va qisqa Reels videolari bilan bo'lishish ijtimoiy olami", t:['dunyo','bepul','mobil']},
-{n:"YouTube", u:"https://www.youtube.com/", d:"Sayyoramizning eng katta video xosting va vlogerlar platformasi", t:['dunyo','bepul','mobil']},
-{n:"Spotify", u:"https://open.spotify.com/", d:"Barcha san'atkorlarning qo'shiq va sifatli podkastlar musiqa tarmog'i", t:['dunyo','bepul','mobil']},
-{n:"TikTok", u:"https://www.tiktok.com/", d:"Zamonaviy trend, memlar va kreativ qisqa qiziqarli videolar qatorlari", t:['dunyo','bepul','mobil']},
-{n:"CapCut", u:"https://www.capcut.com/", d:"Sifatli filtrlari bor, eng qulay va kuchli mobil video muharrir qirquvchisi", t:['dunyo','bepul','mobil']},
-{n:"Duolingo", u:"https://www.duolingo.com/", d:"O'yin, reyting va muloqot shaklida turli tillarni qiziqarli o'rganish", t:['dunyo','bepul','mobil']},
-{n:"Shazam", u:"https://www.shazam.com/", d:"Qayerdadir chalinayotgan notanish qo'shiqning nomini darhol aniqlab berish", t:['dunyo','bepul','mobil']},
-{n:"Google Maps", u:"https://maps.google.com/", d:"Yer yuzining deyarli har bir burchagiga aniq marshrut qurish tizimi", t:['dunyo','bepul','mobil']},
-{n:"Waze", u:"https://www.waze.com/", d:"Haydovchilar tomonidan aytiladigan probkalar va xavf xaritalari avtoyo'llari", t:['dunyo','bepul','mobil']},
-{n:"InShot", u:"https://inshot.com/", d:"Kliplar, rasmlar, kollajlar yaratuvchi musiqali ijtimoiy tahrirlagich", t:['dunyo','bepul','mobil']},
-{n:"VN Video Editor", u:"https://www.vlognow.me/", d:"Reklamasiz, professional va detallar ustida ishlovchi vlog mobil video edit", t:['dunyo','bepul','mobil']},
-{n:"Snapseed", u:"https://snapseed.online/", d:"Rasmga rang, yorug'lik va boshqa pro effektlarni beruvchi Google dasturi", t:['dunyo','bepul','mobil']},
-{n:"Lightroom", u:"https://lightroom.adobe.com/", d:"Mobil fotograflar va qimmat kameralarga xos rasm ranglarini jilosi", t:['dunyo','bepul','mobil']},
-{n:"Picsart", u:"https://picsart.com/", d:"Fonni kesish, rangli stikerlar va ajoyib kreativ rasm effektlarini tuzuvchi", t:['dunyo','bepul','mobil']},
-{n:"Facebook", u:"https://www.facebook.com/", d:"Guruhlar, postlar, bozorcha va qarindoshlar global klassik tarmog'i", t:['dunyo','bepul','mobil']},
-{n:"X (Twitter)", u:"https://x.com/", d:"Dunyodagi eng muhim va tezkor biznes yangiliklari tahlillar hamda tvitlar", t:['dunyo','bepul','web','mobil']},
-{n:"LinkedIn", u:"https://www.linkedin.com/", d:"Faoliyat yuzasidan mutaxassislarni izlash, portfolio va ish o'rinlari tarmog'i", t:['dunyo','bepul','web','mobil']},
-{n:"Snapchat", u:"https://www.snapchat.com/", d:"Ko'rilgach o'chib ketadigan tezkor rasmlar, filtrlar va xabarlar avlod tarmog'i", t:['dunyo','bepul','mobil']},
-{n:"Reddit", u:"https://www.reddit.com/", d:"Barcha kichik va qiziq yo'nalishlar muhokamasi uchun minglab sub-forum jamoasi", t:['dunyo','bepul','web','mobil']},
-{n:"Discord", u:"https://discord.com/", d:"Geymerlar, ta'lim, va loyiha guruhlari qulay kanalli ovozli aloqa serverlari", t:['dunyo','bepul','web','mobil']},
-{n:"Twitch", u:"https://www.twitch.tv/", d:"O'yin, suhbat va onlayn kazino streamlarni real vaqtda jonli ko'rish", t:['dunyo','bepul','web','mobil']},
-{n:"Netflix", u:"https://www.netflix.com/", d:"Eng shov shuvli seriallar, kinolar, eksklyuziv loyihalarning pullik videoxostingi", t:['dunyo','pullik','mobil']}
-]},
-
-{id:'productivity',title:"Ish va O'qish",icon:"fa-brain",gr:"from-orange-500 to-amber-500",
-items:[
-{n:"ChatPDF", u:"https://www.chatpdf.com/", d:"Kitob va hujjatlaringiz (PDF) mazmuni bilan savol-javob qilish roboti", t:['dunyo','bepul','web']},
-{n:"QuillBot", u:"https://quillbot.com/", d:"Ingliz tilidagi yozilgan gap va insholarni xatosini to'g'rilab sinonimlaydi", t:['dunyo','bepul','web']},
-{n:"Coursera", u:"https://www.coursera.org/", d:"Stenford va Google kabi gigantlardan yuqori litsenziyali ta'lim va kurslar", t:['dunyo','bepul','web']},
-{n:"Udemy", u:"https://www.udemy.com/", d:"Har qanday qiziqish uchun mutaxassislardan arzon, juda ko'p bilim kurslari", t:['dunyo','pullik','web']},
-{n:"Khan Academy", u:"https://www.khanacademy.org/", d:"Barcha yosh va fanlar bo'yicha nodavlat, to'liq bepul onlayn maktab va oliygoh", t:['dunyo','bepul','web']},
-{n:"Grammarly", u:"https://www.grammarly.com/", d:"Matn yozayotganda uslub, vergul va grammatik xatolarni darhol belgilaydi", t:['dunyo','bepul','web']},
-{n:"Obsidian", u:"https://obsidian.md/", d:"Kompyuterda maxfiy saqlanadigan, matn va ma'lumotlarni o'zaro bog'laydigan tarmoq", t:['dunyo','bepul','web']},
-{n:"Todoist", u:"https://todoist.com/", d:"Eng kuchli va integratsiyasi boy bo'lgan professional xodimlar kunlik ro'yxati", t:['dunyo','bepul','web','mobil']},
-{n:"Evernote", u:"https://evernote.com/", d:"Fikrlar, hujjatlar, rasmlar va qo'lyozmalarni tartibda bulutli xotirada saqlash", t:['dunyo','bepul','web','mobil']},
-{n:"TickTick", u:"https://ticktick.com/", d:"Odatlar va vaqtni tahlil qilib boruvchi, eslatuvchi tezkor vazifalar platformasi", t:['dunyo','bepul','web','mobil']},
-{n:"Microsoft To Do", u:"https://todo.microsoft.com/", d:"Mening kunim (My Day) orqali oddiy rejalarni tuzishga ixtisoslashgan ofis jurnali", t:['dunyo','bepul','web','mobil']},
-{n:"Any.do", u:"https://www.any.do/", d:"Ovoz orqali ro'yxatlar va WhatsApp eslatmalar qoldiradigan mukammal tracker", t:['dunyo','bepul','web','mobil']},
-{n:"Bear", u:"https://bear.app/", d:"Ekranni chalg'itmaydigan fokus rejimiga ega Apple iOS/Mac ekotizim qulay blonkot", t:['dunyo','pullik','mobil']},
-{n:"Roam Research", u:"https://roamresearch.com/", d:"Ikkinchi miya arxitekturasi! Yo'naltirilgan xabarlarni vizualizatsiya xaritasi", t:['dunyo','pullik','web']},
-{n:"EdX", u:"https://www.edx.org/", d:"Harvard, MIT olimlari tomonidan tayyorlangan kompyuter fani akademik leksiyalar", t:['dunyo','bepul','web']},
-{n:"Skillshare", u:"https://www.skillshare.com/", d:"Rasm chizish, video olay olish, musiqa kabi soft skill ustalaridan bilim bazasi", t:['dunyo','pullik','web']},
-{n:"MasterClass", u:"https://www.masterclass.com/", d:"Kinorejissiyor, aktyor, yoki bosh oshpaz kabi afsonaviy ustalar master klasslari", t:['dunyo','pullik','web']},
-{n:"Pluralsight", u:"https://www.pluralsight.com/", d:"IT dasturchilar o'z ustida ishlab darajalarini tekshirish premium video darsliklari", t:['dunyo','pullik','web']},
-{n:"Quizlet", u:"https://quizlet.com/", d:"O'rgangan ma'lumotlarni imtihon orqali va chet el so'zlarini eslab qolish kartalari", t:['dunyo','bepul','web','mobil']},
-{n:"Kahoot", u:"https://kahoot.com/", d:"Ta'lim jarayonlarini va savollarni jonli shou o'yini yoki test ko'rinishida guruh bo'lib o'ynash", t:['dunyo','bepul','web']},
-{n:"Memrise", u:"https://www.memrise.com/", d:"Asociatsiya va o'zaro tasavvur qoidalari evaziga nutqni tez esda qoldirish ta'limi", t:['dunyo','bepul','web','mobil']},
-{n:"Babbel", u:"https://www.babbel.com/", d:"Faqat gapirish va amaliyot qilish orqali chet tilining asosiy iboralariga o'rganish", t:['dunyo','pullik','web','mobil']},
-{n:"Busuu", u:"https://www.busuu.com/", d:"Berilgan javob va matnlarni asil chet ellik o'quvchilar tahrirlab beradigan muhit", t:['dunyo','pullik','web','mobil']},
-{n:"Notion Calendar", u:"https://www.notion.so/product/calendar", d:"Jamoa va Notion bazasidagi ma'lumotlar, mitinglar bilan moslangan kalendar ishi", t:['dunyo','bepul','web']},
-{n:"Google Keep", u:"https://keep.google.com/", d:"Alohida oynachalarda vizual stiker eslatmalarni ranglab devorga yopishtirganday yozish", t:['dunyo','bepul','web','mobil']},
-{n:"GoodNotes", u:"https://www.goodnotes.com/", d:"Stylus bilan konspektlar va iPad planhetlarida raqamli varoqlarni dars uchun yozish", t:['dunyo','pullik','mobil']}
-]},
-
-{id:'crypto_finance',title:"Kripto va Moliya",icon:"fa-bitcoin-sign",gr:"from-green-500 to-emerald-600",
-items:[
-{n:"Binance", u:"https://www.binance.com/", d:"Trillionlab valyuta aylanadigan dunyodagi eng yirik va xavfsiz kriptovalyuta birjasi", t:['dunyo','bepul','web','mobil']},
-{n:"CoinMarketCap", u:"https://coinmarketcap.com/", d:"Har bir chiqqan kriptovalyuta, token grafiki, narxi va kapitalizatsiya analitika o'chog'i", t:['dunyo','bepul','web','mobil']},
-{n:"TradingView", u:"https://www.tradingview.com/", d:"Jahon qimmatli qog'ozlar, forex va birja moliya o'zgarishlari eng aniq treyding grafikalari", t:['dunyo','bepul','web','mobil']},
-{n:"Bybit", u:"https://www.bybit.com/", d:"Yangi tokenlar airdroplari, tezkor xarid tizimi ishlaydigan kuchli va ishonchli birja", t:['dunyo','bepul','web','mobil']},
-{n:"CoinGecko", u:"https://www.coingecko.com/", d:"Birjalardagi kripto pullarning kunlik obyekti hisob-kitoblar tahlili va portfel balansi trekeri", t:['dunyo','bepul','web','mobil']},
-{n:"Trust Wallet", u:"https://trustwallet.com/", d:"Qurilmada lokal saqlanuvchi web3 va tokenlarning mutlaq markazlashmagan kripto hamyoni", t:['dunyo','bepul','mobil']},
-{n:"MetaMask", u:"https://metamask.io/", d:"Smart kontaktlar, Ethereum DApp'lar, va swap loyihalarni kompyuterda o'qish imkoni hamyon", t:['dunyo','bepul','web','mobil']},
-{n:"Investing.com", u:"https://www.investing.com/", d:"Aksiyalar qiymati, indexlar, muhim iqtisodiy taqvim, investorlar oqimi hisob-kitobi va tahlillar", t:['dunyo','bepul','web','mobil']},
-{n:"OKX", u:"https://www.okx.com/", d:"Fyuçers savdosi uchun mashhur va katta summalarda hisoblangan ikkinchi xavfsiz tizim", t:['dunyo','bepul','web','mobil']},
-{n:"KuCoin", u:"https://www.kucoin.com/", d:"Xavfsizlik chegaralari bo'lmagan ko'p xil kichik xavfli tokenlar ham joylashtiriladigan tarmoq", t:['dunyo','bepul','web','mobil']},
-{n:"Coinbase", u:"https://www.coinbase.com/", d:"Qonuniy regulyatsiya o'tgan, g'arb mamlakatlarining eng rasmiy va katta toza kripto hamyoni", t:['dunyo','bepul','web','mobil']},
-{n:"Kraken", u:"https://www.kraken.com/", d:"Yevropa davlatlarida doim o'rinda turuvchi eng eski ishonchli yirik bitkoin va valyuta savdo birjasi", t:['dunyo','bepul','web','mobil']},
-{n:"Phantom", u:"https://phantom.app/", d:"Yangi Solana va Ethereum dApp uchun yuqori darajada tezkor ishlash uchun sozlangan lokal Web3 hamyon", t:['dunyo','bepul','web','mobil']},
-{n:"DexScreener", u:"https://dexscreener.com/", d:"Yaqindagina yaratilgan barcha alt-koinlar (shitcoinlar)ning jonli blokcheynda narx analizator", t:['dunyo','bepul','web']},
-{n:"Dextools", u:"https://www.dextools.io/", d:"Bot va tranzaksiya izlarini tekshirib markazlashmagan yangi kripto xaridlarni nazorat qilish", t:['dunyo','bepul','web']},
-{n:"Uniswap", u:"https://uniswap.org/", d:"Pulingizni Ethereum blokcheyni tarmog'ida markazsiz barcha tokenlarga 1 klikda xarid qilish", t:['dunyo','bepul','web']},
-{n:"PancakeSwap", u:"https://pancakeswap.finance/", d:"Binance (BNB) Smart Chain zanjirida yaratilgan kontrakt va loyiha pullarini birja ro'yxatsiz almashtirish", t:['dunyo','bepul','web']},
-{n:"1inch", u:"https://1inch.io/", d:"Pulingiz kamroq foyz bilan swap qilinishi uchun yuzlab dex (birja) larni taqqoslovchi agregator", t:['dunyo','bepul','web']},
-{n:"Yahoo Finance", u:"https://finance.yahoo.com/", d:"Fond bozori kompaniyalari tushum grafiki, AQSH moliya olami ishonchli katta rasmiy yangiliklari", t:['dunyo','bepul','web']},
-{n:"Bloomberg", u:"https://www.bloomberg.com/", d:"Jahon yetakchilari foydalanadigan premium biznes, neft va yirik moliya iqtisodiyoti tezkor axboroti", t:['dunyo','pullik','web']},
-{n:"Reuters", u:"https://www.reuters.com/", d:"Geosiyosat va valyutalarga ta'sir etuvchi ob'yektiv, tezkor xalqaro biznes holatlari va konfliktlar xabarlari", t:['dunyo','bepul','web']},
-{n:"Forbes", u:"https://www.forbes.com/", d:"Haftalik trendlar, milliarderlar xarajatlari hamda xususiy kapital bozorini kuzatuvchi biznes onlayn nashri", t:['dunyo','pullik','web']},
-{n:"CoinDesk", u:"https://www.coindesk.com/", d:"Butun Kripto texnologiya hamda Web3 sohalariga ixtisoslashgan markaziy jurnal va axborot yig'indisi", t:['dunyo','bepul','web']}
-]},
-
-{id:'tools',title:"Kundalik Vositalar",icon:"fa-toolbox",gr:"from-sky-500 to-indigo-500",
-items:[
-{n:"DeepL", u:"https://www.deepl.com/", d:"Aksariyat insoniyat tarjimasidan aniqroq ishlangan neyron tarmoqli dunyoning eng zo'r AI mutaxassis tarjimoni", t:['dunyo','bepul','web','mobil']},
-{n:"PDF24", u:"https://www.pdf24.org/", d:"Boshqa servislar kabi pul so'ramaydigan cheksiz PDF o'qish, siqish, burish va tahrirlash platformasi 100% bepul", t:['dunyo','bepul','web']},
-{n:"WeTransfer", u:"https://wetransfer.com/", d:"Xotira, yoki telegram limti tugaganda katta gigabaytli arxiv va fayllarni mail orqali 2GB gacha tez yuborish", t:['dunyo','bepul','web']},
-{n:"Remove.bg", u:"https://www.remove.bg/", d:"Selfi yoki buyumlar orqasidagi fon ko'rinishini atigi 1 soniyada mukammal olib tashlab .png qilib berish", t:['dunyo','bepul','web']},
-{n:"Star Walk 2", u:"https://starwalk.space/", d:"Telefon kamerasini tungi osmonga qaratib, sayyoralar, yulduzlar va koinotning go'zallik xaritasini kashf qiling", t:['dunyo','bepul','mobil']},
-{n:"Radio Garden", u:"http://radio.garden/", d:"Yer shari globusini aylantirgan holda butunjahon shahar, chekka hududlaridagi jonli va qiziq radiolarni tinglash", t:['dunyo','bepul','web','mobil']},
-{n:"Wolfram Alpha", u:"https://www.wolframalpha.com/", d:"Statistika qoidalari, murakkab oliy matematika va har qanday sohadagi chigal funksional muammolar hisoblagichi", t:['dunyo','bepul','web']},
-{n:"IlovePDF", u:"https://www.ilovepdf.com/", d:"Internet yordamida qulay interfeys bilan istalgan PDF ni Word yozuviga, yoki Excell formatga aylantirib olish vositasi", t:['dunyo','bepul','web']},
-{n:"Smallpdf", u:"https://smallpdf.com/", d:"Xujjat imzolash, kattalashib ketgan hujjat megabaytlarini kichraytirish va parollangan qog'ozlarni oson qirqish tizimi", t:['dunyo','bepul','web']},
-{n:"123apps", u:"https://123apps.com/", d:"Hech narsa o'rnatmasdan oddiy brauzer oynasida video, audio qirqish ekran zapis qilish kabi 10lab vositalar markazi", t:['dunyo','bepul','web']},
-{n:"TinyPNG", u:"https://tinypng.com/", d:"Web saytlar, bloger va SMM ustalari uchun suratning sifat ko'rinishini umuman yo'qotmasdan hajmini piksel siqish", t:['dunyo','bepul','web']},
-{n:"VirusTotal", u:"https://www.virustotal.com/", d:"Shubhali havola linklari, crack qilingan kompyuter va mobil ilovalarni Google o'zining yuzlab antivirular bazasida tekshirish", t:['dunyo','bepul','web']},
-{n:"Speedtest", u:"https://www.speedtest.net/", d:"Dunyodagi eng asosiy, operatorlar provayderingiz qancha internet tezligini ko'tarib bera olayotganini aniq tezkor o'lchash", t:['dunyo','bepul','web','mobil']},
-{n:"Fast.com", u:"https://fast.com/", d:"Videolar uchun zarur oqimni tekshirish maqsadida Netflix tomonidan tayyorlangan, kirganda avtomatik eng tez tezlik testi", t:['dunyo','bepul','web']},
-{n:"Google Translate", u:"https://translate.google.com/", d:"Offline lug'atlar va jonli kamera o'girish imkoniga ega, 100+ eng ommabop global tillarni universal va onlayn oddiy o'girish", t:['dunyo','bepul','web','mobil']},
-{n:"Yandex Translate", u:"https://translate.yandex.com/", d:"Rus va ingliz tarjimalari konteksti boy va kuchli hisoblangan MDH davlatlari grammatikasi hisobga olingan to'liq qulay tarjimon", t:['dunyo','bepul','web','mobil']},
-{n:"Convertio", u:"https://convertio.co/", d:"Video formatlari, audio turlari, shrift, surat hamda dokument fayllarni mutlaqo xohlagan boshqa texnik qulay formatga osongina konvertatsiya qilish", t:['dunyo','bepul','web']},
-{n:"CloudConvert", u:"https://cloudconvert.com/", d:"200 xildan ortiq hujjat, arxivlar turlari o'rtasida katta fayllarni xavfsiz va original detallarga putur yetkazmay, yuqori sifatda o'giruvchi server konvertori", t:['dunyo','bepul','web']},
-{n:"Zamzar", u:"https://www.zamzar.com/", d:"Hech qanday dasturlarsiz eng qadimgi, 15 yillik obro'ga ega, internet olamining kompyuter formati o'zgartirish oddiy onlayn klassik konvertor ustozi", t:['dunyo','bepul','web']},
-{n:"Calculator.net", u:"https://www.calculator.net/", d:"Mashina ijarasi, kredit stavkasi ipoteka tushumlari BMI indeksi va turli murakkab moliyaviy formulalarga maxsus, aniq tushunarli onlayn asbob", t:['dunyo','bepul','web']},
-{n:"Desmos", u:"https://www.desmos.com/", d:"O'rta va Oliy Ta'lim muassasalari talabalari tenglamalarni vizual ravishda 2D, 3D da harakatga keltirib o'rganadigan zamonaviy ilmiy interaktiv chizmalar grafikali mashhur matematika kalkulyatori", t:['dunyo','bepul','web']},
-{n:"Geogebra", u:"https://www.geogebra.org/", d:"Mantiqiy, Geometriya, algebra statistika muammolari va harakatlanuvchi shakllarni sintez integratsiya qilib o'rganish vositasi ta'lim sohasining yirik ustuni", t:['dunyo','bepul','web']}
-]},
-
-{id:'security',title:"Xavfsizlik va VPN",icon:"fa-shield-halved",gr:"from-slate-600 to-slate-900",
-items:[
-{n:"Bitwarden", u:"https://bitwarden.com/", d:"Butunlay tekin bulut saqlovchi va Open-source (Ochiq manba) kod orqali barcha qulaylikka ega eng mukammal super xavfsiz parollar va avtoform menejeri", t:['dunyo','bepul','web','mobil']},
-{n:"ProtonVPN", u:"https://protonvpn.com/", d:"Shveysariya qattiq xavfsizlik maxfiylik qonuniy standartiga javob beruvchi dunyodagi eng toza ma'lumot saqlamaydigan, kuchli tekin cheksiz trafiklik VPN xizmati", t:['dunyo','bepul','web','mobil']},
-{n:"AdGuard", u:"https://adguard.com/", d:"Saytlarning kuzatuv markerlarini (tracker), viruslarni hamda ko'zga tashlanadigan YouTube reklamalaridan tortib barcha bannerlarini butunlay xavfsiz va samarali bloklab ekranni tozalash", t:['dunyo','bepul','web','mobil']},
-{n:"1Password", u:"https://1password.com/", d:"Yirik biznes kompaniyalar uchun to'liq optimallashtirilgan yashirin parollar xavfsizlik jurnali, kredit kartalar muhofazasi hamda premium passkey menejeri", t:['dunyo','pullik','web']},
-{n:"Mullvad VPN", u:"https://mullvad.net/", d:"Dunyoda hech qanaqa email va akkaunt so'ramaydigan, faqatgina generatsiya qilingan raqam orqali ishlaydigan hukumatlardan mustaqil kriptografik ultra maxfiy VPN", t:['dunyo','pullik','web','mobil']},
-{n:"Proton Mail", u:"https://proton.me/mail", d:"Uzatuvchi va qabul qiluvchi o'rtasida end-to-end (oxirigacha) shifrlangan, umuman reklamalarsiz hamda hukumatlar uchinchi shaxslarga topshirmaydigan ochiq xavfsiz pochtalar email xizmati", t:['dunyo','bepul','web','mobil']},
-{n:"Authy", u:"https://authy.com/", d:"Barcha loginlarda va muhim tizimda (2FA) SMS kutmasdan ikki faktorli avtorizatsiya va bulutda xavfsiz ishonchli tiklanish zaxiraga ega qulay va shaxsiy autentifikatsiya raqamlarni uzatish mobil dasturi", t:['dunyo','bepul','mobil']},
-{n:"Google Authenticator", u:"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2", d:"Offlayn ishlaydigan va vaqt o'tishi bilan o'zgaradigan PIN kodlar asosida ijtimoiy xavfsiz internet hisoblaringiz kirish ruxsatnomalarini boshqarishning oddiy usuli (QR va avtomatik o'zgaruvchi kirish kodlari)", t:['dunyo','bepul','mobil']},
-{n:"LastPass", u:"https://www.lastpass.com/", d:"Katta yosh avlodlar ham yoqtiradigan eski va eng mashhur avto to'ldiruvchi master passwordlarga qulay parol saqlovchisi shifrlangan ma'lumotlar menejeri platformasi", t:['dunyo','bepul','web','mobil']},
-{n:"NordVPN", u:"https://nordvpn.com/", d:"Striming servislari uzilishi, geobloklar va sekinliklarni hal qilishga mo'ljallangan yashirin xizmat ko'rsatish server tarmoqli pullik tezkor maxfiy global VPN xizmati yo'nalishi", t:['dunyo','pullik','web','mobil']},
-{n:"ExpressVPN", u:"https://www.expressvpn.com/", d:"Pingingizni, ping pastligi tufayli kompyuter o'yinlari qotishi hamda video sifatini buzilmasligi uchun eng katta jahon obro'ga ega barqaror aloqadagi eng tezkor yuqori VPN tarmog'i ulanishi", t:['dunyo','pullik','web','mobil']},
-{n:"Surfshark", u:"https://surfshark.com/", d:"Arzon pullik rejada hech qanday qurilma miqdorini chegaralamay, bitta hisob yordamida oila va hamma texnikaga ishlaydigan hamda reklamani yo'qotuvchi anti-tracker blokirovka VPN aloqasi", t:['dunyo','pullik','web','mobil']},
-{n:"CyberGhost", u:"https://www.cyberghostvpn.com/", d:"O'yin pingni minimallashtiruvchi protokollar va torrent oqim xotiralari, striming uchun mukammal optimallashtirilgan katta global maxfiy shifrlash uskunasi hamda qulay pullik himoyalanuvchi tarmoq", t:['dunyo','pullik','web','mobil']},
-{n:"WireGuard", u:"https://www.wireguard.com/", d:"Loyiha va Linux uchun murakkab, eski, OpenVPN ga nisbatan eng yangi o'ta tez, ancha yengil kodlardan yozilgan tizim shifrlash protokoli ochiq marshrut platformasi standart VPN yadrosi", t:['dunyo','bepul','web','mobil']},
-{n:"Outline", u:"https://getoutline.org/", d:"Jigsaw tomonidan yaratilgan Google'ning cheklov qo'yilgan senzuradan ishonch bilan xavfsiz chetlab o'tuvchi davlatlar va IT kompaniyalar qo'llaydigan bepul mustaqil himoya qobiq protokoli va shaxsiy server VPN", t:['dunyo','bepul','web','mobil']},
-{n:"Tuta", u:"https://tuta.com/", d:"O'zini nemis maxfiylik huquqi orqasida bekinib foydalanuvchilar ob'ektiv erkinligi kafolatlangan shaxsiy manzillardan kelgan maktublar, taqvim xabarlarini oxirigacha shifrlab barcha maxfiy pochtani saqlaydigan xizmat tizimi", t:['dunyo','bepul','web','mobil']},
-{n:"DuckDuckGo", u:"https://duckduckgo.com/", d:"Google qidiruvidan farqli o'laroq profilingiz yoki oldingi nima yozib tarixini eslamaydigan sizni aslo kuzatmaydigan trackinglarsiz qidiruv tizimi, qidirish so'zlari maxsus maqsadlarga sarflanmaydigan himoyalangan ochiq aloqa", t:['dunyo','bepul','web','mobil']},
-{n:"Brave", u:"https://brave.com/", d:"Saytlarga kirganda kripto mukofot ishlab topsa bo'ladigan blokcheyn standartidagi trackerlar cookie va Youtube reklamalarini ulashmagan xavfsiz Chrome singari asosiydan yengil va eng xavfsiz Chromium brauzer tizimi", t:['dunyo','bepul','web','mobil']},
-{n:"Tor Browser", u:"https://www.torproject.org/", d:"Kuzatuvchilar IP ma'lumot va kuzatish kameralaridan uch mingdan ortiq marshrutga IP ni almashtirib DarkWeb tarmoq hamda shunchaki ishonchli yashirinish uchun sozlangan shifrlangan qidiruv ko'rishi maxsus universal tizim brauzeri vositasi", t:['dunyo','bepul','web','mobil']},
-{n:"Signal", u:"https://signal.org/", d:"Hatto yaratuvchilari ham chatni o'qiy olmaydigan jamoat mutaxassislari, kiberxavfsizlik ekspertlari va afsonaviy Edward Snowden doimiy ishlatib tavsiya qilgan dunyodagi yagona eng maxfiy shifrlangan audio-video open-source mustaqil aloqa messenjeri", t:['dunyo','bepul','mobil']},
-{n:"Threema", u:"https://threema.ch/", d:"Yevropadagi ma'lumot standartiga ro'yihasidan chiqqan Shveytsariyada joylashgan telefon yoki shaxsga tegishli nomlarsiz shunchaki unikal ismli kodi orqali ochiladigan guruh suhbatlari, korporativ maxfiy himoyalangan pullik mukammal chat va onlayn messenjer logikasi", t:['dunyo','pullik','mobil']},
-{n:"Malwarebytes", u:"https://www.malwarebytes.com/", d:"Har qanday shubhali fayl ichidagi troyan va standart antiviruslarga tushib qolmaydigan maxfiy zararkunandalarni tez aniqlab yo'q qiluvchi barcha kompyuter o'zida ishonch bilan xavfsiz holda tekshirish vositasi dasturlarni tizimni tozalash qiruvchisi", t:['dunyo','bepul','web','mobil']}
-]}
-]; // END DATA
 
 // ═══════════════════════════════════════════════════════════
 //  STATE & INIT
@@ -828,21 +476,23 @@ const myCountCls = myActive ? 'bg-violet-200 dark:bg-violet-500/30 text-violet-6
 const myExtraCls = myActive ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
 const pinned = navBtn(`setCat('my_apps')`, "Shaxsiy ro'yxat", 'fa-folder-open',
   "Shaxsiy ro'yxat", customApps.length||'', myExtraCls, myCountCls);
-$('sidebarPinned').innerHTML = pinned +
+
+// ── Saqlanganlar — Shaxsiy ro'yxat ostida (pinned) ──
+const favActive = activeCat==='favorites';
+const favCountCls = favActive ? 'bg-rose-200 dark:bg-rose-500/30 text-rose-600' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-500';
+const favExtraCls = favActive ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
+const favPinned = navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saqlanganlar',
+  favorites.length||'', favExtraCls, favCountCls);
+
+$('sidebarPinned').innerHTML = pinned + favPinned +
   `<div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 mt-2 mb-1"></div>`;
 
 // ── Kategoriyalar ──
 const allActive = activeCat==='all';
-const favActive = activeCat==='favorites';
 
 let s = navBtn(`setCat('all')`, 'Barchasi', 'fa-border-all', 'Barchasi', total,
   allActive ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50',
   allActive ? 'bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200' : 'bg-slate-200 dark:bg-slate-700/80 text-slate-500');
-
-s += navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saqlanganlar',
-  favorites.length||'',
-  favActive ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50',
-  favActive ? 'bg-rose-200 dark:bg-rose-500/30 text-rose-600' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-500');
 
 DATA.forEach(c=>{
   if(c.id==='my_apps') return;
@@ -929,9 +579,24 @@ $('deskSrc').value=$('mobSrc').value='';
 $('deskClr').classList.add('opacity-0', 'pointer-events-none');
 $('mobClr').classList.add('opacity-0', 'pointer-events-none');
 hideDrop();
-if(id==='all') $('pageTitle').textContent='Barcha Resurslar';
-else if(id==='favorites') $('pageTitle').textContent='Saqlanganlar';
-else $('pageTitle').textContent=DATA.find(c=>c.id===id)?.title||'';
+if(id==='all'){
+  $('pageTitle').textContent='Barcha Resurslar';
+  $('deskSrc').placeholder='Qidirish... (Ctrl+K)';
+  $('mobSrc').placeholder='Qidirish...';
+} else if(id==='favorites'){
+  $('pageTitle').textContent='Saqlanganlar';
+  $('deskSrc').placeholder='Saqlanganlarda qidirish...';
+  $('mobSrc').placeholder='Saqlanganlarda qidirish...';
+} else if(id==='my_apps'){
+  $('pageTitle').textContent="Shaxsiy ro'yxat";
+  $('deskSrc').placeholder="Shaxsiy ro'yxatda qidirish...";
+  $('mobSrc').placeholder="Shaxsiy ro'yxatda qidirish...";
+} else {
+  const catTitle = DATA.find(c=>c.id===id)?.title||'';
+  $('pageTitle').textContent=catTitle;
+  $('deskSrc').placeholder=`${catTitle} ichida qidirish...`;
+  $('mobSrc').placeholder=`${catTitle} ichida qidirish...`;
+}
 renderNav(); renderContent();
 $('mainScroll').scrollTo({top:0,behavior:'smooth'});
 };
@@ -1044,14 +709,57 @@ $('mobClr').classList.toggle('pointer-events-none',!q);
 hideDrop(); renderContent();
 };
 
+// ── Global qidiruv helper (kategoriyadan chiqib, barchadan qidirish) ──
+window.applyGlobalSearch=function(q){
+  activeCat='all';
+  $('pageTitle').textContent='Barcha Resurslar';
+  $('deskSrc').placeholder='Qidirish... (Ctrl+K)';
+  $('mobSrc').placeholder='Qidirish...';
+  query=q;
+  $('deskSrc').value=$('mobSrc').value=q;
+  $('deskClr').classList.remove('opacity-0','pointer-events-none');
+  $('mobClr').classList.remove('opacity-0','pointer-events-none');
+  hideDrop();
+  renderNav();
+  renderContent();
+};
+
 function buildDropHTML(q){
 const histFiltered=q?srchHist.filter(h=>h.toLowerCase().includes(q.toLowerCase())):srchHist;
+const isGlobal = activeCat==='all' || activeCat==='favorites';
 let sugg=[];
+let globalSugg=[];
 if(q.length>=2){
-  DATA.forEach(c=>c.items.forEach(i=>{ if(i.n.toLowerCase().includes(q.toLowerCase())&&sugg.length<6) sugg.push({...i,_c:c}); }));
+  if(activeCat==='my_apps'){
+    customApps.forEach(i=>{
+      if((i.n.toLowerCase().includes(q.toLowerCase())||(i.d||'').toLowerCase().includes(q.toLowerCase()))&&sugg.length<6)
+        sugg.push({...i,_c:{title:"Shaxsiy ro'yxat"}});
+    });
+  } else {
+    DATA.forEach(c=>{
+      if(c.id==='my_apps') return;
+      c.items.forEach(i=>{
+        const match=i.n.toLowerCase().includes(q.toLowerCase())||(i.d||'').toLowerCase().includes(q.toLowerCase());
+        if(!match) return;
+        if(isGlobal){ if(sugg.length<6) sugg.push({...i,_c:c}); }
+        else if(c.id===activeCat){ if(sugg.length<6) sugg.push({...i,_c:c}); }
+        else{ if(globalSugg.length<3) globalSugg.push({...i,_c:c}); }
+      });
+    });
+  }
 }
-if(!histFiltered.length&&!sugg.length) return '';
+if(!histFiltered.length&&!sugg.length&&!globalSugg.length) return '';
 let html='';
+
+// Faol kategoriya ko'rsatkichi
+if(!isGlobal && activeCat!=='my_apps' && (sugg.length||globalSugg.length)){
+  const catTitle=DATA.find(c=>c.id===activeCat)?.title||'';
+  html+=`<div class="flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/60">
+    <i class="fa-solid fa-filter text-[9px] text-violet-400"></i>
+    <span class="text-[10px] font-black text-violet-500 uppercase tracking-wider">${catTitle} ichida</span>
+  </div>`;
+}
+
 if(sugg.length){
   html+=`<p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5">💡 Taklif</p>`;
   sugg.forEach(i=>{
@@ -1064,6 +772,27 @@ if(sugg.length){
     </button>`;
   });
 }
+
+// Boshqa kategoriyalardagi natijalar
+if(!isGlobal && activeCat!=='my_apps' && globalSugg.length){
+  html+=`<div class="px-2 pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-700/60 mt-1">
+    <button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')" class="w-full flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-violet-500 transition-colors group py-1">
+      <i class="fa-solid fa-globe text-[9px] group-hover:text-violet-400"></i>
+      <span class="uppercase tracking-wider">Barcha resurslardan qidirish</span>
+      <span class="ml-auto font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">${globalSugg.length}+ ta</span>
+    </button>
+  </div>`;
+  globalSugg.forEach(i=>{
+    html+=`<button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+      <div class="shrink-0 flex items-center justify-center opacity-70">
+          ${iconHTML(i, 'w-5 h-5 object-contain drop-shadow-sm')}
+      </div>
+      <span class="flex-1 font-bold truncate">${hl(i.n,q)}</span>
+      <span class="text-[10px] text-slate-300 dark:text-slate-600 truncate max-w-[100px] hidden sm:block">${i._c.title}</span>
+    </button>`;
+  });
+}
+
 if(histFiltered.length){
   html+=`<p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5 mt-1">🕐 Oxirgi qidiruvlar</p>`;
   histFiltered.forEach(h=>{
@@ -1724,6 +1453,7 @@ window.submitSuggest = async function(){
 };
 
 function init(){
+initCustomApps();
 renderNav();
 renderContent();
 renderTrending();
