@@ -2327,7 +2327,6 @@ window.generateBuilderLink = async function(){
   const wrap=document.getElementById('bsLinkWrap');
   const txt=document.getElementById('bsLinkText');
   if(wrap) wrap.classList.remove('hidden');
-  wrap.style.display = 'flex';
   if(txt)  txt.textContent=url;
   const badge=document.getElementById('bsLinkBadge');
   if(badge) badge.textContent = shortCode ? `✓ ${url.length} belgi` : '(offline)';
