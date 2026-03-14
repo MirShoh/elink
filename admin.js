@@ -407,18 +407,24 @@ function renderResources() {
   const hiddenRes = JSON.parse(localStorage.getItem('adm_hidden_res') || '[]');
   all = all.filter(r => !hiddenRes.includes(r.n));
 
-  // Supabase da qo'shilgan, data.js da yo'q resurslar
+  // Supabase versiyasi statik versiyani OVERRIDE qiladi
+  // (admin tahrirlagan resurs Supabase da saqlansa — u ustunlik qiladi)
   supaResources.forEach(sr => {
-    const exists = all.some(a => a.n?.toLowerCase() === sr.name?.toLowerCase());
-    if (!exists) {
-      all.push({
-        n: sr.name, u: sr.url, d: sr.description,
-        t: sr.tags || [], android: sr.android, ios: sr.ios,
-        v: sr.verified,
-        _catId: sr.category_id || '_custom',
-        _catTitle: getCats().find(c => c.id === sr.category_id)?.title || '➕ Qo\'shilgan',
-        _supaId: sr.id, _isCustom: true
-      });
+    const existingIdx = all.findIndex(a => a.n?.toLowerCase() === sr.name?.toLowerCase());
+    const supaItem = {
+      n: sr.name, u: sr.url, d: sr.description,
+      t: sr.tags || [], android: sr.android, ios: sr.ios,
+      v: sr.verified,
+      _catId: sr.category_id || '_custom',
+      _catTitle: getCats().find(c => c.id === sr.category_id)?.title || '➕ Qo\'shilgan',
+      _supaId: sr.id, _isCustom: true
+    };
+    if (existingIdx !== -1) {
+      // Mavjud statik resursni Supabase versiyasi bilan almashtirish
+      all[existingIdx] = { ...all[existingIdx], ...supaItem };
+    } else {
+      // Yangi resurs — faqat Supabase da bor
+      all.push(supaItem);
     }
   });
 
