@@ -1095,6 +1095,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('resModal').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeResModal();
   });
+  // .modal ichidagi barcha click eventlar tashqariga chiqmasin
+  document.querySelector('#resModal .modal').addEventListener('click', e => {
+    e.stopPropagation();
+  });
 
   // Tags input
   const tagInp = document.getElementById('tagInput');

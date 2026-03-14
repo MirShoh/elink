@@ -597,7 +597,8 @@ const isSpecificCat = id!=='all' && id!=='favorites' && id!=='my_apps';
 
 if(catWrap){
   if(isSpecificCat){
-    catWrap.classList.remove('hidden');
+    catwrap.classList.remove('hidden');
+  wrap.style.display = 'flex';
   } else {
     catWrap.classList.add('hidden');
   }
@@ -1307,6 +1308,7 @@ const wrap = document.getElementById('recentSection');
 if(!wrap) return;
 if(!recentlyVisited.length){ wrap.classList.add('hidden'); return; }
 wrap.classList.remove('hidden');
+  wrap.style.display = 'flex';
 const grid = wrap.querySelector('#recentGrid');
 if(!grid) return;
 grid.innerHTML = recentlyVisited.map(item=>{
@@ -1589,6 +1591,34 @@ window.submitSuggest = async function(){
 };
 
 function init(){
+// Supabase dan admin o'zgartirgan resurslarni yuklash
+(async ()=>{
+  try{
+    const res = await fetch(SUPA_PROXY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ path: '/rest/v1/site_resources?select=*&is_active=eq.true', method:'GET' })
+    });
+    if(!res.ok) return;
+    const rows = await res.json();
+    if(!Array.isArray(rows) || !rows.length) return;
+    // Supabase versiyasi data.js ni override qiladi
+    rows.forEach(sr => {
+      DATA.forEach(cat => {
+        const idx = cat.items.findIndex(i => i.n?.toLowerCase() === sr.name?.toLowerCase());
+        if(idx !== -1){
+          cat.items[idx] = { ...cat.items[idx],
+            u: sr.url || cat.items[idx].u,
+            d: sr.description || cat.items[idx].d,
+            t: sr.tags?.length ? sr.tags : cat.items[idx].t,
+            v: sr.verified ?? cat.items[idx].v,
+          };
+        }
+      });
+    });
+    renderNav(); renderContent();
+  }catch(e){ console.warn('[sync] site_resources:', e.message); }
+})();
+
 initCustomApps();
 renderNav();
 renderContent();
@@ -1620,6 +1650,7 @@ window.selectReason = function(btn, reason) {
   const ta   = document.getElementById('otherReasonText');
   if(reason === 'Boshqa muammo'){
     wrap.classList.remove('hidden');
+  wrap.style.display = 'flex';
     requestAnimationFrame(()=>{ wrap.style.maxHeight='200px'; wrap.style.opacity='1'; });
     ta.focus();
   } else {
@@ -2216,7 +2247,7 @@ window.openBuilderShareStep = function(){
           </button>
         </div>
         <!-- QR panel -->
-        <div id="bsQrWrap" class="hidden mt-2 flex items-center justify-center py-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div id="bsQrWrap" class="hidden mt-2 items-center justify-center py-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700" style="display:none">
           <img id="bsQrImg" src="" class="rounded-lg" alt="QR kod" width="150" height="150">
         </div>
       </div>
@@ -2296,6 +2327,7 @@ window.generateBuilderLink = async function(){
   const wrap=document.getElementById('bsLinkWrap');
   const txt=document.getElementById('bsLinkText');
   if(wrap) wrap.classList.remove('hidden');
+  wrap.style.display = 'flex';
   if(txt)  txt.textContent=url;
   const badge=document.getElementById('bsLinkBadge');
   if(badge) badge.textContent = shortCode ? `✓ ${url.length} belgi` : '(offline)';
@@ -2356,6 +2388,7 @@ function toggleBuilderQr(url){
   }
   if(img) img.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(url)+'&color=6D28D9&bgcolor=FFFFFF&qzone=1&margin=8';
   wrap.classList.remove('hidden');
+  wrap.style.display = 'flex';
   if(btn) btn.classList.add('bg-violet-100','dark:bg-violet-500/20','text-violet-600','dark:text-violet-400');
 }
 
