@@ -457,6 +457,9 @@ renderNav();
 function renderNav(){
 const total=DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a,0);
 $('sidebarCount').textContent=`${total} ta resurs`;
+// Mobil resurslar soni
+const mobCnt = $('mobResCount');
+if(mobCnt) mobCnt.textContent = total + ' ta resurs';
 
 // ── Helper: build one nav item ──
 const navBtn = (onclick, title, icon, label, count, extraClass='', countClass='') => {
@@ -505,16 +508,19 @@ DATA.forEach(c=>{
 
 $('sidebarNav').innerHTML = s;
 
+// ── Mobil nav (pills) ──
 let m=`
   <button onclick="openCustomModal()" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/20 transition-all active:scale-95"><i class="fa-solid fa-plus"></i></button>
-  <button onclick="setCat('my_apps')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='my_apps'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">🛠️ Shaxsiy (${customApps.length})</button>
-  <button onclick="setCat('all')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='all'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">Barchasi</button>
-  <button onclick="setCat('favorites')" class="flex-shrink-0 flex items-center gap-2 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all ${activeCat==='favorites'?'bg-rose-500 text-white border-transparent shadow-lg shadow-rose-500/30':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">
-    <i class="fa-solid fa-heart"></i> ${favorites.length||''}
-  </button>`;
+  <button onclick="setCat('my_apps')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${activeCat==='my_apps'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">🛠️ Shaxsiy${customApps.length?` <span class="text-[9px] bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 px-1 rounded-full font-black">${customApps.length}</span>`:''}</button>
+  <button onclick="setCat('favorites')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${favActive?'bg-rose-500 text-white border-transparent shadow-lg shadow-rose-500/30':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">
+    <i class="fa-solid fa-heart"></i>${favorites.length?` <span class="text-[9px] ${favActive?'bg-white/25':'bg-rose-100 text-rose-500'} px-1 rounded-full font-black">${favorites.length}</span>`:''}
+  </button>
+  <button onclick="setCat('all')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${allActive?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">Barchasi <span class="text-[9px] ${allActive?'bg-white/25 text-white':'bg-slate-100 dark:bg-slate-700 text-slate-400'} px-1.5 rounded-full font-black">${total}</span></button>`;
 DATA.forEach(c=>{
   if (c.id === 'my_apps') return;
-  m+=`<button onclick="setCat('${c.id}')" class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-full border transition-all whitespace-nowrap ${activeCat===c.id?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${c.title}</button>`;
+  const cnt = c.items.filter(i=>matchItem(i,c)).length;
+  const isAct = activeCat===c.id;
+  m+=`<button onclick="setCat('${c.id}')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${isAct?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${c.title} <span class="text-[9px] ${isAct?'bg-white/25 text-white':'bg-slate-100 dark:bg-slate-700 text-slate-400'} px-1.5 rounded-full font-black">${cnt}</span></button>`;
 });
 
 $('mobNav').innerHTML=m;
@@ -576,26 +582,35 @@ renderNav(); renderContent();
 window.setCat=function(id){
 activeCat=id; query='';
 $('deskSrc').value=$('mobSrc').value='';
+if($('catSrc')) $('catSrc').value='';
 $('deskClr').classList.add('opacity-0', 'pointer-events-none');
 $('mobClr').classList.add('opacity-0', 'pointer-events-none');
+const catClr=$('catClr');
+if(catClr){catClr.classList.add('opacity-0','pointer-events-none');}
 hideDrop();
+
+// catSWrap: faqat specific kategoriyada ko'rinsin
+const catWrap=$('catSWrap');
+const isSpecificCat = id!=='all' && id!=='favorites' && id!=='my_apps';
+
+if(catWrap){
+  if(isSpecificCat){
+    catWrap.classList.remove('hidden');
+  } else {
+    catWrap.classList.add('hidden');
+  }
+}
+
 if(id==='all'){
   $('pageTitle').textContent='Barcha Resurslar';
-  $('deskSrc').placeholder='Qidirish... (Ctrl+K)';
-  $('mobSrc').placeholder='Qidirish...';
 } else if(id==='favorites'){
   $('pageTitle').textContent='Saqlanganlar';
-  $('deskSrc').placeholder='Saqlanganlarda qidirish...';
-  $('mobSrc').placeholder='Saqlanganlarda qidirish...';
 } else if(id==='my_apps'){
   $('pageTitle').textContent="Shaxsiy ro'yxat";
-  $('deskSrc').placeholder="Shaxsiy ro'yxatda qidirish...";
-  $('mobSrc').placeholder="Shaxsiy ro'yxatda qidirish...";
 } else {
-  const catTitle = DATA.find(c=>c.id===id)?.title||'';
+  const catTitle=DATA.find(c=>c.id===id)?.title||'';
   $('pageTitle').textContent=catTitle;
-  $('deskSrc').placeholder=`${catTitle} ichida qidirish...`;
-  $('mobSrc').placeholder=`${catTitle} ichida qidirish...`;
+  if($('catSrc')) $('catSrc').placeholder=`${catTitle} ichida qidirish...`;
 }
 renderNav(); renderContent();
 $('mainScroll').scrollTo({top:0,behavior:'smooth'});
@@ -709,26 +724,24 @@ $('mobClr').classList.toggle('pointer-events-none',!q);
 hideDrop(); renderContent();
 };
 
-// ── Global qidiruv helper (kategoriyadan chiqib, barchadan qidirish) ──
+// ── Global qidiruv helper ──────────────────────────────────
 window.applyGlobalSearch=function(q){
   activeCat='all';
   $('pageTitle').textContent='Barcha Resurslar';
-  $('deskSrc').placeholder='Qidirish... (Ctrl+K)';
-  $('mobSrc').placeholder='Qidirish...';
+  const catWrap=$('catSWrap');
+  if(catWrap) catWrap.classList.add('hidden');
   query=q;
   $('deskSrc').value=$('mobSrc').value=q;
+  if($('catSrc')){ $('catSrc').value=''; }
   $('deskClr').classList.remove('opacity-0','pointer-events-none');
   $('mobClr').classList.remove('opacity-0','pointer-events-none');
-  hideDrop();
-  renderNav();
-  renderContent();
+  hideDrop(); renderNav(); renderContent();
 };
 
 function buildDropHTML(q){
 const histFiltered=q?srchHist.filter(h=>h.toLowerCase().includes(q.toLowerCase())):srchHist;
-const isGlobal = activeCat==='all' || activeCat==='favorites';
-let sugg=[];
-let globalSugg=[];
+const isGlobal=activeCat==='all'||activeCat==='favorites';
+let sugg=[], globalSugg=[];
 if(q.length>=2){
   if(activeCat==='my_apps'){
     customApps.forEach(i=>{
@@ -750,58 +763,47 @@ if(q.length>=2){
 }
 if(!histFiltered.length&&!sugg.length&&!globalSugg.length) return '';
 let html='';
-
-// Faol kategoriya ko'rsatkichi
-if(!isGlobal && activeCat!=='my_apps' && (sugg.length||globalSugg.length)){
+if(!isGlobal&&activeCat!=='my_apps'&&(sugg.length||globalSugg.length)){
   const catTitle=DATA.find(c=>c.id===activeCat)?.title||'';
-  html+=`<div class="flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/60">
-    <i class="fa-solid fa-filter text-[9px] text-violet-400"></i>
-    <span class="text-[10px] font-black text-violet-500 uppercase tracking-wider">${catTitle} ichida</span>
-  </div>`;
+  html+=`<div class="flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/60"><i class="fa-solid fa-filter text-[9px] text-violet-400"></i><span class="text-[10px] font-black text-violet-500 uppercase tracking-wider">${catTitle} ichida</span></div>`;
 }
-
 if(sugg.length){
   html+=`<p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5">💡 Taklif</p>`;
   sugg.forEach(i=>{
-    html+=`<button onclick="applySearch('${i.n.replace(/'/g,"\\'")}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300">
-      <div class="shrink-0 flex items-center justify-center">
-          ${iconHTML(i, 'w-5 h-5 object-contain drop-shadow-sm')}
+    const esc=i.n.replace(/'/g,"\\'");
+    html+=`<button onclick="applySearch('${esc}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2.5">
+      <div class="shrink-0 w-9 h-9 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">${iconHTML(i,'w-7 h-7 object-contain')}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold text-slate-800 dark:text-slate-200 leading-snug">${hl(i.n,q)}</p>
+        ${i.d?`<p class="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-1">${hl(i.d,q)}</p>`:''}
       </div>
-      <span class="flex-1 font-bold truncate">${hl(i.n,q)}</span>
-      <span class="text-[10px] text-slate-400 truncate max-w-[120px] hidden sm:block">${(i.d||'').slice(0,40)}…</span>
+      ${isGlobal&&i._c?`<span class="text-[9px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">${i._c.title}</span>`:''}
     </button>`;
   });
 }
-
-// Boshqa kategoriyalardagi natijalar
-if(!isGlobal && activeCat!=='my_apps' && globalSugg.length){
-  html+=`<div class="px-2 pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-700/60 mt-1">
-    <button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')" class="w-full flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-violet-500 transition-colors group py-1">
-      <i class="fa-solid fa-globe text-[9px] group-hover:text-violet-400"></i>
-      <span class="uppercase tracking-wider">Barcha resurslardan qidirish</span>
-      <span class="ml-auto font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">${globalSugg.length}+ ta</span>
-    </button>
-  </div>`;
+if(!isGlobal&&activeCat!=='my_apps'&&globalSugg.length){
+  html+=`<div class="px-2 pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-700/60 mt-1"><button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')" class="w-full flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-violet-500 transition-colors group py-1"><i class="fa-solid fa-globe text-[9px] group-hover:text-violet-400"></i><span class="uppercase tracking-wider">Barcha resurslardan qidirish</span><span class="ml-auto font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">${globalSugg.length}+ ta</span></button></div>`;
   globalSugg.forEach(i=>{
-    html+=`<button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
-      <div class="shrink-0 flex items-center justify-center opacity-70">
-          ${iconHTML(i, 'w-5 h-5 object-contain drop-shadow-sm')}
+    const esc=q.replace(/'/g,"\\'");
+    html+=`<button onclick="applyGlobalSearch('${esc}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2 opacity-60 hover:opacity-100">
+      <div class="shrink-0 w-8 h-8 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center">${iconHTML(i,'w-6 h-6 object-contain')}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${hl(i.n,q)}</p>
+        ${i.d?`<p class="text-[11px] text-slate-400 leading-snug line-clamp-1">${i.d}</p>`:''}
       </div>
-      <span class="flex-1 font-bold truncate">${hl(i.n,q)}</span>
-      <span class="text-[10px] text-slate-300 dark:text-slate-600 truncate max-w-[100px] hidden sm:block">${i._c.title}</span>
+      <span class="text-[9px] text-slate-300 dark:text-slate-600 shrink-0 whitespace-nowrap">${i._c.title}</span>
     </button>`;
   });
 }
-
 if(histFiltered.length){
   html+=`<p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5 mt-1">🕐 Oxirgi qidiruvlar</p>`;
   histFiltered.forEach(h=>{
     html+=`<div class="s-row flex items-center gap-2 px-2 py-1.5 group">
       <button onclick="applySearch('${h.replace(/'/g,"\\'")}') " class="flex-1 text-left flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
         <i class="fa-solid fa-clock-rotate-left text-slate-300 text-xs w-4 shrink-0"></i>
-        <span class="truncate">${hl(h,q)}</span>
+        <span>${hl(h,q)}</span>
       </button>
-      <button onclick="removeHist('${h.replace(/'/g,"\\'")}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all text-xs px-1">
+      <button onclick="removeHist('${h.replace(/'/g,"\\'")}') " class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all text-xs px-1">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>`;
@@ -809,7 +811,6 @@ if(histFiltered.length){
 }
 return html;
 }
-
 function updateDrops(q){
 const h=buildDropHTML(q);
 $('deskDropIn').innerHTML=h; $('mobDropIn').innerHTML=h;
@@ -820,9 +821,35 @@ function hideDrop(){ $('deskDrop').classList.add('hidden'); $('mobDrop').classLi
 
 let sTimer;
 function setupSearch(){
+// catSrc (content area top-right search in specific category)
+const catSrcEl=$('catSrc'), catClrEl=$('catClr');
+const handleCat=e=>{
+  query=e.target.value;
+  $('deskSrc').value=$('mobSrc').value=query;
+  if(catClrEl){catClrEl.classList.toggle('opacity-0',!query);catClrEl.classList.toggle('pointer-events-none',!query);}
+  $('deskClr').classList.toggle('opacity-0',!query);$('deskClr').classList.toggle('pointer-events-none',!query);
+  $('mobClr').classList.toggle('opacity-0',!query);$('mobClr').classList.toggle('pointer-events-none',!query);
+  clearTimeout(sTimer);
+  sTimer=setTimeout(()=>{ if(query.trim()) saveHist(query); renderContent(); },160);
+};
+const clearCat=()=>{
+  query='';
+  if(catSrcEl) catSrcEl.value='';
+  $('deskSrc').value=$('mobSrc').value='';
+  if(catClrEl){catClrEl.classList.add('opacity-0','pointer-events-none');}
+  $('deskClr').classList.add('opacity-0','pointer-events-none');
+  $('mobClr').classList.add('opacity-0','pointer-events-none');
+  hideDrop(); renderContent();
+  if(catSrcEl) catSrcEl.focus();
+};
+if(catSrcEl){catSrcEl.addEventListener('input',handleCat);catSrcEl.addEventListener('keydown',e=>{if(e.key==='Escape')clearCat();if(e.key==='Enter')renderContent();});}
+if(catClrEl) catClrEl.addEventListener('click',clearCat);
+
 const handle=e=>{
   query=e.target.value;
   $('deskSrc').value=$('mobSrc').value=query;
+  if(catSrcEl) catSrcEl.value=query;
+  if(catClrEl){catClrEl.classList.toggle('opacity-0',!query);catClrEl.classList.toggle('pointer-events-none',!query);}
   $('deskClr').classList.toggle('opacity-0',!query);
   $('deskClr').classList.toggle('pointer-events-none',!query);
   $('mobClr').classList.toggle('opacity-0',!query);
@@ -833,6 +860,8 @@ const handle=e=>{
 };
 const clearS=()=>{
   query=''; $('deskSrc').value=$('mobSrc').value='';
+  if(catSrcEl) catSrcEl.value='';
+  if(catClrEl){catClrEl.classList.add('opacity-0','pointer-events-none');}
   $('deskClr').classList.add('opacity-0', 'pointer-events-none'); 
   $('mobClr').classList.add('opacity-0', 'pointer-events-none');
   hideDrop(); renderContent();
@@ -2473,3 +2502,136 @@ window.doImport = function(){
 
 // ── Detect on load ───────────────────────────────────────
 detectShareHash();
+// ═══════════════════════════════════════════════════════════
+//  ONBOARDING — Yangi foydalanuvchi uchun tanishish modali
+// ═══════════════════════════════════════════════════════════
+(function initOnboarding(){
+  if(localStorage.getItem('lh_onboarded')) return;
+  if(location.hash && location.hash.startsWith('#import')) return;
+  if(new URLSearchParams(location.search).get('list')) return;
+
+  const STEPS = [
+    {
+      id:0, icon:'🔗',
+      title:"Elink UZ ga\nxush kelibsiz!",
+      subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 1200+ foydali sayt va ilova — bitta joyda.",
+      feats:[
+        {ico:'🗂️',bg:'from-violet-500 to-fuchsia-500',title:'1200+ resurs katalogi',desc:"Ta'lim, tibbiyot, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},
+        {ico:'🔍',bg:'from-violet-400 to-purple-500',title:'Tez va aqlli qidiruv',desc:"Kategoriya bo'yicha yoki barcha resurslardan bir zumda toping"},
+        {ico:'🌙',bg:'from-slate-600 to-slate-800',title:'Qulay interfeys',desc:"Tungi rejim, mobil va kompyuter uchun optimallashtirilgan"}
+      ]
+    },
+    {
+      id:1, icon:'📌',
+      title:"Shaxsiy linklar\nqo'shing va saqlang",
+      subtitle:"O'zingizning sevimli saytlaringizni qo'shing — istalgan vaqt 1 klik bilan kiring.",
+      feats:[
+        {ico:'➕',bg:'from-sky-500 to-cyan-500',title:"Har qanday saytni qo'shing",desc:"O'z shaxsiy resurslaringizni katalogga qo'shing va boshqaring"},
+        {ico:'❤️',bg:'from-rose-500 to-pink-500',title:"Sevimlilar ro'yxati",desc:"Tez-tez foydalanayotgan resurslarni ❤️ bilan belgilang"},
+        {ico:'☁️',bg:'from-blue-500 to-indigo-500',title:'Bulutda sinxronlanadi',desc:"Ro'yxatingiz barcha qurilmalaringizda avtomatik saqlanadi"}
+      ]
+    },
+    {
+      id:2, icon:'📤',
+      title:"Ro'yxat tuzing\nva ulashing",
+      subtitle:"Telegram kanal yoki guruhingiz uchun foydali resurslar to'plamini tuzing va bitta qisqa URL orqali ulashing.",
+      feats:[
+        {ico:'📋',bg:'from-emerald-500 to-teal-500',title:"Maxsus to'plam yarating",desc:"Kerakli resurslarni tanlang, sarlavha bering va o'z kutubxonangizni hosil qiling"},
+        {ico:'🔗',bg:'from-teal-500 to-cyan-500',title:"1 ta qisqa URL",desc:"Bir marta ulashing — barcha a'zolar tezda foydalansin"},
+        {ico:'📲',bg:'from-cyan-500 to-blue-500',title:"Telegram / WhatsApp orqali",desc:"Havola orqali do'stlar to'plamingizni bir bosishda import qilsin"}
+      ]
+    }
+  ];
+
+  let step=0;
+
+  function render(dir){
+    const s=STEPS[step];
+    const box=document.getElementById('onboardBox');
+    box.className=box.className.replace(/ob-step-\d/g,'').trim()+' ob-step-'+s.id;
+
+    // Dots
+    document.getElementById('obDots').innerHTML=
+      STEPS.map((_,i)=>`<div class="ob-dot${i===step?' active':''}"></div>`).join('');
+
+    // Progress bar
+    let pb=box.querySelector('.ob-progress');
+    if(!pb){pb=document.createElement('div');pb.className='ob-progress';box.querySelector('.ob-header').appendChild(pb);}
+    pb.style.width=((step+1)/STEPS.length*100)+'%';
+
+    const cls=dir>=0?'ob-slide-in':'ob-slide-in-left';
+    const anim=el=>{el.classList.remove('ob-slide-in','ob-slide-in-left');void el.offsetWidth;el.classList.add(cls);};
+
+    const ico=document.getElementById('obIcon');
+    ico.textContent=s.icon; anim(ico);
+
+    const ttl=document.getElementById('obTitle');
+    ttl.innerHTML=s.title.replace('\n','<br>'); anim(ttl);
+
+    const sub=document.getElementById('obSubtitle');
+    sub.textContent=s.subtitle; anim(sub);
+
+    const body=document.getElementById('obBody');
+    body.innerHTML=s.feats.map((f,i)=>`
+      <div class="ob-feat" style="animation-delay:${i*0.06}s">
+        <div class="ob-feat-ico bg-gradient-to-br ${f.bg} text-white">${f.ico}</div>
+        <div class="min-w-0">
+          <p class="text-sm font-black text-slate-800 dark:text-white leading-snug">${f.title}</p>
+          <p class="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">${f.desc}</p>
+        </div>
+      </div>`).join('');
+    anim(body);
+
+    const back=document.getElementById('obBack');
+    back.classList.toggle('opacity-0',step===0);
+    back.classList.toggle('pointer-events-none',step===0);
+
+    document.getElementById('obNextTxt').textContent=step===STEPS.length-1?'Boshlash 🚀':'Davom etish';
+    document.getElementById('obNextIco').className=step===STEPS.length-1?'fa-solid fa-rocket text-sm':'fa-solid fa-arrow-right text-sm';
+  }
+
+  window.obStep=function(dir){
+    if(dir>0&&step<STEPS.length-1){step++;render(dir);}
+    else if(dir<0&&step>0){step--;render(dir);}
+    else if(dir>0&&step===STEPS.length-1){closeOnboard();}
+  };
+
+  window.closeOnboard=function(){
+    localStorage.setItem('lh_onboarded','1');
+    const modal=document.getElementById('onboardModal');
+    const box=document.getElementById('onboardBox');
+    box.style.transform='translateY(16px) scale(0.97)';
+    box.style.opacity='0';
+    setTimeout(()=>{modal.classList.add('hidden');modal.classList.remove('flex');},300);
+  };
+
+  document.addEventListener('keydown',e=>{
+    const modal=document.getElementById('onboardModal');
+    if(modal?.classList.contains('hidden')) return;
+    if(e.key==='ArrowRight'||e.key==='Enter') obStep(1);
+    if(e.key==='ArrowLeft') obStep(-1);
+    if(e.key==='Escape') closeOnboard();
+  });
+
+  // Swipe
+  let _tx=null;
+  document.getElementById('onboardBox')?.addEventListener('touchstart',e=>{_tx=e.touches[0].clientX;},{passive:true});
+  document.getElementById('onboardBox')?.addEventListener('touchend',e=>{
+    if(_tx===null) return;
+    const dx=e.changedTouches[0].clientX-_tx;
+    if(Math.abs(dx)>50) obStep(dx<0?1:-1);
+    _tx=null;
+  });
+
+  setTimeout(()=>{
+    const modal=document.getElementById('onboardModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    render(1);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const box=document.getElementById('onboardBox');
+      box.style.transform='translateY(0)';
+      box.style.opacity='1';
+    }));
+  },900);
+})();
