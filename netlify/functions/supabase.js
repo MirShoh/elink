@@ -1,10 +1,3 @@
-// ═══════════════════════════════════════════════════════════
-//  Netlify Function: Supabase Proxy
-//  Barcha Supabase so'rovlari shu yerdan o'tadi.
-//  Haqiqiy SUPA_URL va SUPA_KEY faqat bu serverda saqlanadi —
-//  brauzerga hech qachon chiqmaydi ✅
-// ═══════════════════════════════════════════════════════════
-
 exports.handler = async (event) => {
   // Faqat POST so'rovlarni qabul qilish
   if (event.httpMethod !== 'POST') {

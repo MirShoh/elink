@@ -1,9 +1,3 @@
-// ═══════════════════════════════════════════════════════════
-//  Netlify Function: Telegram Xabar Yuborish
-//  TG_TOKEN va TG_CHAT faqat bu serverda saqlanadi —
-//  brauzerga hech qachon chiqmaydi ✅
-// ═══════════════════════════════════════════════════════════
-
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
