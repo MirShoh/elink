@@ -12,57 +12,13 @@ function safeParse(key, fallback) {
 
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
-// ── Foydalanuvchi noyob ID — localStorage + Cookie (2 yil) ──
+// ── Foydalanuvchi noyob ID (UUID, bir marta yaratiladi) ──────
 function getOrCreateUserId(){
-  // 1. localStorage
   let uid = localStorage.getItem('lh_uid');
-
-  // 2. Cookie backup (localStorage tozalansa ham saqlanadi)
-  if(!uid){
-    const m = document.cookie.match(/(?:^|;\s*)lh_uid=([^;]+)/);
-    if(m) uid = decodeURIComponent(m[1]);
-  }
-
-  // 3. IndexedDB backup (asenkron, keyingi yuklashda ishlatiladi)
-  if(!uid){
-    try{
-      const idb = indexedDB.open('elink_store', 1);
-      idb.onupgradeneeded = e => e.target.result.createObjectStore('kv');
-      idb.onsuccess = e => {
-        const tx = e.target.result.transaction('kv','readonly');
-        tx.objectStore('kv').get('lh_uid').onsuccess = ev => {
-          if(ev.target.result && !localStorage.getItem('lh_uid')){
-            localStorage.setItem('lh_uid', ev.target.result);
-          }
-        };
-      };
-    }catch(_){}
-  }
-
-  // 4. Yangi ID yaratish
   if(!uid){
     uid = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,9);
+    localStorage.setItem('lh_uid', uid);
   }
-
-  // Barcha joylarga saqlash
-  localStorage.setItem('lh_uid', uid);
-
-  // Cookie — 3 yil muddatli
-  const exp = new Date();
-  exp.setFullYear(exp.getFullYear() + 3);
-  document.cookie = 'lh_uid=' + encodeURIComponent(uid) +
-    ';expires=' + exp.toUTCString() + ';path=/;SameSite=Lax';
-
-  // IndexedDB ga ham saqlash
-  try{
-    const idb = indexedDB.open('elink_store', 1);
-    idb.onupgradeneeded = e => e.target.result.createObjectStore('kv');
-    idb.onsuccess = e => {
-      const tx = e.target.result.transaction('kv','readwrite');
-      tx.objectStore('kv').put(uid, 'lh_uid');
-    };
-  }catch(_){}
-
   return uid;
 }
 const USER_ID = getOrCreateUserId();
@@ -169,55 +125,22 @@ if(count > 0){
 //  DATA — 330+ Premium va mahalliy resurslar to'plami
 // ═══════════════════════════════════════════════════════════
 let customApps = safeParse('lh_custom_apps', []);
-// ── Supabase sinxronlash — to'liq ishonchli versiya ─────────
+// Supabase dan sinxronlash (sahifa yuklanganda)
 (async ()=>{
   const remote = await loadUserDataFromSupabase();
-
   if(remote){
-    // Supabase — haqiqat manbai.
-    // Remote bo'sh + local bor => local ni Supabase ga saqla
-    // Remote bor => har doim remote dan ol
-
-    let needSave = false;
-
-    // customApps
-    if(remote.customApps.length > 0){
-      // Remote da ma'lumot bor — undan foydalan
+    // Agar remote yangroq bo'lsa — undan foydalan
+    if(remote.customApps.length >= customApps.length){
       customApps = remote.customApps;
       localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-    } else if(customApps.length > 0){
-      // Remote bo'sh, local bor — local ni yuqoriga saqlash kerak
-      needSave = true;
+      const cat = DATA?.find(c=>c.id==='my_apps');
+      if(cat){ cat.items = customApps; renderNav(); renderContent(); }
     }
-
-    // favorites
-    if(remote.favorites.length > 0){
+    if(remote.favorites.length >= favorites.length){
       favorites = remote.favorites;
       localStorage.setItem('lh_favs', JSON.stringify(favorites));
-    } else if(favorites.length > 0){
-      needSave = true;
+      renderNav();
     }
-
-    // UI ni yangilash
-    const cat = DATA?.find(c=>c.id==='my_apps');
-    if(cat){ cat.items = customApps; }
-    renderNav(); renderContent();
-
-    // Agar local da yangroq ma'lumot bo'lsa — Supabase ga saqlash
-    if(needSave) saveUserDataToSupabase();
-
-  } else {
-    // Supabase mavjud emas — local dan foydalanish, 5 soniyada qayta urinish
-    const cat = DATA?.find(c=>c.id==='my_apps');
-    if(cat){ cat.items = customApps; }
-
-    setTimeout(async ()=>{
-      const retry = await loadUserDataFromSupabase();
-      if(!retry && (customApps.length > 0 || favorites.length > 0)){
-        // Ulanish tiklandi — local ni bulutga saqlash
-        saveUserDataToSupabase();
-      }
-    }, 6000);
   }
 })();
 
@@ -418,7 +341,9 @@ const isFav      = favorites.includes(item.n);
 const isBepul    = item.t?.includes('bepul');
 const isPullik   = item.t?.includes('pullik');
 const isMob      = item.t?.includes('mobil');
-const hasWeb     = item.t?.includes('web') || item.isCustom;
+const hasWeb     = item.t?.includes('web') || item.isCustom ||
+  // Store URL emas bo'lsa — asosiy URL veb variant sifatida ko'rinadi
+  (item.u && !item.u.includes('play.google.com') && !item.u.includes('apps.apple.com') && !item.u.includes('appgallery.huawei'));
 const isCustom   = item.isCustom;
 const isVerified = !!item.v;
 const q2         = query.trim();
@@ -816,78 +741,167 @@ window.applyGlobalSearch=function(q){
 };
 
 function buildDropHTML(q){
-const histFiltered=q?srchHist.filter(h=>h.toLowerCase().includes(q.toLowerCase())):srchHist;
-const isGlobal=activeCat==='all'||activeCat==='favorites';
-let sugg=[], globalSugg=[];
-if(q.length>=2){
-  if(activeCat==='my_apps'){
-    customApps.forEach(i=>{
-      if((i.n.toLowerCase().includes(q.toLowerCase())||(i.d||'').toLowerCase().includes(q.toLowerCase()))&&sugg.length<6)
-        sugg.push({...i,_c:{title:"Shaxsiy ro'yxat"}});
-    });
-  } else {
-    DATA.forEach(c=>{
-      if(c.id==='my_apps') return;
-      c.items.forEach(i=>{
-        const match=i.n.toLowerCase().includes(q.toLowerCase())||(i.d||'').toLowerCase().includes(q.toLowerCase());
-        if(!match) return;
-        if(isGlobal){ if(sugg.length<6) sugg.push({...i,_c:c}); }
-        else if(c.id===activeCat){ if(sugg.length<6) sugg.push({...i,_c:c}); }
-        else{ if(globalSugg.length<3) globalSugg.push({...i,_c:c}); }
+  const histFiltered = q
+    ? srchHist.filter(h => h.toLowerCase().includes(q.toLowerCase()))
+    : srchHist;
+
+  const isGlobal = activeCat === 'all' || activeCat === 'favorites';
+  let catSugg = [], otherSugg = [];
+
+  if(q.length >= 1){
+    if(activeCat === 'my_apps'){
+      customApps.forEach(i => {
+        if((i.n.toLowerCase().includes(q.toLowerCase()) || (i.d||'').toLowerCase().includes(q.toLowerCase())) && catSugg.length < 8)
+          catSugg.push({...i, _c:{title:"Shaxsiy ro'yxat", icon:'fa-folder-open'}});
       });
+    } else {
+      DATA.forEach(c => {
+        if(c.id === 'my_apps') return;
+        c.items.forEach(i => {
+          const nm  = i.n.toLowerCase();
+          const dsc = (i.d||'').toLowerCase();
+          const qL  = q.toLowerCase();
+          const score = nm.startsWith(qL) ? 3 : nm.includes(qL) ? 2 : dsc.includes(qL) ? 1 : 0;
+          if(!score) return;
+          if(isGlobal || c.id === activeCat){
+            if(catSugg.length < 8) catSugg.push({...i, _c:c, _score:score});
+          } else {
+            if(otherSugg.length < 3) otherSugg.push({...i, _c:c, _score:score});
+          }
+        });
+      });
+      catSugg.sort((a,b) => (b._score||0) - (a._score||0));
+    }
+  }
+
+  const hasResults = catSugg.length || otherSugg.length || histFiltered.length;
+  if(!hasResults) return '';
+
+  let html = '';
+
+  // ── Kategoriya sarlavhasi (global emas, spetsifik kategoriyada) ──
+  if(!isGlobal && activeCat !== 'my_apps' && (catSugg.length || otherSugg.length)){
+    const cat = DATA.find(c => c.id === activeCat);
+    html += `<div class="flex items-center gap-2 px-3 pt-2.5 pb-1">
+      <i class="fa-solid ${cat?.icon||'fa-filter'} text-[9px] text-violet-400"></i>
+      <span class="text-[10px] font-black text-violet-500 uppercase tracking-wider flex-1">${cat?.title||''} ichida</span>
+    </div>`;
+  }
+
+  // ── Qidiruv natijalari ────────────────────────────────────
+  if(catSugg.length){
+    html += `<div class="flex items-center gap-1.5 px-3 pt-2 pb-1">
+      <i class="fa-solid fa-magnifying-glass text-[9px] text-slate-300 dark:text-slate-600"></i>
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Natijalar</span>
+      <span class="ml-auto text-[10px] font-bold text-slate-300 dark:text-slate-600">${catSugg.length} ta</span>
+    </div>`;
+
+    catSugg.forEach((i, idx) => {
+      const nm    = i.n.replace(/'/g, "\\'");
+      const isMob = i.t?.includes('mobil');
+      const isBep = i.t?.includes('bepul');
+      const isPul = i.t?.includes('pullik');
+      const hasW  = i.t?.includes('web') || i.isCustom || (i.u && !i.u.includes('play.google.com') && !i.u.includes('apps.apple.com'));
+      const clk   = getClicks(i.n);
+      // Kategoriya nomi — emoji va qo'shimcha belgilarni olib tashlash
+      const catLabel = isGlobal && i._c
+        ? i._c.title.replace(/^\S+\s/, '').substring(0, 22)
+        : '';
+
+      html += `<button onclick="applySearch('${nm}')"
+        class="s-row w-full text-left flex items-center gap-3 px-3 py-2.5 ${idx === 0 && q ? 'bg-violet-50/60 dark:bg-violet-500/8' : ''}">
+        <div class="shrink-0 w-9 h-9 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-white dark:bg-slate-800/80 flex items-center justify-center shadow-sm">
+          ${iconHTML(i, 'w-7 h-7 object-contain')}
+        </div>
+        <div class="flex-1 min-w-0">
+          ${catLabel ? `<div class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">${catLabel}</div>` : ''}
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <p class="text-[13px] font-bold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">${hl(i.n, q)}</p>
+            ${i.v ? `<span class="verified-icon" title="Rasmiy platforma"><i class="fa-solid fa-shield-halved"></i></span>` : ''}
+          </div>
+          ${i.d ? `<p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-snug">${hl(i.d, q)}</p>` : ''}
+          <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+            ${isBep ? `<span class="badge-bepul">✓ Bepul</span>` : ''}
+            ${isPul ? `<span class="badge-pullik">💎 Pullik</span>` : ''}
+            ${hasW && isMob ? `<span class="badge-web" title="Veb-sayt"><i class="fa-solid fa-globe text-[9px]"></i></span>` : ''}
+            ${isMob ? `<span class="badge-mob" title="Mobil ilova"><i class="fa-solid fa-mobile-screen-button text-[9px]"></i></span>` : ''}
+            ${clk > 0 ? `<span class="inline-flex items-center gap-0.5 text-[9px] font-black text-orange-400"><i class="fa-solid fa-fire text-[8px]"></i>${clk}</span>` : ''}
+          </div>
+        </div>
+      </button>`;
     });
   }
-}
-if(!histFiltered.length&&!sugg.length&&!globalSugg.length) return '';
-let html='';
-if(!isGlobal&&activeCat!=='my_apps'&&(sugg.length||globalSugg.length)){
-  const catTitle=DATA.find(c=>c.id===activeCat)?.title||'';
-  html+=`<div class="flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/60"><i class="fa-solid fa-filter text-[9px] text-violet-400"></i><span class="text-[10px] font-black text-violet-500 uppercase tracking-wider">${catTitle} ichida</span></div>`;
-}
-if(sugg.length){
-  html+=`<p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5">💡 Taklif</p>`;
-  sugg.forEach(i=>{
-    const esc=i.n.replace(/'/g,"\\'");
-    html+=`<button onclick="applySearch('${esc}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2.5">
-      <div class="shrink-0 w-9 h-9 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">${iconHTML(i,'w-7 h-7 object-contain')}</div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-bold text-slate-800 dark:text-slate-200 leading-snug">${hl(i.n,q)}</p>
-        ${i.d?`<p class="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-1">${hl(i.d,q)}</p>`:''}
-      </div>
-      ${isGlobal&&i._c?`<span class="text-[9px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">${i._c.title}</span>`:''}
+
+  // ── Boshqa kategoriyalardan ───────────────────────────────
+  if(!isGlobal && activeCat !== 'my_apps' && otherSugg.length){
+    const qEsc = q.replace(/'/g, "\\'");
+    html += `<div class="mx-2 my-1.5 border-t border-slate-100 dark:border-slate-700/50"></div>
+    <button onclick="applyGlobalSearch('${qEsc}')"
+      class="s-row w-full flex items-center gap-2 px-3 py-1.5 group">
+      <i class="fa-solid fa-earth-asia text-[9px] text-slate-300 dark:text-slate-600 group-hover:text-violet-400 transition-colors"></i>
+      <span class="text-[10px] font-black text-slate-400 group-hover:text-violet-500 uppercase tracking-wider transition-colors flex-1">Barcha resurslardan qidirish</span>
+      <span class="text-[9px] font-bold bg-violet-100 dark:bg-violet-500/15 text-violet-500 px-1.5 py-0.5 rounded-md">${otherSugg.length}+</span>
     </button>`;
-  });
-}
-if(!isGlobal&&activeCat!=='my_apps'&&globalSugg.length){
-  html+=`<div class="px-2 pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-700/60 mt-1"><button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')" class="w-full flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-violet-500 transition-colors group py-1"><i class="fa-solid fa-globe text-[9px] group-hover:text-violet-400"></i><span class="uppercase tracking-wider">Barcha resurslardan qidirish</span><span class="ml-auto font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">${globalSugg.length}+ ta</span></button></div>`;
-  globalSugg.forEach(i=>{
-    const esc=q.replace(/'/g,"\\'");
-    html+=`<button onclick="applyGlobalSearch('${esc}')" class="s-row w-full text-left flex items-center gap-3 px-3 py-2 opacity-60 hover:opacity-100">
-      <div class="shrink-0 w-8 h-8 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center">${iconHTML(i,'w-6 h-6 object-contain')}</div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${hl(i.n,q)}</p>
-        ${i.d?`<p class="text-[11px] text-slate-400 leading-snug line-clamp-1">${i.d}</p>`:''}
-      </div>
-      <span class="text-[9px] text-slate-300 dark:text-slate-600 shrink-0 whitespace-nowrap">${i._c.title}</span>
-    </button>`;
-  });
-}
-if(histFiltered.length){
-  html+=`<p class="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 py-1.5 mt-1">🕐 Oxirgi qidiruvlar</p>`;
-  histFiltered.forEach(h=>{
-    html+=`<div class="s-row flex items-center gap-2 px-2 py-1.5 group">
-      <button onclick="applySearch('${h.replace(/'/g,"\\'")}') " class="flex-1 text-left flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
-        <i class="fa-solid fa-clock-rotate-left text-slate-300 text-xs w-4 shrink-0"></i>
-        <span>${hl(h,q)}</span>
-      </button>
-      <button onclick="removeHist('${h.replace(/'/g,"\\'")}') " class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all text-xs px-1">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+
+    otherSugg.slice(0, 2).forEach(i => {
+      html += `<button onclick="applyGlobalSearch('${q.replace(/'/g,"\\'")}')"
+        class="s-row w-full text-left flex items-center gap-2.5 px-3 py-2 opacity-55 hover:opacity-100 group">
+        <div class="shrink-0 w-7 h-7 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700/60 bg-white dark:bg-slate-800 flex items-center justify-center">
+          ${iconHTML(i, 'w-5 h-5 object-contain')}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-semibold text-slate-600 dark:text-slate-400 truncate">${hl(i.n, q)}</p>
+          ${i.d ? `<p class="text-[10px] text-slate-400 dark:text-slate-500 truncate">${i.d}</p>` : ''}
+        </div>
+        <span class="text-[9px] text-slate-300 dark:text-slate-600 whitespace-nowrap shrink-0">${(i._c?.title||'').replace(/^\S+\s/, '').substring(0,16)}</span>
+      </button>`;
+    });
+  }
+
+  // ── Qidiruv tarixi ────────────────────────────────────────
+  if(histFiltered.length){
+    if(catSugg.length || otherSugg.length)
+      html += `<div class="mx-2 my-1.5 border-t border-slate-100 dark:border-slate-700/50"></div>`;
+
+    html += `<div class="flex items-center gap-1.5 px-3 pt-1.5 pb-1">
+      <i class="fa-solid fa-clock-rotate-left text-[9px] text-slate-300 dark:text-slate-600"></i>
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Oxirgi qidiruvlar</span>
     </div>`;
-  });
+
+    histFiltered.slice(0, 4).forEach(h => {
+      const hEsc = h.replace(/'/g, "\\'");
+      html += `<div class="s-row flex items-center gap-2 px-3 py-1.5 group">
+        <button onclick="applySearch('${hEsc}')" class="flex-1 text-left flex items-center gap-2.5">
+          <div class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-clock-rotate-left text-[9px] text-slate-300 dark:text-slate-600"></i>
+          </div>
+          <span class="text-[12.5px] font-semibold text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors">${hl(h, q)}</span>
+        </button>
+        <button onclick="event.stopPropagation();removeHist('${hEsc}')"
+          class="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-md flex items-center justify-center text-slate-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-[9px]">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>`;
+    });
+  }
+
+  // ── Footer ────────────────────────────────────────────────
+  if(q.length >= 1 && (catSugg.length > 0 || otherSugg.length > 0)){
+    html += `<div class="px-3 py-2 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-2">
+      <span class="text-[10px] text-slate-300 dark:text-slate-600 flex items-center gap-1">
+        <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-400 font-mono text-[9px]">↵</kbd>
+        barcha natijalar
+      </span>
+      <span class="ml-auto text-[10px] text-slate-300 dark:text-slate-600 flex items-center gap-1">
+        <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-400 font-mono text-[9px]">Esc</kbd>
+        yopish
+      </span>
+    </div>`;
+  }
+
+  return html;
 }
-return html;
-}
+
 function updateDrops(q){
 const h=buildDropHTML(q);
 $('deskDropIn').innerHTML=h; $('mobDropIn').innerHTML=h;
@@ -1349,12 +1363,29 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
   const modal=$('platModal'), content=$('platModalContent'), body=$('platModalBody');
   if(!item){ addClick(name); window.open(url,'_blank','noopener,noreferrer'); return; }
 
-  const esc = name.replace(/'/g,"\\'");
-  const q   = encodeURIComponent(name);
-  // Custom app'da o'z Play/AppStore URL'lari bo'lsa ishlatamiz
-  const playUrl = item.androidUrl || `https://play.google.com/store/search?q=${q}&c=apps`;
-  const iosUrl  = item.iosUrl || `https://apps.apple.com/search?term=${q}`;
-  const domain  = getDomain(url).replace(/\/$/, '');
+  const escN  = name.replace(/'/g,"\'");
+  const q     = encodeURIComponent(name);
+
+  // ── URL strategiyasi ──────────────────────────────────
+  const isStoreUrl = u => u && (
+    u.includes('play.google.com') ||
+    u.includes('apps.apple.com') ||
+    u.includes('appgallery.huawei')
+  );
+
+  // Veb URL: item.webUrl > item.u (store emas bo'lsa) > null
+  const webUrl  = item.webUrl  || (!isStoreUrl(item.u) ? item.u  : null);
+  // Play: item.androidUrl > play-search
+  const playUrl = item.androidUrl || (item.u?.includes('play.google.com') ? item.u : `https://play.google.com/store/search?q=${q}&c=apps`);
+  // iOS: item.iosUrl > appstore-search
+  const iosUrl  = item.iosUrl  || (item.u?.includes('apps.apple.com')    ? item.u : `https://apps.apple.com/search?term=${q}`);
+
+  const showWeb = !!(webUrl && webUrl.trim());
+  const showMob = !!(hasMobil || item.t?.includes('mobil'));
+  const domain  = showWeb ? getDomain(webUrl) : '';
+  const webEsc  = (webUrl  || '').replace(/'/g,"\'");
+  const playEsc = playUrl.replace(/'/g, "\'");
+  const iosEsc  = iosUrl.replace(/'/g,  "\'");
 
   body.innerHTML = `
     <div class="flex flex-col items-center mb-5">
@@ -1370,8 +1401,8 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
       <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
     </div>
     <div class="space-y-2">
-      ${hasWeb ? `
-      <button onclick="addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${url.replace(/'/g,"\\'")}','_blank','noopener,noreferrer');closePlatformModal()"
+      ${showWeb ? `
+      <button onclick="addClick('${escN}');setTimeout(()=>rerenderClickFor('${escN}'),50);window.open('${webEsc}','_blank','noopener,noreferrer');closePlatformModal()"
         class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
         <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 shrink-0">
           <i class="fa-solid fa-globe text-[15px]"></i>
@@ -1382,31 +1413,30 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
         </div>
         <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-violet-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
       </button>` : ''}
-      ${hasMobil ? `
-      <button onclick="addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${playUrl.replace(/'/g,"\\'")}','_blank','noopener,noreferrer');closePlatformModal()"
+      ${showMob ? `
+      <button onclick="addClick('${escN}');setTimeout(()=>rerenderClickFor('${escN}'),50);window.open('${playEsc}','_blank','noopener,noreferrer');closePlatformModal()"
         class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
         <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0">
           <i class="fa-brands fa-google-play text-[15px]"></i>
         </div>
         <div class="text-left flex-1 min-w-0">
           <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Android ilovasi</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">Google Play Store'dan yuklab oling</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Google Play Store</div>
         </div>
         <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-emerald-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
       </button>
-      <button onclick="addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${iosUrl.replace(/'/g,"\\'")}','_blank','noopener,noreferrer');closePlatformModal()"
+      <button onclick="addClick('${escN}');setTimeout(()=>rerenderClickFor('${escN}'),50);window.open('${iosEsc}','_blank','noopener,noreferrer');closePlatformModal()"
         class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
         <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white shadow-lg shrink-0">
           <i class="fa-brands fa-apple text-[18px]"></i>
         </div>
         <div class="text-left flex-1 min-w-0">
           <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">iPhone / iPad ilovasi</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">App Store'dan yuklab oling</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">App Store</div>
         </div>
         <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-slate-500 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
       </button>` : ''}
-    </div>`;
-
+    </div>`
   modal.classList.remove('hidden');
   modal.classList.add('flex');
   setTimeout(()=>{

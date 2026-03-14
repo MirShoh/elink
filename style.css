@@ -90,7 +90,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif}
 .dark .s-row:hover{background:rgba(139,92,246,.15)}
 
 /* highlight */
-mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 2px}
+mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 0}
 .dark mark{background:rgba(139,92,246,.38)}
 
 /* sort select arrow */
