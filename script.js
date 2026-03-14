@@ -12,13 +12,57 @@ function safeParse(key, fallback) {
 
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
-// ── Foydalanuvchi noyob ID (UUID, bir marta yaratiladi) ──────
+// ── Foydalanuvchi noyob ID — localStorage + Cookie (2 yil) ──
 function getOrCreateUserId(){
+  // 1. localStorage
   let uid = localStorage.getItem('lh_uid');
+
+  // 2. Cookie backup (localStorage tozalansa ham saqlanadi)
+  if(!uid){
+    const m = document.cookie.match(/(?:^|;\s*)lh_uid=([^;]+)/);
+    if(m) uid = decodeURIComponent(m[1]);
+  }
+
+  // 3. IndexedDB backup (asenkron, keyingi yuklashda ishlatiladi)
+  if(!uid){
+    try{
+      const idb = indexedDB.open('elink_store', 1);
+      idb.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+      idb.onsuccess = e => {
+        const tx = e.target.result.transaction('kv','readonly');
+        tx.objectStore('kv').get('lh_uid').onsuccess = ev => {
+          if(ev.target.result && !localStorage.getItem('lh_uid')){
+            localStorage.setItem('lh_uid', ev.target.result);
+          }
+        };
+      };
+    }catch(_){}
+  }
+
+  // 4. Yangi ID yaratish
   if(!uid){
     uid = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,9);
-    localStorage.setItem('lh_uid', uid);
   }
+
+  // Barcha joylarga saqlash
+  localStorage.setItem('lh_uid', uid);
+
+  // Cookie — 3 yil muddatli
+  const exp = new Date();
+  exp.setFullYear(exp.getFullYear() + 3);
+  document.cookie = 'lh_uid=' + encodeURIComponent(uid) +
+    ';expires=' + exp.toUTCString() + ';path=/;SameSite=Lax';
+
+  // IndexedDB ga ham saqlash
+  try{
+    const idb = indexedDB.open('elink_store', 1);
+    idb.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+    idb.onsuccess = e => {
+      const tx = e.target.result.transaction('kv','readwrite');
+      tx.objectStore('kv').put(uid, 'lh_uid');
+    };
+  }catch(_){}
+
   return uid;
 }
 const USER_ID = getOrCreateUserId();
@@ -125,22 +169,55 @@ if(count > 0){
 //  DATA — 330+ Premium va mahalliy resurslar to'plami
 // ═══════════════════════════════════════════════════════════
 let customApps = safeParse('lh_custom_apps', []);
-// Supabase dan sinxronlash (sahifa yuklanganda)
+// ── Supabase sinxronlash — to'liq ishonchli versiya ─────────
 (async ()=>{
   const remote = await loadUserDataFromSupabase();
+
   if(remote){
-    // Agar remote yangroq bo'lsa — undan foydalan
-    if(remote.customApps.length >= customApps.length){
+    // Supabase — haqiqat manbai.
+    // Remote bo'sh + local bor => local ni Supabase ga saqla
+    // Remote bor => har doim remote dan ol
+
+    let needSave = false;
+
+    // customApps
+    if(remote.customApps.length > 0){
+      // Remote da ma'lumot bor — undan foydalan
       customApps = remote.customApps;
       localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-      const cat = DATA?.find(c=>c.id==='my_apps');
-      if(cat){ cat.items = customApps; renderNav(); renderContent(); }
+    } else if(customApps.length > 0){
+      // Remote bo'sh, local bor — local ni yuqoriga saqlash kerak
+      needSave = true;
     }
-    if(remote.favorites.length >= favorites.length){
+
+    // favorites
+    if(remote.favorites.length > 0){
       favorites = remote.favorites;
       localStorage.setItem('lh_favs', JSON.stringify(favorites));
-      renderNav();
+    } else if(favorites.length > 0){
+      needSave = true;
     }
+
+    // UI ni yangilash
+    const cat = DATA?.find(c=>c.id==='my_apps');
+    if(cat){ cat.items = customApps; }
+    renderNav(); renderContent();
+
+    // Agar local da yangroq ma'lumot bo'lsa — Supabase ga saqlash
+    if(needSave) saveUserDataToSupabase();
+
+  } else {
+    // Supabase mavjud emas — local dan foydalanish, 5 soniyada qayta urinish
+    const cat = DATA?.find(c=>c.id==='my_apps');
+    if(cat){ cat.items = customApps; }
+
+    setTimeout(async ()=>{
+      const retry = await loadUserDataFromSupabase();
+      if(!retry && (customApps.length > 0 || favorites.length > 0)){
+        // Ulanish tiklandi — local ni bulutga saqlash
+        saveUserDataToSupabase();
+      }
+    }, 6000);
   }
 })();
 
