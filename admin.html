@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elink UZ — Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,.35);border-radius:99px}
+
+/* ── TOKENS ── */
+:root{
+  --bg:       #080c1a;
+  --bg2:      #0d1225;
+  --bg3:      #111827;
+  --border:   rgba(255,255,255,.07);
+  --border2:  rgba(255,255,255,.12);
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --violet:   #8b5cf6;
+  --violet2:  #7c3aed;
+  --fuchsia:  #d946ef;
+  --emerald:  #10b981;
+  --amber:    #f59e0b;
+  --rose:     #f43f5e;
+  --sky:      #0ea5e9;
+  --card:     rgba(255,255,255,.04);
+  --card-h:   rgba(255,255,255,.07);
+}
+
+body{background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+
+/* ═══ SETUP SCREEN ═══ */
+#setupScreen{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:0;
+}
+.setup-card{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:24px;padding:40px;
+  width:100%;max-width:440px;
+  box-shadow:0 40px 100px rgba(0,0,0,.5),0 0 0 1px rgba(139,92,246,.15);
+}
+.setup-logo{
+  display:flex;align-items:center;gap:12px;margin-bottom:32px;
+}
+.setup-logo-ico{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,#7c3aed,#d946ef);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:18px;
+  box-shadow:0 8px 24px rgba(139,92,246,.4);
+}
+.setup-title{font-size:22px;font-weight:900;color:#fff}
+.setup-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.setup-field{margin-bottom:16px}
+.setup-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.setup-field input{
+  width:100%;background:rgba(255,255,255,.06);
+  border:1px solid var(--border2);border-radius:12px;
+  padding:11px 14px;font-size:13px;color:#fff;
+  font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.setup-field input:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.setup-field input::placeholder{color:var(--muted)}
+.setup-btn{
+  width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--violet2),var(--fuchsia));
+  color:#fff;font-weight:800;font-size:14px;font-family:inherit;
+  box-shadow:0 8px 24px rgba(139,92,246,.35);
+  transition:opacity .15s,transform .1s;margin-top:8px;
+}
+.setup-btn:hover{opacity:.9}
+.setup-btn:active{transform:scale(.98)}
+.setup-err{color:var(--rose);font-size:12px;font-weight:600;margin-top:8px;text-align:center;display:none}
+.setup-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.6}
+.setup-hint a{color:var(--violet);text-decoration:none}
+
+/* ═══ SIDEBAR ═══ */
+#sidebar{
+  width:220px;min-width:220px;height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:0;overflow:hidden;
+  flex-shrink:0;
+}
+.sb-top{padding:20px 16px 14px}
+.sb-brand{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.sb-brand-ico{
+  width:36px;height:36px;border-radius:11px;
+  background:linear-gradient(135deg,var(--violet2),var(--fuchsia));
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-size:14px;box-shadow:0 4px 12px rgba(139,92,246,.35);flex-shrink:0;
+}
+.sb-brand-name{font-size:15px;font-weight:900;color:#fff}
+.sb-brand-tag{font-size:9px;font-weight:700;color:var(--violet);text-transform:uppercase;letter-spacing:.1em;background:rgba(139,92,246,.15);padding:2px 6px;border-radius:4px}
+
+.sb-section{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;padding:0 12px;margin-bottom:4px;margin-top:16px}
+.sb-nav{flex:1;overflow-y:auto;padding:0 8px 16px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:10px;cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--muted);
+  transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{background:var(--card-h);color:var(--text)}
+.nav-item.active{background:rgba(139,92,246,.18);color:var(--violet);font-weight:700}
+.nav-item .ni-ico{width:16px;text-align:center;font-size:12px;flex-shrink:0}
+.nav-item .ni-badge{
+  margin-left:auto;font-size:9px;font-weight:800;
+  background:var(--rose);color:#fff;
+  padding:1px 6px;border-radius:99px;
+}
+.nav-item.active .ni-badge{background:var(--violet)}
+
+.sb-bottom{padding:12px 8px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .15s}
+.sb-user:hover{background:var(--card-h)}
+.sb-avatar{
+  width:32px;height:32px;border-radius:10px;
+  background:linear-gradient(135deg,#1e293b,#334155);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:13px;flex-shrink:0;
+  border:1px solid var(--border2);
+}
+.sb-user-name{font-size:12px;font-weight:700;color:var(--text)}
+.sb-user-role{font-size:10px;color:var(--muted)}
+.sb-logout{margin-left:auto;color:var(--muted);font-size:12px;transition:color .15s}
+.sb-logout:hover{color:var(--rose)}
+.sb-status{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 12px;margin:0 0 4px;border-radius:8px;
+  background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);
+}
+.sb-status-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-status-txt{font-size:10px;font-weight:700;color:var(--emerald)}
+
+/* ═══ MAIN CONTENT ═══ */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{
+  height:56px;min-height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.tb-title{font-size:16px;font-weight:800;color:#fff}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:9px;border:1px solid var(--border2);
+  background:var(--card);color:var(--muted);
+  font-size:12px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all .15s;
+}
+.tb-btn:hover{background:var(--card-h);color:var(--text);border-color:var(--border2)}
+.tb-btn.primary{background:linear-gradient(135deg,var(--violet2),var(--fuchsia));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(139,92,246,.35)}
+.tb-btn.primary:hover{opacity:.9}
+.tb-time{font-size:11px;color:var(--muted);font-weight:600}
+
+/* ═══ CONTENT AREA ═══ */
+.content{flex:1;overflow-y:auto;padding:24px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ═══ STAT CARDS ═══ */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .2s;
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .2s;pointer-events:none}
+.stat-card:hover::before{opacity:1}
+.sc-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:14px;flex-shrink:0}
+.sc-val{font-size:26px;font-weight:900;color:#fff;line-height:1;margin-bottom:4px}
+.sc-label{font-size:11px;font-weight:600;color:var(--muted)}
+.sc-change{font-size:10px;font-weight:700;margin-top:6px;display:flex;align-items:center;gap:3px}
+.sc-change.up{color:var(--emerald)} .sc-change.down{color:var(--rose)} .sc-change.neu{color:var(--muted)}
+
+/* ═══ SECTION CARDS ═══ */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.panel-title{font-size:13px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+.panel-title i{color:var(--violet);font-size:12px}
+.panel-body{padding:20px}
+.panel-body.np{padding:0}
+
+/* ═══ TABLE ═══ */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{
+  padding:10px 16px;text-align:left;
+  font-size:10px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;
+  border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);
+}
+.tbl td{
+  padding:12px 16px;font-size:12px;color:var(--text);
+  border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;
+}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.03)}
+.tbl-empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ═══ BADGES ═══ */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
+.badge-pending{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.badge-approved{background:rgba(16,185,129,.12);color:var(--emerald);border:1px solid rgba(16,185,129,.2)}
+.badge-rejected{background:rgba(244,63,94,.12);color:var(--rose);border:1px solid rgba(244,63,94,.2)}
+.badge-open{background:rgba(244,63,94,.12);color:var(--rose);border:1px solid rgba(244,63,94,.2)}
+.badge-resolved{background:rgba(16,185,129,.12);color:var(--emerald);border:1px solid rgba(16,185,129,.2)}
+.badge-violet{background:rgba(139,92,246,.12);color:var(--violet);border:1px solid rgba(139,92,246,.2)}
+
+/* ═══ ACTION BUTTONS ═══ */
+.act-btns{display:flex;align-items:center;gap:6px}
+.act-btn{
+  padding:5px 10px;border-radius:7px;border:1px solid var(--border2);
+  font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .12s;display:flex;align-items:center;gap:4px;
+  background:transparent;color:var(--muted);
+}
+.act-btn:hover{background:var(--card-h);color:var(--text)}
+.act-btn.approve{color:var(--emerald);border-color:rgba(16,185,129,.25)}
+.act-btn.approve:hover{background:rgba(16,185,129,.12)}
+.act-btn.reject{color:var(--rose);border-color:rgba(244,63,94,.25)}
+.act-btn.reject:hover{background:rgba(244,63,94,.1)}
+.act-btn.resolve{color:var(--sky);border-color:rgba(14,165,233,.25)}
+.act-btn.resolve:hover{background:rgba(14,165,233,.1)}
+.act-btn.delete{color:var(--rose);border-color:rgba(244,63,94,.25)}
+.act-btn.delete:hover{background:rgba(244,63,94,.1)}
+
+/* ═══ SEARCH / FILTER BAR ═══ */
+.filter-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.02);flex-wrap:wrap;
+}
+.fb-search{
+  flex:1;min-width:180px;display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:9px;padding:7px 12px;
+}
+.fb-search input{background:none;border:none;outline:none;color:var(--text);font-size:12px;font-family:inherit;width:100%}
+.fb-search input::placeholder{color:var(--muted)}
+.fb-search i{color:var(--muted);font-size:11px;flex-shrink:0}
+.filter-pill{
+  padding:6px 12px;border-radius:8px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);font-size:11px;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .12s;
+}
+.filter-pill:hover{background:var(--card-h);color:var(--text)}
+.filter-pill.active{background:rgba(139,92,246,.15);color:var(--violet);border-color:rgba(139,92,246,.35)}
+
+/* ═══ CHART ═══ */
+.chart-wrap{position:relative;height:220px}
+.chart-wrap-tall{height:280px}
+
+/* ═══ GRID LAYOUTS ═══ */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* ═══ RESOURCE ITEM ═══ */
+.res-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;transition:background .12s;cursor:default;
+}
+.res-item:hover{background:rgba(255,255,255,.03)}
+.res-favicon{
+  width:34px;height:34px;border-radius:9px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;
+}
+.res-favicon img{width:24px;height:24px;object-fit:contain}
+.res-name{font-size:12px;font-weight:700;color:var(--text)}
+.res-desc{font-size:10px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
+.res-cat{font-size:9px;color:var(--muted);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:5px;margin-left:auto;flex-shrink:0;white-space:nowrap}
+.res-rank{font-size:11px;font-weight:800;color:var(--muted);width:28px;text-align:center;flex-shrink:0}
+
+/* ═══ TOAST ═══ */
+#adminToast{
+  position:fixed;bottom:20px;right:20px;z-index:9999;
+  background:#1e293b;border:1px solid var(--border2);
+  color:var(--text);padding:12px 18px;border-radius:12px;
+  font-size:12px;font-weight:600;display:flex;align-items:center;gap:10px;
+  box-shadow:0 16px 40px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:all .25s;transform:translateY(8px);
+}
+#adminToast.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+
+/* ═══ SPINNER ═══ */
+.spin{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ EMPTY STATE ═══ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;color:var(--muted);text-align:center}
+.empty-state i{font-size:36px;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:13px;font-weight:600}
+.empty-state small{font-size:11px;margin-top:4px;opacity:.7}
+
+/* ═══ LOADING OVERLAY ═══ */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--muted);font-size:12px;font-weight:600}
+
+/* ═══ CLICK BAR ═══ */
+.click-bar-wrap{display:flex;align-items:center;gap:10px}
+.click-bar-bg{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.click-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--violet2),var(--fuchsia));transition:width .6s cubic-bezier(.4,0,.2,1)}
+.click-val{font-size:11px;font-weight:800;color:var(--violet);min-width:32px;text-align:right}
+
+/* ═══ LINK ═══ */
+a.tbl-link{color:var(--sky);text-decoration:none;font-size:11px}
+a.tbl-link:hover{text-decoration:underline}
+
+/* ═══ CONFIRM DIALOG ═══ */
+#confirmDlg{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+#confirmDlg.show{display:flex}
+.confirm-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.confirm-box h3{font-size:15px;font-weight:800;color:#fff;margin-bottom:8px}
+.confirm-box p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s}
+.confirm-cancel{background:var(--card);color:var(--muted)}
+.confirm-cancel:hover{background:var(--card-h);color:var(--text)}
+.confirm-ok{background:var(--rose);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(244,63,94,.3)}
+.confirm-ok:hover{opacity:.9}
+.confirm-ok.safe{background:var(--emerald);box-shadow:0 4px 12px rgba(16,185,129,.3)}
+
+/* ═══ PULSE DOT ═══ */
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite;flex-shrink:0}
+
+/* ═══ PAGE HEADER ═══ */
+.page-header{margin-bottom:22px}
+.page-header h2{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px}
+.page-header p{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SETUP SCREEN ═══════════ -->
+<div id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-ico"><i class="fa-solid fa-link"></i></div>
+      <div>
+        <div class="setup-title">Elink UZ</div>
+        <div class="setup-sub">Admin Panel — Sozlash</div>
+      </div>
+    </div>
+    <div class="setup-field">
+      <label>Supabase URL</label>
+      <input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off">
+    </div>
+    <div class="setup-field">
+      <label>Supabase Anon Key <span style="color:var(--violet);font-size:9px">(yoki Service Role Key)</span></label>
+      <input id="cfgKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off">
+    </div>
+    <div class="setup-field">
+      <label>Admin parol</label>
+      <input id="cfgPass" type="password" placeholder="••••••••">
+    </div>
+    <div id="setupErr" class="setup-err">Noto'g'ri parol yoki ulanish xatosi</div>
+    <button class="setup-btn" onclick="handleSetup()">
+      <i class="fa-solid fa-arrow-right-to-bracket"></i> Kirish
+    </button>
+    <div class="setup-hint">
+      Ma'lumotlar faqat brauzeringizda saqlanadi.<br>
+      Supabase → Settings → API dan topasiz.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="appWrap" style="display:none;flex:1;overflow:hidden">
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-top">
+    <div class="sb-brand">
+      <div class="sb-brand-ico"><i class="fa-solid fa-link"></i></div>
+      <div>
+        <div class="sb-brand-name">Elink UZ</div>
+        <div class="sb-brand-tag">Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sb-nav" id="sbNav">
+    <div class="sb-section">Bosh sahifa</div>
+    <button class="nav-item active" data-tab="overview" onclick="switchTab('overview',this)">
+      <i class="ni-ico fa-solid fa-chart-pie"></i> Umumiy statistika
+    </button>
+
+    <div class="sb-section">Ma'lumotlar</div>
+    <button class="nav-item" data-tab="suggestions" onclick="switchTab('suggestions',this)">
+      <i class="ni-ico fa-solid fa-lightbulb"></i> Takliflar
+      <span class="ni-badge" id="sugBadge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-tab="reports" onclick="switchTab('reports',this)">
+      <i class="ni-ico fa-solid fa-triangle-exclamation"></i> Muammolar
+      <span class="ni-badge" id="repBadge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-tab="clicks" onclick="switchTab('clicks',this)">
+      <i class="ni-ico fa-solid fa-arrow-pointer"></i> Kliklar
+    </button>
+    <button class="nav-item" data-tab="users" onclick="switchTab('users',this)">
+      <i class="ni-ico fa-solid fa-users"></i> Foydalanuvchilar
+    </button>
+
+    <div class="sb-section">Tizim</div>
+    <button class="nav-item" data-tab="settings" onclick="switchTab('settings',this)">
+      <i class="ni-ico fa-solid fa-gear"></i> Sozlamalar
+    </button>
+  </nav>
+
+  <div class="sb-bottom">
+    <div class="sb-status">
+      <div class="live-dot"></div>
+      <span class="sb-status-txt">Supabase ulangan</span>
+    </div>
+    <div class="sb-user" onclick="logout()">
+      <div class="sb-avatar"><i class="fa-solid fa-user-shield"></i></div>
+      <div><div class="sb-user-name">Admin</div><div class="sb-user-role">Super Admin</div></div>
+      <i class="sb-logout fa-solid fa-arrow-right-from-bracket"></i>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-title" id="tbTitle">Umumiy statistika</div>
+    <div class="tb-right">
+      <span class="tb-time" id="tbTime"></span>
+      <button class="tb-btn" onclick="refreshAll()"><i class="fa-solid fa-rotate-right"></i> Yangilash</button>
+      <button class="tb-btn primary" onclick="window.open('https://elink.uz','_blank')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Saytga o'tish</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- ═══ OVERVIEW TAB ═══ -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="page-header">
+        <h2>📊 Umumiy statistika</h2>
+        <p>Platforma faoliyati bo'yicha jonli ko'rsatkichlar</p>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="stat-grid" id="kpiGrid">
+        <div class="stat-card">
+          <div class="sc-ico" style="background:rgba(139,92,246,.15)"><i class="fa-solid fa-arrow-pointer" style="color:var(--violet)"></i></div>
+          <div class="sc-val" id="kpiClicks">—</div>
+          <div class="sc-label">Jami kliklar</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ico" style="background:rgba(14,165,233,.12)"><i class="fa-solid fa-users" style="color:var(--sky)"></i></div>
+          <div class="sc-val" id="kpiUsers">—</div>
+          <div class="sc-label">Foydalanuvchilar</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ico" style="background:rgba(245,158,11,.12)"><i class="fa-solid fa-lightbulb" style="color:var(--amber)"></i></div>
+          <div class="sc-val" id="kpiSugg">—</div>
+          <div class="sc-label">Pending takliflar</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ico" style="background:rgba(244,63,94,.12)"><i class="fa-solid fa-triangle-exclamation" style="color:var(--rose)"></i></div>
+          <div class="sc-val" id="kpiRep">—</div>
+          <div class="sc-label">Ochiq muammolar</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ico" style="background:rgba(16,185,129,.12)"><i class="fa-solid fa-heart" style="color:var(--emerald)"></i></div>
+          <div class="sc-val" id="kpiFavs">—</div>
+          <div class="sc-label">Jami sevimlilar</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ico" style="background:rgba(217,70,239,.12)"><i class="fa-solid fa-folder-open" style="color:var(--fuchsia)"></i></div>
+          <div class="sc-val" id="kpiCustom">—</div>
+          <div class="sc-label">Shaxsiy resurslar</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <!-- TOP 10 CHART -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><i class="fa-solid fa-fire"></i> Top 10 resurs (klik)</div>
+            <div class="live-dot"></div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-wrap"><canvas id="topChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- RECENT REPORTS -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><i class="fa-solid fa-triangle-exclamation"></i> So'nggi muammolar</div>
+            <button class="act-btn" onclick="switchTab('reports',document.querySelector('[data-tab=reports]'))">Barchasi →</button>
+          </div>
+          <div class="panel-body np" id="recentReports">
+            <div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <!-- RECENT SUGGESTIONS -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><i class="fa-solid fa-lightbulb"></i> So'nggi takliflar</div>
+            <button class="act-btn" onclick="switchTab('suggestions',document.querySelector('[data-tab=suggestions]'))">Barchasi →</button>
+          </div>
+          <div class="panel-body np" id="recentSugg">
+            <div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+
+        <!-- TOP USERS -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><i class="fa-solid fa-trophy"></i> Eng faol foydalanuvchilar</div>
+          </div>
+          <div class="panel-body np" id="topUsersPanel">
+            <div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SUGGESTIONS TAB ═══ -->
+    <div class="tab-panel" id="tab-suggestions">
+      <div class="page-header">
+        <h2>💡 Resurs takliflari</h2>
+        <p>Foydalanuvchilar taklif qilgan yangi resurslar</p>
+      </div>
+      <div class="panel">
+        <div class="filter-bar">
+          <div class="fb-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="suggSearch" placeholder="Qidirish..." oninput="renderSuggestions()">
+          </div>
+          <button class="filter-pill active" data-sf="all" onclick="setSuggFilter('all',this)">Barchasi</button>
+          <button class="filter-pill" data-sf="pending" onclick="setSuggFilter('pending',this)">⏳ Kutmoqda</button>
+          <button class="filter-pill" data-sf="approved" onclick="setSuggFilter('approved',this)">✅ Tasdiqlandi</button>
+          <button class="filter-pill" data-sf="rejected" onclick="setSuggFilter('rejected',this)">❌ Rad etildi</button>
+        </div>
+        <div id="suggTable"><div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ REPORTS TAB ═══ -->
+    <div class="tab-panel" id="tab-reports">
+      <div class="page-header">
+        <h2>⚠️ Muammo bildirish</h2>
+        <p>Foydalanuvchilar bildirgan texnik muammolar</p>
+      </div>
+      <div class="panel">
+        <div class="filter-bar">
+          <div class="fb-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="repSearch" placeholder="Qidirish..." oninput="renderReports()">
+          </div>
+          <button class="filter-pill active" data-rf="all" onclick="setRepFilter('all',this)">Barchasi</button>
+          <button class="filter-pill" data-rf="open" onclick="setRepFilter('open',this)">🔴 Ochiq</button>
+          <button class="filter-pill" data-rf="resolved" onclick="setRepFilter('resolved',this)">✅ Hal qilindi</button>
+        </div>
+        <div id="repTable"><div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ CLICKS TAB ═══ -->
+    <div class="tab-panel" id="tab-clicks">
+      <div class="page-header">
+        <h2>🖱️ Kliklar statistikasi</h2>
+        <p>Qaysi resurslar eng ko'p ishlatilayapti</p>
+      </div>
+      <div class="grid2" style="align-items:start">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><i class="fa-solid fa-chart-bar"></i> Top 20 — grafik</div>
+          </div>
+          <div class="panel-body">
+            <div style="height:460px"><canvas id="clicksChart"></canvas></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><i class="fa-solid fa-list-ol"></i> To'liq ro'yxat</div>
+            <div class="fb-search" style="max-width:160px">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="clickSearch" placeholder="Qidirish..." oninput="renderClickList()">
+            </div>
+          </div>
+          <div id="clickList" class="panel-body np" style="max-height:480px;overflow-y:auto">
+            <div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ USERS TAB ═══ -->
+    <div class="tab-panel" id="tab-users">
+      <div class="page-header">
+        <h2>👥 Foydalanuvchilar</h2>
+        <p>Ro'yxatga olingan foydalanuvchilar ma'lumotlari</p>
+      </div>
+      <div class="stat-grid" id="usersKpi"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><i class="fa-solid fa-users"></i> Foydalanuvchilar ro'yxati</div>
+          <div class="fb-search" style="max-width:200px">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="usrSearch" placeholder="ID qidirish..." oninput="renderUsers()">
+          </div>
+        </div>
+        <div id="usersTable" class="panel-body np">
+          <div class="loading"><i class="fa-solid fa-spinner spin"></i> Yuklanmoqda...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS TAB ═══ -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="page-header">
+        <h2>⚙️ Sozlamalar</h2>
+        <p>Admin panel konfiguratsiyasi</p>
+      </div>
+      <div style="max-width:520px">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title"><i class="fa-solid fa-database"></i> Supabase ulanishi</div></div>
+          <div class="panel-body">
+            <div class="setup-field">
+              <label>Supabase URL</label>
+              <input class="setup-field input" id="cfgUrl2" type="url" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:#fff;font-size:12px;font-family:inherit;outline:none">
+            </div>
+            <div class="setup-field" style="margin-top:12px">
+              <label>Anon / Service Key</label>
+              <input class="setup-field input" id="cfgKey2" type="password" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:#fff;font-size:12px;font-family:inherit;outline:none">
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button class="tb-btn primary" onclick="saveConfig()" style="flex:1;justify-content:center;padding:10px">
+                <i class="fa-solid fa-floppy-disk"></i> Saqlash
+              </button>
+              <button class="tb-btn" onclick="testConnection()" style="flex:1;justify-content:center;padding:10px">
+                <i class="fa-solid fa-wifi"></i> Test
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title"><i class="fa-solid fa-shield"></i> Xavfsizlik</div></div>
+          <div class="panel-body">
+            <div class="setup-field">
+              <label>Yangi parol</label>
+              <input id="newPass1" type="password" placeholder="Yangi parol" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:#fff;font-size:12px;font-family:inherit;outline:none;margin-bottom:10px">
+            </div>
+            <div class="setup-field" style="margin-top:8px">
+              <label>Parolni tasdiqlang</label>
+              <input id="newPass2" type="password" placeholder="Qaytadan kiriting" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:#fff;font-size:12px;font-family:inherit;outline:none">
+            </div>
+            <button class="tb-btn primary" onclick="changePassword()" style="margin-top:14px;width:100%;justify-content:center;padding:10px">
+              <i class="fa-solid fa-key"></i> Parolni o'zgartirish
+            </button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title"><i class="fa-solid fa-trash-can" style="color:var(--rose)"></i> <span style="color:var(--rose)">Xavfli zona</span></div></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Bu amallar qaytarib bo'lmaydi. Ehtiyot bo'ling!</p>
+            <button class="act-btn reject" style="font-size:12px;padding:9px 16px" onclick="clearAllClicks()">
+              <i class="fa-solid fa-rotate-left"></i> Barcha kliklarni nolga qaytarish
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /appWrap -->
+
+<!-- TOAST -->
+<div id="adminToast">
+  <i id="toastIco" class="fa-solid fa-check-circle" style="color:var(--emerald)"></i>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div id="confirmDlg">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Ishonchingiz komilmi?</h3>
+    <p id="confirmMsg"></p>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="hideConfirm()">Bekor qilish</button>
+      <button class="confirm-ok" id="confirmOkBtn" onclick="confirmAction()">Tasdiqlash</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  CONFIG & AUTH
+// ════════════════════════════════════════════════════
+const LS = {
+  url:    () => localStorage.getItem('adm_url') || '',
+  key:    () => localStorage.getItem('adm_key') || '',
+  pass:   () => localStorage.getItem('adm_pass') || btoa('admin123'),
+  authed: () => sessionStorage.getItem('adm_authed') === '1',
+};
+
+function handleSetup(){
+  const url  = document.getElementById('cfgUrl').value.trim().replace(/\/$/,'');
+  const key  = document.getElementById('cfgKey').value.trim();
+  const pass = document.getElementById('cfgPass').value;
+  const err  = document.getElementById('setupErr');
+  err.style.display = 'none';
+
+  if(!url || !key){ err.textContent = "URL va Key kiritilishi shart!"; err.style.display='block'; return; }
+
+  const stored = LS.pass();
+  const entered = btoa(pass);
+  if(entered !== stored){ err.textContent = "Noto'g'ri parol!"; err.style.display='block'; return; }
+
+  localStorage.setItem('adm_url', url);
+  localStorage.setItem('adm_key', key);
+  sessionStorage.setItem('adm_authed','1');
+
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('appWrap').style.display='flex';
+  initApp();
+}
+
+function logout(){
+  sessionStorage.removeItem('adm_authed');
+  location.reload();
+}
+
+// ════════════════════════════════════════════════════
+//  SUPABASE FETCH
+// ════════════════════════════════════════════════════
+async function supa(path, method='GET', body=null, prefer=null){
+  const url = LS.url() + path;
+  const hdrs = {
+    'apikey': LS.key(),
+    'Authorization': 'Bearer ' + LS.key(),
+    'Content-Type': 'application/json',
+  };
+  if(prefer) hdrs['Prefer'] = prefer;
+  const opts = { method, headers: hdrs };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if(res.status === 204) return null;
+  const text = await res.text();
+  try{ return JSON.parse(text); }
+  catch(e){ return text; }
+}
+
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
+let allClicks=[], allUsers=[], allSugg=[], allReports=[];
+let suggFilter='all', repFilter='all';
+let _confirmCb=null;
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+async function initApp(){
+  tickClock();
+  setInterval(tickClock, 1000);
+  populateSettingsFields();
+  await Promise.all([
+    loadClicks(),
+    loadUsers(),
+    loadSugg(),
+    loadReports(),
+  ]);
+  renderOverview();
+}
+
+function tickClock(){
+  const now = new Date();
+  document.getElementById('tbTime').textContent =
+    now.toLocaleString('uz',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) +
+    ' ' + now.toLocaleDateString('uz',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+// ════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════
+const TAB_TITLES = {
+  overview:    '📊 Umumiy statistika',
+  suggestions: '💡 Resurs takliflari',
+  reports:     '⚠️ Muammo bildirish',
+  clicks:      '🖱️ Kliklar statistikasi',
+  users:       '👥 Foydalanuvchilar',
+  settings:    '⚙️ Sozlamalar',
+};
+
+function switchTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  document.getElementById('tbTitle').textContent = TAB_TITLES[id] || id;
+
+  if(id==='clicks') renderClickChart();
+  if(id==='users') renderUsers();
+}
+
+// ════════════════════════════════════════════════════
+//  LOAD DATA
+// ════════════════════════════════════════════════════
+async function loadClicks(){
+  try{
+    const rows = await supa('/rest/v1/clicks?select=name,count&order=count.desc&limit=500');
+    if(Array.isArray(rows)) allClicks = rows.filter(r=>r.count>0);
+  }catch(e){ console.error('clicks:', e); }
+}
+
+async function loadUsers(){
+  try{
+    const rows = await supa('/rest/v1/user_data?select=user_id,favorites,custom_apps,created_at&order=created_at.desc&limit=500');
+    if(Array.isArray(rows)) allUsers = rows;
+  }catch(e){ console.error('users:', e); }
+}
+
+async function loadSugg(){
+  try{
+    const rows = await supa('/rest/v1/suggestions?select=*&order=created_at.desc&limit=300');
+    if(Array.isArray(rows)) allSugg = rows;
+  }catch(e){ console.error('sugg:', e); }
+}
+
+async function loadReports(){
+  try{
+    const rows = await supa('/rest/v1/reports?select=*&order=created_at.desc&limit=300');
+    if(Array.isArray(rows)) allReports = rows;
+  }catch(e){ console.error('reports:', e); }
+}
+
+async function refreshAll(){
+  toast('Yangilanmoqda...','fa-rotate-right spin',false);
+  await Promise.all([loadClicks(),loadUsers(),loadSugg(),loadReports()]);
+  renderOverview();
+  const active = document.querySelector('.tab-panel.active')?.id.replace('tab-','');
+  if(active==='suggestions') renderSuggestions();
+  if(active==='reports') renderReports();
+  if(active==='clicks'){ renderClickList(); renderClickChart(); }
+  if(active==='users') renderUsers();
+  toast('Muvaffaqiyatli yangilandi!');
+}
+
+// ════════════════════════════════════════════════════
+//  OVERVIEW
+// ════════════════════════════════════════════════════
+function renderOverview(){
+  // KPI
+  const totalClicks = allClicks.reduce((a,r)=>a+(r.count||0),0);
+  const pendingSugg = allSugg.filter(s=>s.status==='pending'||!s.status).length;
+  const openReps    = allReports.filter(r=>r.status==='open'||!r.status).length;
+  const totalFavs   = allUsers.reduce((a,u)=>a+(u.favorites?.length||0),0);
+  const totalCustom = allUsers.reduce((a,u)=>a+(u.custom_apps?.length||0),0);
+
+  setKpi('kpiClicks', totalClicks.toLocaleString());
+  setKpi('kpiUsers',  allUsers.length);
+  setKpi('kpiSugg',   pendingSugg, pendingSugg>0?'amber':null);
+  setKpi('kpiRep',    openReps, openReps>0?'rose':null);
+  setKpi('kpiFavs',   totalFavs.toLocaleString());
+  setKpi('kpiCustom', totalCustom.toLocaleString());
+
+  // Badges
+  setBadge('sugBadge', pendingSugg);
+  setBadge('repBadge', openReps);
+
+  // Top chart
+  renderTopChart();
+
+  // Recent reports
+  const rRep = document.getElementById('recentReports');
+  if(allReports.length===0){ rRep.innerHTML=`<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Muammolar yo'q</p></div>`; }
+  else{
+    rRep.innerHTML = `<table class="tbl">
+      <thead><tr><th>Sayt</th><th>Sabab</th><th>Sana</th><th>Holat</th></tr></thead>
+      <tbody>${allReports.slice(0,5).map(r=>`<tr>
+        <td><span style="font-weight:700">${esc(r.site_name||'—')}</span></td>
+        <td style="color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.reason||'—')}</td>
+        <td style="color:var(--muted)">${fmtDate(r.created_at)}</td>
+        <td>${statusBadge(r.status||'open','report')}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+
+  // Recent suggestions
+  const rSugg = document.getElementById('recentSugg');
+  if(allSugg.length===0){ rSugg.innerHTML=`<div class="empty-state"><i class="fa-solid fa-lightbulb"></i><p>Takliflar yo'q</p></div>`; }
+  else{
+    rSugg.innerHTML = `<table class="tbl">
+      <thead><tr><th>Nomi</th><th>URL</th><th>Sana</th><th>Holat</th></tr></thead>
+      <tbody>${allSugg.slice(0,5).map(s=>`<tr>
+        <td><span style="font-weight:700">${esc(s.name||'—')}</span></td>
+        <td><a class="tbl-link" href="${esc(s.url||'#')}" target="_blank">${truncate(s.url||'—',30)}</a></td>
+        <td style="color:var(--muted)">${fmtDate(s.created_at)}</td>
+        <td>${statusBadge(s.status||'pending','sugg')}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+
+  // Top users
+  const topU = [...allUsers]
+    .sort((a,b)=>(b.favorites?.length||0)+(b.custom_apps?.length||0)-(a.favorites?.length||0)-(a.custom_apps?.length||0))
+    .slice(0,5);
+  const tu = document.getElementById('topUsersPanel');
+  if(!topU.length){ tu.innerHTML=`<div class="empty-state"><i class="fa-solid fa-users"></i><p>Foydalanuvchilar yo'q</p></div>`; }
+  else{
+    tu.innerHTML=`<table class="tbl">
+      <thead><tr><th>#</th><th>User ID</th><th>Sevimlilar</th><th>Shaxsiy</th></tr></thead>
+      <tbody>${topU.map((u,i)=>`<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td><code style="font-size:10px;color:var(--sky)">${esc((u.user_id||'').substring(0,18))}…</code></td>
+        <td><span class="badge badge-violet">${u.favorites?.length||0} ❤️</span></td>
+        <td><span class="badge badge-violet">${u.custom_apps?.length||0} 📁</span></td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+}
+
+function renderTopChart(){
+  const top10 = allClicks.slice(0,10);
+  const ctx = document.getElementById('topChart');
+  if(!ctx) return;
+  if(window._topChart) window._topChart.destroy();
+  window._topChart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: top10.map(r=>r.name),
+      datasets:[{
+        data: top10.map(r=>r.count),
+        backgroundColor: top10.map((_,i)=>`hsla(${260+i*10},70%,${65-i*2}%,0.8)`),
+        borderRadius:8, borderSkipped:false,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw+' klik'}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748b',font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:'#e2e8f0',font:{size:11,weight:'700'}}}
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  SUGGESTIONS
+// ════════════════════════════════════════════════════
+function setSuggFilter(val, btn){
+  suggFilter=val;
+  document.querySelectorAll('[data-sf]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSuggestions();
+}
+
+function renderSuggestions(){
+  const q = (document.getElementById('suggSearch')?.value||'').toLowerCase();
+  let data = allSugg;
+  if(suggFilter!=='all') data=data.filter(s=>(s.status||'pending')===suggFilter);
+  if(q) data=data.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.url||'').toLowerCase().includes(q));
+
+  const el = document.getElementById('suggTable');
+  if(!data.length){
+    el.innerHTML=`<div class="empty-state"><i class="fa-solid fa-lightbulb"></i><p>Takliflar topilmadi</p><small>Filtrni o'zgartirib ko'ring</small></div>`;
+    return;
+  }
+  el.innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>Nomi</th><th>URL</th><th>Tavsif</th><th>Aloqa</th><th>Sana</th><th>Holat</th><th>Amal</th></tr></thead>
+    <tbody>${data.map((s,i)=>`<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><span style="font-weight:700;color:#fff">${esc(s.name||'—')}</span></td>
+      <td><a class="tbl-link" href="${esc(s.url||'#')}" target="_blank">${truncate(s.url||'—',28)}</a></td>
+      <td style="color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.description||'—')}</td>
+      <td style="color:var(--sky);font-size:11px">${esc(s.contact||'—')}</td>
+      <td style="color:var(--muted);white-space:nowrap">${fmtDate(s.created_at)}</td>
+      <td>${statusBadge(s.status||'pending','sugg')}</td>
+      <td><div class="act-btns">
+        ${(s.status||'pending')==='pending'?`
+          <button class="act-btn approve" onclick="updateSugg(${s.id},'approved')"><i class="fa-solid fa-check"></i> Tasdiqlash</button>
+          <button class="act-btn reject" onclick="updateSugg(${s.id},'rejected')"><i class="fa-solid fa-xmark"></i></button>`
+        :`<button class="act-btn" onclick="updateSugg(${s.id},'pending')"><i class="fa-solid fa-rotate-left"></i></button>`}
+        <button class="act-btn delete" onclick="deleteSugg(${s.id})"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function updateSugg(id, status){
+  try{
+    await supa(`/rest/v1/suggestions?id=eq.${id}`,'PATCH',{status},'return=minimal');
+    const i = allSugg.findIndex(s=>s.id===id);
+    if(i>-1) allSugg[i].status=status;
+    renderSuggestions();
+    renderOverview();
+    toast(status==='approved'?'Tasdiqlandi ✅':'Holat yangilandi');
+  }catch(e){ toast('Xato yuz berdi','fa-circle-xmark',true,true); }
+}
+
+function deleteSugg(id){
+  confirm2('Taklifni o\'chirasizmi?','Bu amalni qaytarib bo\'lmaydi.',async()=>{
+    try{
+      await supa(`/rest/v1/suggestions?id=eq.${id}`,'DELETE',null,'return=minimal');
+      allSugg=allSugg.filter(s=>s.id!==id);
+      renderSuggestions(); renderOverview();
+      toast("O'chirildi",'fa-trash',false);
+    }catch(e){ toast('Xato','fa-circle-xmark',false,true); }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  REPORTS
+// ════════════════════════════════════════════════════
+function setRepFilter(val, btn){
+  repFilter=val;
+  document.querySelectorAll('[data-rf]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReports();
+}
+
+function renderReports(){
+  const q = (document.getElementById('repSearch')?.value||'').toLowerCase();
+  let data = allReports;
+  if(repFilter==='open') data=data.filter(r=>r.status==='open'||!r.status);
+  if(repFilter==='resolved') data=data.filter(r=>r.status==='resolved');
+  if(q) data=data.filter(r=>(r.site_name||'').toLowerCase().includes(q)||(r.reason||'').toLowerCase().includes(q));
+
+  const el = document.getElementById('repTable');
+  if(!data.length){
+    el.innerHTML=`<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Muammolar topilmadi</p></div>`;
+    return;
+  }
+  el.innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>Sayt</th><th>URL</th><th>Sabab</th><th>Sana</th><th>Holat</th><th>Amal</th></tr></thead>
+    <tbody>${data.map((r,i)=>`<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><span style="font-weight:700;color:#fff">${esc(r.site_name||'—')}</span></td>
+      <td><a class="tbl-link" href="${esc(r.site_url||'#')}" target="_blank">${truncate(r.site_url||'—',25)}</a></td>
+      <td style="color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.reason||'—')}</td>
+      <td style="color:var(--muted);white-space:nowrap">${fmtDate(r.created_at)}</td>
+      <td>${statusBadge(r.status||'open','report')}</td>
+      <td><div class="act-btns">
+        ${(r.status||'open')==='open'
+          ?`<button class="act-btn resolve" onclick="updateReport(${r.id},'resolved')"><i class="fa-solid fa-check-double"></i> Hal qilindi</button>`
+          :`<button class="act-btn" onclick="updateReport(${r.id},'open')"><i class="fa-solid fa-rotate-left"></i></button>`}
+        <button class="act-btn delete" onclick="deleteReport(${r.id})"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function updateReport(id, status){
+  try{
+    await supa(`/rest/v1/reports?id=eq.${id}`,'PATCH',{status},'return=minimal');
+    const i=allReports.findIndex(r=>r.id===id);
+    if(i>-1) allReports[i].status=status;
+    renderReports(); renderOverview();
+    toast(status==='resolved'?'Hal qilindi ✅':'Holat yangilandi');
+  }catch(e){ toast('Xato','fa-circle-xmark',false,true); }
+}
+
+function deleteReport(id){
+  confirm2('Muammoni o\'chirasizmi?','Bu amalni qaytarib bo\'lmaydi.',async()=>{
+    try{
+      await supa(`/rest/v1/reports?id=eq.${id}`,'DELETE',null,'return=minimal');
+      allReports=allReports.filter(r=>r.id!==id);
+      renderReports(); renderOverview();
+      toast("O'chirildi",'fa-trash',false);
+    }catch(e){ toast('Xato','fa-circle-xmark',false,true); }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  CLICKS
+// ════════════════════════════════════════════════════
+function renderClickList(){
+  const q=(document.getElementById('clickSearch')?.value||'').toLowerCase();
+  let data=allClicks;
+  if(q) data=data.filter(r=>(r.name||'').toLowerCase().includes(q));
+  const max=data[0]?.count||1;
+  const el=document.getElementById('clickList');
+  if(!data.length){ el.innerHTML=`<div class="empty-state"><i class="fa-solid fa-arrow-pointer"></i><p>Kliklar yo'q</p></div>`; return; }
+  el.innerHTML=data.map((r,i)=>`
+    <div class="res-item">
+      <span class="res-rank" style="color:${i<3?'var(--amber)':'var(--muted)'}">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span>
+      <div style="flex:1;min-width:0">
+        <div class="res-name">${esc(r.name)}</div>
+        <div class="click-bar-wrap" style="margin-top:5px">
+          <div class="click-bar-bg"><div class="click-bar-fill" style="width:${Math.round(r.count/max*100)}%"></div></div>
+          <span class="click-val">${r.count}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderClickChart(){
+  const top20=allClicks.slice(0,20);
+  const ctx=document.getElementById('clicksChart');
+  if(!ctx) return;
+  if(window._clicksChart) window._clicksChart.destroy();
+  window._clicksChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:top20.map(r=>r.name),
+      datasets:[{
+        data:top20.map(r=>r.count),
+        backgroundColor:top20.map((_,i)=>`hsla(${260+i*8},72%,${65-i*1.5}%,0.85)`),
+        borderRadius:6,borderSkipped:false,
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw+' klik'}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748b',font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:'#e2e8f0',font:{size:10,weight:'700'},maxTicksLimit:20}}
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  USERS
+// ════════════════════════════════════════════════════
+function renderUsers(){
+  // KPIs
+  const totalFavs=allUsers.reduce((a,u)=>a+(u.favorites?.length||0),0);
+  const totalCustom=allUsers.reduce((a,u)=>a+(u.custom_apps?.length||0),0);
+  const withFavs=allUsers.filter(u=>u.favorites?.length>0).length;
+  document.getElementById('usersKpi').innerHTML=`
+    <div class="stat-card"><div class="sc-ico" style="background:rgba(14,165,233,.12)"><i class="fa-solid fa-users" style="color:var(--sky)"></i></div><div class="sc-val">${allUsers.length}</div><div class="sc-label">Jami foydalanuvchi</div></div>
+    <div class="stat-card"><div class="sc-ico" style="background:rgba(244,63,94,.12)"><i class="fa-solid fa-heart" style="color:var(--rose)"></i></div><div class="sc-val">${totalFavs}</div><div class="sc-label">Jami sevimlilar</div></div>
+    <div class="stat-card"><div class="sc-ico" style="background:rgba(217,70,239,.12)"><i class="fa-solid fa-folder" style="color:var(--fuchsia)"></i></div><div class="sc-val">${totalCustom}</div><div class="sc-label">Shaxsiy resurslar</div></div>
+    <div class="stat-card"><div class="sc-ico" style="background:rgba(16,185,129,.12)"><i class="fa-solid fa-user-check" style="color:var(--emerald)"></i></div><div class="sc-val">${withFavs}</div><div class="sc-label">Saqlagan foydalanuvchi</div></div>`;
+
+  const q=(document.getElementById('usrSearch')?.value||'').toLowerCase();
+  let data=allUsers;
+  if(q) data=data.filter(u=>(u.user_id||'').toLowerCase().includes(q));
+
+  const el=document.getElementById('usersTable');
+  if(!data.length){ el.innerHTML=`<div class="empty-state"><i class="fa-solid fa-users"></i><p>Foydalanuvchilar topilmadi</p></div>`; return; }
+  el.innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>User ID</th><th>Sevimlilar</th><th>Shaxsiy resurslar</th><th>Ro'yxatga olingan</th></tr></thead>
+    <tbody>${data.map((u,i)=>`<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><code style="font-size:10px;color:var(--sky);word-break:break-all">${esc(u.user_id||'—')}</code></td>
+      <td>
+        <span class="badge badge-violet">${u.favorites?.length||0} ❤️</span>
+        ${u.favorites?.length>0?`<details style="display:inline;margin-left:6px"><summary style="cursor:pointer;font-size:10px;color:var(--muted)">Ko'rish</summary><div style="font-size:10px;color:var(--muted);max-width:200px;margin-top:4px">${(u.favorites||[]).slice(0,5).join(', ')}${u.favorites?.length>5?'...':''}</div></details>`:''}
+      </td>
+      <td><span class="badge badge-violet">${u.custom_apps?.length||0} 📁</span></td>
+      <td style="color:var(--muted)">${fmtDate(u.created_at)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// ════════════════════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════════════════════
+function populateSettingsFields(){
+  const u=document.getElementById('cfgUrl2'), k=document.getElementById('cfgKey2');
+  if(u) u.value=LS.url();
+  if(k) k.value=LS.key();
+}
+
+function saveConfig(){
+  const url=(document.getElementById('cfgUrl2').value||'').trim().replace(/\/$/,'');
+  const key=(document.getElementById('cfgKey2').value||'').trim();
+  if(!url||!key){ toast('URL va Key kiritilishi shart','fa-circle-xmark',false,true); return; }
+  localStorage.setItem('adm_url',url);
+  localStorage.setItem('adm_key',key);
+  toast('Sozlamalar saqlandi ✅');
+}
+
+async function testConnection(){
+  try{
+    const r=await supa('/rest/v1/clicks?select=name&limit=1');
+    if(Array.isArray(r)) toast('Ulanish muvaffaqiyatli! ✅');
+    else toast('Javob noto\'g\'ri formatda','fa-circle-xmark',false,true);
+  }catch(e){ toast('Ulanib bo\'lmadi: '+e.message,'fa-circle-xmark',false,true); }
+}
+
+function changePassword(){
+  const p1=document.getElementById('newPass1').value;
+  const p2=document.getElementById('newPass2').value;
+  if(!p1||p1.length<4){ toast('Parol kamida 4 ta belgi bo\'lishi kerak','fa-circle-xmark',false,true); return; }
+  if(p1!==p2){ toast('Parollar mos kelmadi','fa-circle-xmark',false,true); return; }
+  localStorage.setItem('adm_pass',btoa(p1));
+  document.getElementById('newPass1').value='';
+  document.getElementById('newPass2').value='';
+  toast('Parol o\'zgartirildi 🔐');
+}
+
+function clearAllClicks(){
+  confirm2(
+    'Barcha kliklarni nolga qaytarasizmi?',
+    'Bu amalni qaytarib bo\'lmaydi! Barcha click statistikasi o\'chiriladi.',
+    async ()=>{
+      try{
+        await supa('/rest/v1/clicks','DELETE',null,'return=minimal');
+        allClicks=[];
+        renderOverview(); renderClickList();
+        toast('Barcha kliklar o\'chirildi');
+      }catch(e){ toast('Xato: '+e.message,'fa-circle-xmark',false,true); }
+    },
+    false // not safe/green — red confirm button
+  );
+}
+
+// ════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function truncate(s,n){ return s.length>n?s.substring(0,n)+'…':s; }
+function fmtDate(d){
+  if(!d) return '—';
+  const dt=new Date(d);
+  return dt.toLocaleDateString('uz',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+dt.toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'});
+}
+function setKpi(id, val, color=null){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=val;
+  if(color) el.style.color=`var(--${color})`;
+}
+function setBadge(id, count){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.display=count>0?'':'none';
+  el.textContent=count;
+}
+function statusBadge(status, type){
+  if(type==='sugg'){
+    const m={pending:'badge-pending',approved:'badge-approved',rejected:'badge-rejected'};
+    const l={pending:'⏳ Kutmoqda',approved:'✅ Tasdiqlandi',rejected:'❌ Rad etildi'};
+    return `<span class="badge ${m[status]||'badge-pending'}">${l[status]||status}</span>`;
+  }
+  if(status==='resolved') return `<span class="badge badge-resolved">✅ Hal qilindi</span>`;
+  return `<span class="badge badge-open">🔴 Ochiq</span>`;
+}
+
+function toast(msg, ico='fa-circle-check', autoHide=true, isErr=false){
+  const t=document.getElementById('adminToast');
+  const i=document.getElementById('toastIco');
+  const m=document.getElementById('toastMsg');
+  i.className='fa-solid '+ico;
+  i.style.color=isErr?'var(--rose)':'var(--emerald)';
+  m.textContent=msg;
+  t.classList.add('show');
+  if(autoHide!==false) setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+let _confirmCbFn=null;
+function confirm2(title, msg, cb, safe=true){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  const ok=document.getElementById('confirmOkBtn');
+  ok.className='confirm-ok'+(safe?' safe':'');
+  ok.textContent=safe?'Tasdiqlash':'Ha, o\'chirish';
+  _confirmCbFn=cb;
+  document.getElementById('confirmDlg').classList.add('show');
+}
+function confirmAction(){ if(_confirmCbFn) _confirmCbFn(); hideConfirm(); }
+function hideConfirm(){ document.getElementById('confirmDlg').classList.remove('show'); _confirmCbFn=null; }
+document.getElementById('confirmDlg').addEventListener('click',e=>{ if(e.target===e.currentTarget) hideConfirm(); });
+
+// ════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  if(LS.authed() && LS.url() && LS.key()){
+    document.getElementById('setupScreen').style.display='none';
+    document.getElementById('appWrap').style.display='flex';
+    initApp();
+  } else {
+    // Pre-fill if URL/key saved
+    if(LS.url()) document.getElementById('cfgUrl').value=LS.url();
+    if(LS.key()) document.getElementById('cfgKey').value=LS.key();
+  }
+  // Enter key on setup
+  ['cfgUrl','cfgKey','cfgPass'].forEach(id=>{
+    document.getElementById(id)?.addEventListener('keydown',e=>{ if(e.key==='Enter') handleSetup(); });
+  });
+});
+</script>
+</body>
+</html>
