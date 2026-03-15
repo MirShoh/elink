@@ -10,6 +10,19 @@ function safeParse(key, fallback) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════
+//  XSS HIMOYA — barcha foydalanuvchi kiritishlarini tozalash
+// ═══════════════════════════════════════════════════════════
+function escHtml(str){
+  if(!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
 // ── Foydalanuvchi noyob ID (UUID, bir marta yaratiladi) ──────
@@ -60,7 +73,7 @@ function saveUserDataToSupabase(){
         })
       });
     }catch(e){ console.warn('[sync] save error:', e.message); }
-  }, 1500);
+  }, 900);
 }
 
 async function sendTelegram(text){
@@ -133,8 +146,10 @@ let customApps = safeParse('lh_custom_apps', []);
     if(remote.customApps.length >= customApps.length){
       customApps = remote.customApps;
       localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-      const cat = DATA?.find(c=>c.id==='my_apps');
-      if(cat){ cat.items = customApps; renderNav(); renderContent(); }
+      if(typeof DATA !== 'undefined'){
+        const cat = DATA?.find(c=>c.id==='my_apps');
+        if(cat){ cat.items = customApps; renderNav(); renderContent(); }
+      }
     }
     if(remote.favorites.length >= favorites.length){
       favorites = remote.favorites;
@@ -148,6 +163,10 @@ let customApps = safeParse('lh_custom_apps', []);
 // DATA massivi data.js dan yuklanadi (tezlik uchun)
 // my_apps kategoriyasiga customApps ni bog'lash
 function initCustomApps() {
+  if(typeof DATA === 'undefined' || !Array.isArray(DATA)) {
+    console.warn('[E-Link] DATA yuklanmagan, initCustomApps kechiktirildi');
+    return;
+  }
   const myAppsCategory = DATA.find(c => c.id === 'my_apps');
   if (myAppsCategory) myAppsCategory.items = customApps;
 }
@@ -188,16 +207,35 @@ function getFallbackColor(name) {
 // ── Global logo fallback — qo'shtirnoq muamosiz
 window._logoFail = function(img) {
   const domain = img.dataset.domain;
-  const svg    = img.dataset.svg;
   const step   = parseInt(img.dataset.step || '0');
   if (step === 1 && domain) {
     // 2-urinish: DuckDuckGo favicon
     img.dataset.step = '2';
     img.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   } else {
-    // Oxirgi: tiniq globus SVG
+    // Oxirgi fallback: rang + harf avatari (xira globus emas)
     img.onerror = null;
-    img.src = svg;
+    img.src = img.dataset.svg;
+    // img ni yashirib, harf avatarini ko'rsatish
+    const wrap = img.closest('.card-logo-wrap') || img.parentElement;
+    if(wrap && !wrap.dataset.avatarSet){
+      wrap.dataset.avatarSet = '1';
+      img.style.display = 'none';
+      const letter = (img.alt || '?')[0].toUpperCase();
+      const palettes = [
+        ['#6366f1','#8b5cf6'],['#8b5cf6','#d946ef'],['#06b6d4','#3b82f6'],
+        ['#10b981','#059669'],['#f59e0b','#ef4444'],['#f97316','#ec4899'],
+        ['#14b8a6','#6366f1'],['#3b82f6','#0ea5e9'],['#d946ef','#f43f5e'],
+        ['#ef4444','#f97316'],['#84cc16','#10b981'],['#a855f7','#6366f1']
+      ];
+      let hash = 0;
+      for(let i=0;i<(img.alt||'').length;i++) hash = (img.alt||'').charCodeAt(i)+((hash<<5)-hash);
+      const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
+      const av = document.createElement('div');
+      av.style.cssText = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,${c1},${c2});border-radius:inherit;font-weight:900;font-size:1.1em;color:#fff;letter-spacing:-.02em;font-family:inherit;`;
+      av.textContent = letter;
+      wrap.appendChild(av);
+    }
   }
 };
 
@@ -225,7 +263,6 @@ function _globeSVG(c1, c2) {
 function iconHTML(item, cls="w-10 h-10 object-contain drop-shadow-sm") {
 const domain = getDomain(item.u);
 
-// Har bir ilova uchun o'ziga xos gradient rang
 const palettes = [
   ['#6366f1','#8b5cf6'],['#8b5cf6','#d946ef'],['#06b6d4','#3b82f6'],
   ['#10b981','#059669'],['#f59e0b','#ef4444'],['#f97316','#ec4899'],
@@ -235,15 +272,13 @@ const palettes = [
 let hash = 0;
 for(let i=0;i<item.n.length;i++) hash = item.n.charCodeAt(i)+((hash<<5)-hash);
 const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
-
-// Logo topilmasa — tiniq globus ikonkasi (har biri o'z rangida)
 const svgData = _globeSVG(c1, c2);
 
-// Boshlang'ich manba: Google favicon (ishonchli)
-const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : svgData;
+// Favicon manba — data-src orqali lazy load
+const faviconSrc = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : svgData;
 
-return `<img src="${src}" alt="${item.n}" loading="lazy"
-  class="${cls} transition-transform group-hover:scale-110"
+return `<img src="${svgData}" data-src="${faviconSrc}" alt="${item.n}" loading="lazy"
+  class="${cls} transition-transform group-hover:scale-110 lz-img"
   data-domain="${domain}"
   data-svg="${svgData}"
   data-step="1"
@@ -342,7 +377,6 @@ const isBepul    = item.t?.includes('bepul');
 const isPullik   = item.t?.includes('pullik');
 const isMob      = item.t?.includes('mobil');
 const hasWeb     = item.t?.includes('web') || item.isCustom ||
-  // Store URL emas bo'lsa — asosiy URL veb variant sifatida ko'rinadi
   (item.u && !item.u.includes('play.google.com') && !item.u.includes('apps.apple.com') && !item.u.includes('appgallery.huawei'));
 const isCustom   = item.isCustom;
 const isVerified = !!item.v;
@@ -351,6 +385,9 @@ const c          = getClicks(item.n);
 const isHot      = c >= 5;
 const esc        = item.n.replace(/'/g,"\\'");
 const escUrl     = item.u.replace(/'/g,"\\'");
+// XSS himoya: shaxsiy resurslarda foydalanuvchi kiritgan matnni tozalash
+const safeName   = isCustom ? escHtml(item.n) : item.n;
+const safeDesc   = isCustom ? escHtml(item.d||'') : (item.d||'');
 
 const mainClick = (isMob || item.androidUrl)
   ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},${!!(isMob||item.androidUrl)})`
@@ -391,7 +428,7 @@ return `
     </div>
     <div class="flex-1 min-w-0 pt-0.5">
       <div class="font-black text-[14px] text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors leading-snug flex items-center gap-1.5">
-        <span class="truncate">${hl(item.n,q2)}</span>
+        <span class="truncate">${hl(safeName,q2)}</span>
         ${isVerified ? `<span class="verified-icon" title="Rasmiy va ishonchli platforma"><i class="fa-solid fa-shield-halved"></i></span>` : ''}
       </div>
       <div class="flex flex-wrap gap-1 mt-1.5 items-center">${badges}</div>
@@ -399,7 +436,7 @@ return `
   </div>
 
   <!-- DESCRIPTION -->
-  <p class="text-[11.5px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">${hl(item.d||'',q2)}</p>
+  <p class="text-[11.5px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">${hl(safeDesc,q2)}</p>
 
   <!-- CARD FOOTER: views(left) — report+share(right) -->
   <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100/80 dark:border-slate-800/50 relative z-10">
@@ -441,7 +478,8 @@ renderTrending();
 };
 
 window.toggleFav = function(name, btn, silent=false){
-favorites = favorites.includes(name)
+const wasIn = favorites.includes(name);
+favorites = wasIn
   ? favorites.filter(n=>n!==name)
   : [...favorites, name];
 localStorage.setItem('lh_favs', JSON.stringify(favorites));
@@ -452,8 +490,10 @@ if(btn) {
     btn.className = `fav-btn w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] ${on?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-rose-500'}`;
     btn.innerHTML = `<i class="fa-${on?'solid':'regular'} fa-heart"></i>`;
 }
-if(activeCat==='favorites') renderContent();
+// favorites soni o'zgargani uchun sidebar badge ni yangilash
 renderNav();
+// faqat favorites ko'rinishida to'liq qayta render qilish
+if(activeCat==='favorites') renderContent();
 };
 
 function renderNav(){
@@ -466,7 +506,7 @@ if(mobCnt) mobCnt.textContent = total + ' ta resurs';
 // ── Helper: build one nav item ──
 const navBtn = (onclick, title, icon, label, count, extraClass='', countClass='') => {
   return `<button onclick="${onclick}" title="${title}"
-    class="sb-nav-item ${extraClass} w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group">
+    class="sb-nav-item ${extraClass} w-full flex items-center justify-between px-3 py-1.5 rounded-xl transition-all text-sm group">
     <div class="flex items-center gap-2.5 min-w-0 overflow-hidden">
       <i class="fa-solid ${icon} w-4 text-center text-xs opacity-55 group-hover:opacity-100 transition-opacity shrink-0"></i>
       <span class="truncate text-left">${label}</span>
@@ -597,8 +637,8 @@ const isSpecificCat = id!=='all' && id!=='favorites' && id!=='my_apps';
 
 if(catWrap){
   if(isSpecificCat){
-    catwrap.classList.remove('hidden');
-  wrap.style.display = 'flex';
+    catWrap.classList.remove('hidden');
+    catWrap.style.display = 'flex';
   } else {
     catWrap.classList.add('hidden');
   }
@@ -619,61 +659,229 @@ renderNav(); renderContent();
 $('mainScroll').scrollTo({top:0,behavior:'smooth'});
 };
 
+// ═══════════════════════════════════════════════════════════
+//  SKELETON CARD — tezkor vizual feedback
+// ═══════════════════════════════════════════════════════════
+function skeletonCard(){
+  return `<div class="skel-card glass rounded-2xl p-4 flex flex-col h-full">
+    <div class="flex items-start gap-3 mb-3">
+      <div class="skel-box w-11 h-11 rounded-2xl shrink-0"></div>
+      <div class="flex-1 pt-1 space-y-2">
+        <div class="skel-box h-3.5 w-3/4 rounded-lg"></div>
+        <div class="skel-box h-2.5 w-1/3 rounded-lg"></div>
+      </div>
+    </div>
+    <div class="space-y-1.5 flex-1">
+      <div class="skel-box h-2.5 w-full rounded-lg"></div>
+      <div class="skel-box h-2.5 w-5/6 rounded-lg"></div>
+    </div>
+    <div class="mt-3 pt-2 border-t border-slate-100/80 dark:border-slate-800/50 flex justify-between">
+      <div class="skel-box h-2.5 w-8 rounded-lg"></div>
+      <div class="flex gap-1.5">
+        <div class="skel-box w-7 h-7 rounded-xl"></div>
+        <div class="skel-box w-7 h-7 rounded-xl"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Har bir renderContent chaqiruviga unikal token — eski idle callbacklarni bekor qilish uchun
+let _renderToken = 0;
+
 function renderContent(){
-$('appsContainer').innerHTML='';
-let found=0, delay=0;
-const buildSec=(items, heading, gr, catId)=>{
-  if(!items.length) return;
-  found+=items.length;
-  const sec=document.createElement('div');
-  sec.className='animate-fade-up';
-  sec.style.animationDelay=`${delay}s`;
-  delay+=0.025;
-  // Category share URL
-const shareUrl = catId ? ('https://elink.uz/?cat=' + catId) : 'https://elink.uz';
-  const shareTitle = heading ? heading + ' — E-Link UZ' : 'E-Link UZ';
-  const shareBtn = heading ? `
+const myToken = ++_renderToken;
+const container = $('appsContainer');
+container.innerHTML = '';
+$('noResults').classList.add('hidden');
+$('noResults').classList.remove('flex');
+
+// ── Skeleton ko'rsatish (darhol) ─────────────────────────
+const SKEL_COUNT = 10;
+const skelFrag = document.createDocumentFragment();
+const skelGrid = document.createElement('div');
+skelGrid.id = '_skelGrid';
+skelGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-3';
+skelGrid.innerHTML = Array(SKEL_COUNT).fill(skeletonCard()).join('');
+skelFrag.appendChild(skelGrid);
+container.appendChild(skelFrag);
+
+// ── Haqiqiy render (bir tick keyinroq, skeleton ko'rsatilgandan so'ng) ──
+setTimeout(()=>{
+  if(myToken !== _renderToken) return; // eskirgan render — bekor qilish
+
+  // Barcha ma'lumotlarni yig'ish
+  let sections = []; // [{heading, gr, catId, items}]
+  let totalFound = 0;
+
+  if(activeCat==='favorites'){
+    const fItems=[];
+    DATA.forEach(c=>c.items.forEach(i=>{ if(favorites.includes(i.n)&&matchItem(i,c)) fItems.push(i); }));
+    if(fItems.length){
+      sections.push({heading:null, gr:'from-rose-400 to-rose-600', catId:null, items:sortItems(fItems)});
+      totalFound = fItems.length;
+    }
+  } else if(activeCat==='my_apps'){
+    // my_apps alohida render (banner + grid)
+    _renderMyApps(container, myToken);
+    return;
+  } else {
+    DATA.forEach(c=>{
+      if(activeCat!=='all'&&activeCat!==c.id) return;
+      const items=sortItems(c.items.filter(i=>matchItem(i,c)));
+      if(!items.length) return;
+      totalFound += items.length;
+      sections.push({
+        heading: (activeCat==='all'||query.trim())?c.title:null,
+        gr: c.gr, catId: c.id, items
+      });
+    });
+  }
+
+  // Skeletonni o'chirish
+  const skelEl = document.getElementById('_skelGrid');
+  if(skelEl) skelEl.remove();
+
+  if(totalFound===0){
+    container.innerHTML='';
+    $('resultCount').textContent='';
+    $('appsContainer').classList.add('hidden');
+    $('noResults').classList.remove('hidden');
+    $('noResults').classList.add('flex');
+    return;
+  }
+
+  $('resultCount').textContent = `${totalFound} ta resurs`;
+  $('appsContainer').classList.remove('hidden');
+
+  // ── Progressive rendering: section'larni navbatma-navbat render qilish ──
+  _renderSectionsProgressively(sections, container, myToken);
+}, 0);
+}
+
+// ── Sectionlarni idle chunklarda render qilish ────────────
+function _renderSectionsProgressively(sections, container, token){
+  const FIRST_BATCH = 2; // birinchi 2 ta section darhol
+  const frag = document.createDocumentFragment();
+
+  // Birinchi 2 ta section — darhol render
+  const immediate = sections.slice(0, FIRST_BATCH);
+  const deferred  = sections.slice(FIRST_BATCH);
+
+  immediate.forEach(s => frag.appendChild(_buildSectionEl(s)));
+  container.appendChild(frag);
+
+  if(!deferred.length) return;
+
+  // Qolgan sectionlar — idle vaqtda, har biri alohida
+  let idx = 0;
+  function scheduleNext(){
+    if(token !== _renderToken) return;
+    if(idx >= deferred.length) return;
+    const s = deferred[idx++];
+    const el = _buildSectionEl(s);
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(6px)';
+    container.appendChild(el);
+    // Animate in
+    requestAnimationFrame(()=>{
+      el.style.transition = 'opacity .2s ease-out, transform .2s ease-out';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    });
+    const schedule = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : (cb=>setTimeout(cb,16));
+    schedule(scheduleNext);
+  }
+  const schedule = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : (cb=>setTimeout(cb,16));
+  schedule(scheduleNext);
+}
+
+// ── Yagona section element yasash ────────────────────────
+function _buildSectionEl(s){
+  const sec = document.createElement('div');
+  sec.className = 'animate-fade-up';
+
+  const shareUrl = s.catId ? ('https://elink.uz/?cat=' + s.catId) : 'https://elink.uz';
+  const shareTitle = s.heading ? s.heading + ' — E-Link UZ' : 'E-Link UZ';
+  const shareBtn = s.heading ? `
     <button onclick="shareCat('${shareTitle.replace(/'/g,"\\'")}','${shareUrl.replace(/'/g,"\\'")}',this)"
       class="ml-auto flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors border border-transparent hover:border-violet-200 dark:hover:border-violet-500/20">
       <i class="fa-solid fa-share-nodes text-[10px]"></i>
       <span class="hidden sm:inline">Ulashish</span>
     </button>` : '';
-  const h=heading?`<div class="flex items-center gap-3 mb-4">
-    <div class="w-1 h-5 rounded-full bg-gradient-to-b ${gr}"></div>
-    <h3 class="text-base font-black text-slate-800 dark:text-white">${heading}</h3>
-    <span class="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">${items.length} ta</span>
+  const heading = s.heading ? `<div class="flex items-center gap-3 mb-1.5">
+    <div class="w-1 h-5 rounded-full bg-gradient-to-b ${s.gr}"></div>
+    <h3 class="text-base font-black text-slate-800 dark:text-white">${s.heading}</h3>
+    <span class="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">${s.items.length} ta</span>
     ${shareBtn}
-  </div>`:'';
-  const grid=`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4">
-    ${items.map(i=>card(i)).join('')}
-  </div>`;
-  sec.innerHTML=h+grid;
-  $('appsContainer').appendChild(sec);
-};
+  </div>` : '';
 
-if(activeCat==='favorites'){
-  const fItems=[];
-  DATA.forEach(c=>c.items.forEach(i=>{ if(favorites.includes(i.n)&&matchItem(i,c)) fItems.push(i); }));
-  buildSec(sortItems(fItems), null, 'from-rose-400 to-rose-600');
-  if(!fItems.length){
-    $('appsContainer').innerHTML=`<div class="flex flex-col items-center justify-center py-24 text-slate-400">
-      <i class="fa-regular fa-heart text-5xl mb-4"></i>
-      <p class="font-bold text-lg">Hali saqlangan ilovalar yo'q</p>
-      <p class="text-sm mt-1">Ilovalarni ❤️ bilan saqlang</p>
-    </div>`;
-    found=1;
-  }
-} else if(activeCat==='my_apps'){
-  // my_apps uchun — faqat shaxsiy, share tugmasi yo'q
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-3';
+  // innerHTML bilan bir yozish — har bir card uchun alohida DOM operatsiyasidan tez
+  grid.innerHTML = s.items.map(i => card(i)).join('');
+
+  sec.innerHTML = heading;
+  sec.appendChild(grid);
+  return sec;
+}
+
+// ── my_apps — alohida (banner + grid) ────────────────────
+function _renderMyApps(container, token){
+  const skelEl = document.getElementById('_skelGrid');
+  if(skelEl) skelEl.remove();
+
   const items = sortItems(customApps.filter(i=>matchItem(i,null)));
-  found += items.length + 1;
+  const found = items.length + 1;
 
   const sec = document.createElement('div');
-  sec.className = 'animate-fade-up';
-  const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4';
+  sec.className = 'animate-fade-up space-y-1.5';
 
-  // "+" qo'shish kartasi — birinchi
+  // Banner
+  const banner = document.createElement('div');
+  banner.innerHTML = `
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 dark:from-violet-500/15 dark:to-fuchsia-500/15 border border-violet-200/60 dark:border-violet-700/40">
+      <div class="flex items-center gap-2.5 flex-1 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-violet-500/25 shrink-0">
+          <i class="fa-solid fa-list-check text-sm"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs font-black text-slate-800 dark:text-white leading-snug">Ro'yxat tuzish va ulashish</p>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400">Resurslarni tanlang va havola orqali ulashing</p>
+        </div>
+      </div>
+      <button onclick="openListBuilderModal()" class="shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-[11px] transition-all shadow-md shadow-violet-500/25 active:scale-[0.98] whitespace-nowrap">
+        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Ro'yxat tuzish
+      </button>
+    </div>`;
+  sec.appendChild(banner);
+
+  // Bo'sh holat
+  if(customApps.length === 0){
+    const emptyGuide = document.createElement('div');
+    emptyGuide.innerHTML = `
+      <div class="rounded-2xl border-2 border-dashed border-violet-200 dark:border-violet-800/50 p-8 flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/15 dark:to-fuchsia-500/15 flex items-center justify-center text-3xl mb-4 shadow-sm">📌</div>
+        <h3 class="text-base font-black text-slate-800 dark:text-white mb-1.5">Shaxsiy resurslaringizni qo'shing</h3>
+        <p class="text-[12px] text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed mb-5">Istalgan sayt, ilova yoki havola — bitta joyda saqlang va 1 klik bilan kiring</p>
+        <div class="flex flex-wrap justify-center gap-2 mb-6 text-[11px] font-bold">
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20"><i class="fa-solid fa-globe text-[10px]"></i> Veb-sayt</span>
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"><i class="fa-brands fa-android text-[10px]"></i> Android</span>
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"><i class="fa-brands fa-apple text-[10px]"></i> iOS</span>
+        </div>
+        <button onclick="openCustomModal()" class="flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl px-5 py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98]">
+          <i class="fa-solid fa-plus"></i> Birinchi resursni qo'shish
+        </button>
+      </div>`;
+    sec.appendChild(emptyGuide);
+    container.appendChild(sec);
+    $('resultCount').textContent = '';
+    $('appsContainer').classList.remove('hidden');
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-3';
+
   const addCard = document.createElement('div');
   addCard.onclick = openCustomModal;
   addCard.className = 'add-card glass rounded-2xl p-4 flex flex-col items-center justify-center h-full cursor-pointer group border-2 border-dashed border-violet-200 dark:border-violet-800/50 hover:border-violet-400 dark:hover:border-violet-600 transition-all min-h-[130px]';
@@ -684,28 +892,14 @@ if(activeCat==='favorites'){
     <p class="text-sm font-black text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Yangi qo'shish</p>
     <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy resurs qo'shing</p>`;
   grid.appendChild(addCard);
-
-  items.forEach(i=>{
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = card(i);
-    grid.appendChild(wrapper.firstElementChild);
-  });
+  grid.innerHTML += items.map(i => card(i)).join('');
 
   sec.appendChild(grid);
-  $('appsContainer').appendChild(sec);
-
-} else {
-  DATA.forEach(c=>{
-    if(activeCat!=='all'&&activeCat!==c.id) return;
-    const items=sortItems(c.items.filter(i=>matchItem(i,c)));
-    buildSec(items, (activeCat==='all'||query.trim())?c.title:null, c.gr, c.id);
-  });
-}
-
-$('resultCount').textContent=found?`${found} ta resurs`:'';
-const noR=$('noResults');
-if(found===0){ $('appsContainer').classList.add('hidden'); noR.classList.remove('hidden'); noR.classList.add('flex'); }
-else{ $('appsContainer').classList.remove('hidden'); noR.classList.add('hidden'); noR.classList.remove('flex'); }
+  container.appendChild(sec);
+  $('resultCount').textContent = `${found} ta resurs`;
+  $('appsContainer').classList.remove('hidden');
+  $('noResults').classList.add('hidden');
+  $('noResults').classList.remove('flex');
 }
 
 function saveHist(q){
@@ -979,6 +1173,11 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('click',e=>{
   if(!$('deskSWrap').contains(e.target)) $('deskDrop').classList.add('hidden');
   if(!$('mobSWrap').contains(e.target))  $('mobDrop').classList.add('hidden');
+  // Barcha sort dropdownlarni tashqi click da yopish
+  const sd = $('sortDropMenu'), sw = $('sortDropWrap');
+  if(sd && sw && !sw.contains(e.target)){ sd.classList.add('hidden'); const ch=$('sortChevron'); if(ch) ch.style.transform=''; }
+  const td = $('topSortDropMenu'), tw = $('topSortDropWrap');
+  if(td && tw && !tw.contains(e.target)){ td.classList.add('hidden'); const tc=$('topSortChevron'); if(tc) tc.style.transform=''; }
 });
 
 const handleSort=e=>{ sortMode=e.target.value; if($('sSort')) $('sSort').value=sortMode; if($('topSort')) $('topSort').value=sortMode; renderNav(); renderContent(); };
@@ -991,15 +1190,17 @@ function setupTheme(){
 const html=document.documentElement;
 const iDesk = $('themeIco');
 const iMob = $('themeIcoMob');
+const iTop = $('themeIcoTop');
 const tTxt = $('themeTxt');
 
 const upd=dark=>{
   if(iDesk) { iDesk.className = dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; }
   if(iMob) { iMob.className = dark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm'; }
+  if(iTop) { iTop.className = dark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm'; }
   if(tTxt) tTxt.textContent=dark?'Kunduzgi rejim':'Tungi rejim';
 };
 upd(html.classList.contains('dark'));
-[$('themeBtn'),$('themeBtnMob')].forEach(btn=>btn?.addEventListener('click',()=>{
+[$('themeBtn'),$('themeBtnMob'),$('themeBtnTop')].forEach(btn=>btn?.addEventListener('click',()=>{
   const dark=html.classList.toggle('dark');
   localStorage.lh_theme=dark?'dark':'light';
   upd(dark);
@@ -1591,6 +1792,32 @@ window.submitSuggest = async function(){
 };
 
 function init(){
+
+// ── Lazy favicon IntersectionObserver ─────────────────────
+const _imgObserver = new IntersectionObserver((entries, obs) => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    const img = entry.target;
+    const realSrc = img.dataset.src;
+    if(realSrc && img.src !== realSrc){
+      img.src = realSrc;
+    }
+    obs.unobserve(img);
+  });
+}, { rootMargin: '200px 0px' }); // 200px oldin yuklansin
+
+// Yangi img.lz-img elementlarni kuzatish — MutationObserver orqali
+const _mutObs = new MutationObserver(mutations => {
+  mutations.forEach(m => {
+    m.addedNodes.forEach(node => {
+      if(node.nodeType !== 1) return;
+      if(node.classList?.contains('lz-img')) _imgObserver.observe(node);
+      node.querySelectorAll?.('.lz-img').forEach(img => _imgObserver.observe(img));
+    });
+  });
+});
+_mutObs.observe($('appsContainer'), { childList: true, subtree: true });
+
 // Supabase dan admin o'zgartirgan resurslarni yuklash
 (async ()=>{
   try{
@@ -1601,7 +1828,6 @@ function init(){
     if(!res.ok) return;
     const rows = await res.json();
     if(!Array.isArray(rows) || !rows.length) return;
-    // Supabase versiyasi data.js ni override qiladi
     rows.forEach(sr => {
       DATA.forEach(cat => {
         const idx = cat.items.findIndex(i => i.n?.toLowerCase() === sr.name?.toLowerCase());
@@ -1621,16 +1847,15 @@ function init(){
 
 initCustomApps();
 renderNav();
-renderContent();
-renderTrending();
-renderRecent();
+renderContent();     // skeleton + progressive render
 setupSearch();
 setupTheme();
 setupShare();
 setupScroll();
 setupTrendingScroll();
-initGlobalClicks();
-updateSidebarStats();
+// Og'ir operatsiyalar — idle vaqtda
+const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 100);
+idle(() => { renderTrending(); renderRecent(); initGlobalClicks(); updateSidebarStats(); });
 }
 init();
 // selectReason — report modal
@@ -2725,7 +2950,7 @@ detectShareHash();
     back.classList.toggle('opacity-0',step===0);
     back.classList.toggle('pointer-events-none',step===0);
 
-    document.getElementById('obNextTxt').textContent=step===STEPS.length-1?'Boshlash 🚀':'Davom etish';
+    document.getElementById('obNextTxt').textContent=step===STEPS.length-1?'Boshlash':'Davom etish';
     document.getElementById('obNextIco').className=step===STEPS.length-1?'fa-solid fa-rocket text-sm':'fa-solid fa-arrow-right text-sm';
   }
 

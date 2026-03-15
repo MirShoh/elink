@@ -1,0 +1,29 @@
+{
+  "name": "Elink UZ — Onlayn resurslar katalogi",
+  "short_name": "Elink UZ",
+  "description": "O'zbekiston uchun 1200+ onlayn resurs: davlat xizmatlari, AI, ta'lim, tibbiyot va ko'proq.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eff1fb",
+  "theme_color": "#8b5cf6",
+  "lang": "uz",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%238b5cf6'/><text y='140' x='28' font-size='120' font-family='serif'>🔗</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%238b5cf6'/><text y='380' x='64' font-size='320' font-family='serif'>🔗</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

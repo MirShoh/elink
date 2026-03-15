@@ -33,13 +33,26 @@
 <!-- ═══ Favicon ═══ -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%238b5cf6'/><text y='22' x='5' font-size='20'>🔗</text></svg>">
 <link rel="apple-touch-icon" href="https://elink.uz/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+
+<!-- Preload kritik resurslar -->
+<link rel="preload" href="style.css" as="style">
+<link rel="preload" href="data.js" as="script">
+<link rel="preload" href="script.js" as="script">
 
 <!-- Preload fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap&font-display=swap" rel="stylesheet">
+<!-- Font Awesome — defer -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+<script src="https://cdn.tailwindcss.com" onerror=""></script>
+<script>
+// Tailwind CDN production warning ni yopish (faqat dasturlash xabarnomasi)
+const _cWarn = console.warn.bind(console);
+console.warn = (...a) => { if(typeof a[0]==='string' && a[0].includes('cdn.tailwindcss.com')) return; _cWarn(...a); };
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 
 <!-- Dark mode flicker fix -->
@@ -117,46 +130,13 @@ tailwind.config={
 
     <!-- Filter chips -->
     <div class="sb-chips flex flex-wrap gap-1.5 mb-3" id="deskChips"></div>
-
-    <!-- Sort + clear -->
-    <div class="sb-sort flex items-center gap-2 mb-2.5">
-      <!-- Custom Sort Dropdown -->
-      <div class="relative flex-1" id="sortDropWrap">
-        <button id="sortDropBtn" onclick="toggleSortDrop()" class="w-full flex items-center justify-between gap-2 text-[11px] font-semibold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl px-3 py-2 text-slate-600 dark:text-slate-300 hover:border-violet-400 dark:hover:border-violet-500 transition-all shadow-sm cursor-pointer group">
-          <span class="flex items-center gap-1.5">
-            <i id="sortDropIcon" class="fa-solid fa-arrow-up-wide-short text-violet-400 text-[10px]"></i>
-            <span id="sortDropLabel">Standart tartib</span>
-          </span>
-          <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" id="sortChevron"></i>
-        </button>
-        <div id="sortDropMenu" class="hidden absolute top-full left-0 right-0 mt-1.5 glass rounded-xl shadow-xl z-[80] overflow-hidden border border-slate-200/80 dark:border-slate-700/60">
-          <div class="p-1.5 space-y-0.5">
-            <button onclick="setSortMode('def')" data-val="def" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-              <i class="fa-solid fa-bars-staggered text-slate-400 text-[10px] w-3"></i> Standart tartib
-            </button>
-            <button onclick="setSortMode('popular')" data-val="popular" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-              <span class="text-[12px] w-3 flex justify-center">🔥</span> Eng mashhur
-            </button>
-            <button onclick="setSortMode('az')" data-val="az" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-              <i class="fa-solid fa-arrow-down-a-z text-slate-400 text-[10px] w-3"></i> A → Z
-            </button>
-            <button onclick="setSortMode('za')" data-val="za" class="sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-              <i class="fa-solid fa-arrow-up-a-z text-slate-400 text-[10px] w-3"></i> Z → A
-            </button>
-          </div>
-        </div>
-        <!-- hidden select for compatibility -->
-        <select id="sSort" class="hidden">
-          <option value="def">Standart tartib</option>
-          <option value="popular">🔥 Eng mashhur</option>
-          <option value="az">A → Z</option>
-          <option value="za">Z → A</option>
-        </select>
-      </div>
-      <button id="clrFilters" title="Tozalash" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-50 hover:text-red-400 transition-colors flex items-center justify-center opacity-0 pointer-events-none">
-        <i class="fa-solid fa-rotate-left text-xs"></i>
-      </button>
-    </div>
+    <select id="sSort" class="hidden">
+      <option value="def">Standart tartib</option>
+      <option value="popular">🔥 Eng mashhur</option>
+      <option value="az">A → Z</option>
+      <option value="za">Z → A</option>
+    </select>
+    <button id="clrFilters" class="hidden"></button>
   </div>
 
   <!-- Nav — Shaxsiy pinned + scrollable categories -->
@@ -171,17 +151,12 @@ tailwind.config={
   <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
     <!-- Taklif qilish -->
     <div class="sb-bottom-btns flex flex-col gap-2">
-      <button onclick="openListBuilderModal()" title="Ro'yxat tuzish va ulashish" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-violet-500/20">
-        <i class="fa-solid fa-list-check"></i> <span class="sb-bottom-text">Ro'yxat tuzish va ulashish</span>
-      </button>
       <button onclick="openSuggestModal()" title="Resurs taklif qilish" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
         <i class="fa-solid fa-lightbulb"></i> <span class="sb-bottom-text">Resurs taklif qilish</span>
       </button>
-      <button id="themeBtn" title="Tema" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300">
-        <i id="themeIco" class="fa-solid fa-moon"></i>
-        <span id="themeTxt" class="sb-bottom-text">Tungi rejim</span>
-      </button>
     </div>
+    <!-- hidden theme btn for JS compat -->
+    <button id="themeBtn" class="hidden"><i id="themeIco"></i><span id="themeTxt"></span></button>
   </div>
 </aside>
 
@@ -201,9 +176,6 @@ tailwind.config={
           </div>
         </div>
       <div class="flex gap-2">
-        <button onclick="openListBuilderModal()" class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400" title="Ro'yxat tuzish">
-          <i class="fa-solid fa-list-check text-sm"></i>
-        </button>
         <button id="themeBtnMob" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <i id="themeIcoMob" class="fa-solid fa-moon text-sm"></i>
         </button>
@@ -248,10 +220,10 @@ tailwind.config={
       </div>
     </div>
 
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-5 pb-28 md:pb-14 pb-safe">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-2 pb-28 md:pb-14 pb-safe">
 
       <!-- Desktop top bar -->
-      <div class="hidden md:flex items-start justify-between mb-6 gap-4">
+      <div class="hidden md:flex items-start justify-between mb-3 gap-4">
         <div class="min-w-0">
           <h2 id="pageTitle" class="text-2xl font-black text-slate-900 dark:text-white mb-1 truncate">Barcha Resurslar</h2>
           <div class="flex items-center gap-2 flex-wrap">
@@ -260,6 +232,10 @@ tailwind.config={
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
+          <!-- Dark mode toggle -->
+          <button id="themeBtnTop" title="Tungi/Kunduzgi rejim" class="flex items-center justify-center w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <i id="themeIcoTop" class="fa-solid fa-moon text-sm"></i>
+          </button>
           <!-- Category search (specific category uchun) -->
           <div id="catSWrap" class="hidden relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px] pointer-events-none z-10"></i>
@@ -306,14 +282,11 @@ tailwind.config={
           <button id="shareBtnDesk" class="flex items-center gap-2 bg-slate-900 dark:bg-violet-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg">
             <i class="fa-solid fa-share-nodes"></i> Ulashish
           </button>
-          <button onclick="openSuggestModal()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-opacity shadow-lg shadow-emerald-500/20">
-            <i class="fa-solid fa-lightbulb"></i> Taklif qilish
-          </button>
         </div>
       </div>
 
       <!-- Main grid -->
-      <div id="appsContainer" class="space-y-8"></div>
+      <div id="appsContainer" class="space-y-4"></div>
 
       <!-- No results -->
       <div id="noResults" class="hidden flex-col items-center justify-center py-28 text-center">
@@ -537,5 +510,15 @@ tailwind.config={
 
 <script src="data.js"></script>
 <script src="script.js"></script>
+<script>
+// ── PWA Service Worker — faqat production serverda ishlaydi ──
+if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('127.0.0.1') && !location.hostname.includes('claudeusercontent')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('[SW] Registered:', r.scope))
+      .catch(e => console.warn('[SW] Error:', e));
+  });
+}
+</script>
 </body>
 </html>
