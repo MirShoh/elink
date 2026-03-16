@@ -2843,8 +2843,11 @@ window.closeImportModal = function(){
   const m = document.getElementById('importListModal');
   if(!m) return;
   const box = document.getElementById('importListBox');
-  if(box){ box.classList.add('translate-y-4','opacity-0'); }
-  setTimeout(()=>m.remove(), 200);
+  if(box){
+    box.classList.remove('translate-y-0','opacity-100');
+    box.classList.add('translate-y-4','opacity-0');
+  }
+  setTimeout(()=>{ if(m.parentNode) m.remove(); }, 250);
 };
 
 window.doImport = function(){
@@ -2859,18 +2862,26 @@ window.doImport = function(){
   selected.forEach(item=>{
     const already = customApps.some(a=>a.n.toLowerCase()===(item.n||'').toLowerCase());
     if(already){ skipped++; return; }
-    customApps.push({ n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true,
-      ...(item.android?{android:item.android}:{}), ...(item.ios?{ios:item.ios}:{}) });
+    const newApp = { n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true };
+    // android/ios URL — har ikkala field nomini qabul qilish
+    const aUrl = item.androidUrl || item.android || '';
+    const iUrl = item.iosUrl     || item.ios     || '';
+    if(aUrl) newApp.androidUrl = aUrl;
+    if(iUrl) newApp.iosUrl     = iUrl;
+    customApps.push(newApp);
     added++;
   });
   if(!added && skipped){ showToast("Tanlangan resurslar allaqachon mavjud!", "fa-circle-info text-blue-500"); return; }
   if(!added){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
   saveUserDataToSupabase();
+  // Modal avval yopilsin, keyin toast ko'rinsin
   window.closeImportModal();
-  showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
-  if(activeCat!=='my_apps') setCat('my_apps');
-  else{ renderNav(); renderContent(); }
+  setTimeout(()=>{
+    showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
+    if(activeCat!=='my_apps') setCat('my_apps');
+    else{ renderNav(); renderContent(); }
+  }, 280);
 };
 
 

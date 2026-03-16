@@ -61,7 +61,11 @@ const DATA = [
   {n:"Jobmakon", u:"https://jobmakon.uz/", d:"O'zbekiston bo'ylab masofaviy va ofis ish topish", t:['uz','bepul','web']},
   {n:"Unilance", u:"https://unilance.uz/", d:"O'zbekistondagi freelance va masofaviy ishlar platformasi", t:['uz','bepul','web']},
   {n:"Stat.uz", u:"https://stat.uz/uz/", d:"O'zbekiston Respublikasi statistika agentligi rasmiy ma'lumotlari", t:['uz','bepul','web'],v:true},
-  {n:"Webmakon AI", u:"https://webmakon.uz/", d:"Sun'iy intellekt yordamida unumdorlikni oshirish", t:['uz','bepul','web']}
+  {n:"Webmakon AI", u:"https://webmakon.uz/", d:"Sun'iy intellekt yordamida unumdorlikni oshirish", t:['uz','bepul','web']},
+   {n:"Tilmoch", u:"https://tilmoch.ai", d:"O'zbek, rus va ingliz tillarini AI asosida tarjima qilish", t:['uz','bepul','web'],v:true},
+   {n:"AgentUP", u:"https://agentup.uz", d:"O'zbekiston uchun AI agent va biznes avtomatlashtirish platforma", t:['uz','bepul','web']},
+   {n:"Ishgo", u:"https://ishgo.uz", d:"O'zbekistonda ish qidirish va vakansiyalar platformasi", t:['uz','bepul','web']},
+   {n:"Oson Apteka", u:"https://osonapteka.uz/uz", d:"Onlayn dorixona — dori buyurtma va yetkazib berish xizmati", t:['uz','bepul','web','mobil']},
   ]},
   
   {id:'ai_chat',title:"AI chat va qidiruv",icon:"fa-robot",gr:"from-indigo-500 to-blue-500",
@@ -85,7 +89,10 @@ const DATA = [
   {n:"Elicit", u:"https://elicit.org/", d:"Tadqiqot savollari uchun ilmiy adabiyotlarni tahlil qiluvchi", t:['dunyo','bepul','web']},
   {n:"Komo AI", u:"https://komo.ai/", d:"Reklama va kuzatishsiz tezkor AI qidiruv tizimi", t:['dunyo','bepul','web']},
   {n:"Sonar (Perplexity)", u:"https://sonar.perplexity.ai/", d:"Tashqi ilovalarga real vaqt qidiruvni qo'shuvchi API", t:['dunyo','bepul','web']},
-  {n:"Replika", u:"https://replika.com/", d:"Doimiy virtual AI do'st va suhbatdosh avatar", t:['dunyo','bepul','mobil']}
+  {n:"Replika", u:"https://replika.com/", d:"Doimiy virtual AI do'st va suhbatdosh avatar", t:['dunyo','bepul','mobil']},
+   {n:"Llama (Meta)", u:"https://llama.com", d:"Meta tomonidan ochiq manba LLM — bepul AI chat modeli", t:['dunyo','bepul','web'],v:true},
+   {n:"Hunyuan AI", u:"https://hunyuan.tencent.com/chat/HunyuanDefault", d:"Tencent kuchli AI chat — kod, matn va tahlil", t:['dunyo','bepul','web']},
+   {n:"Microsoft Copilot", u:"https://microsoft.com/en-us/microsoft-copilot", d:"Microsoft AI yordamchisi — GPT-4 va web qidiruv asosida", t:['dunyo','bepul','web'],v:true},
   ]},
   
   {id:'ai_image',title:"AI rasm va dizayn",icon:"fa-image",gr:"from-pink-500 to-rose-500",
@@ -112,7 +119,9 @@ const DATA = [
   {n:"PFPmaker", u:"https://pfpmaker.com/", d:"Sosial media uchun professional profil rasmi yaratuvchi", t:['dunyo','bepul','web']},
   {n:"Clipdrop Relight", u:"https://clipdrop.co/relight", d:"Rasmlaringizga turli nuqtalardan yorug'lik berish vositasi", t:['dunyo','bepul','web']},
   {n:"TextBehindImage", u:"https://textbehindimage.com/", d:"Rasm orqa foniga matn qo'shish — yuklaysiz va yuklab olasiz", t:['dunyo','bepul','web']},
-  {n:"PaperAnimator", u:"https://paperanimator.com/", d:"Rasm va chizmalarni cartoon uslubida animatsiyaga aylantirish", t:['dunyo','bepul','web']}
+  {n:"PaperAnimator", u:"https://paperanimator.com/", d:"Rasm va chizmalarni cartoon uslubida animatsiyaga aylantirish", t:['dunyo','bepul','web']},
+   {n:"Brandest", u:"https://brandest.co", d:"AI yordamida brend identifikatsiya va logo yaratish vositasi", t:['dunyo','bepul','web']},
+   {n:"Hunyuan 3D", u:"https://3d.hunyuan.tencent.com/sceneTo3D", d:"Rasmdan 3D sahnaga aylantirish — Tencent AI texnologiyasi", t:['dunyo','bepul','web']},
   ]},
   
   {id:'ai_media',title:"AI video va audio",icon:"fa-film",gr:"from-fuchsia-500 to-purple-500",
@@ -171,7 +180,11 @@ const DATA = [
   {n:"Dasturlash.uz", u:"https://dasturlash.uz/", d:"O'zbekiston dasturchilar hamjamiyati va darsliklar", t:['uz','bepul','web']},
   {n:"Browser Use", u:"https://browser-use.com/", d:"AI asosida brauzerni boshqarish va vazifalarni avtomatlashtirish", t:['dunyo','bepul','web']},
   {n:"Heyboss", u:"https://www.heyboss.xyz/", d:"Veb-saytlar, ilovalar va o'yinlar yaratish platformasi", t:['dunyo','bepul','web']},
-  {n:"Langchain Hub", u:"https://smith.langchain.com/hub", d:"Tajribali koderlar uchun eng yaxshi AI promptlar bazasi", t:['dunyo','bepul','web']}
+  {n:"Langchain Hub", u:"https://smith.langchain.com/hub", d:"Tajribali koderlar uchun eng yaxshi AI promptlar bazasi", t:['dunyo','bepul','web']},
+   {n:"Raycast", u:"https://raycast.com", d:"Mac uchun super tezkor launcher, clipboard va AI yordamchi", t:['dunyo','bepul','mobil'],v:true},
+   {n:"IterationX", u:"https://iterationx.com", d:"Veb-sayt ustida to'g'ridan-to'g'ri tahrir va izohlar vositasi", t:['dunyo','bepul','web']},
+   {n:"Gemini Code Assist", u:"https://developers.google.com/gemini-code-assist/docs/overview", d:"Google AI kod yordamchisi — IDE integratsiyasi", t:['dunyo','bepul','web']},
+   {n:"FMHY Tools", u:"https://fmhy.net/system-tools", d:"Tizim va dasturiy ta'minot bo'yicha bepul resurslar katalogi", t:['dunyo','bepul','web']},
   ]},
   
   {id:'business',title:"Biznes va SMM",icon:"fa-chart-line",gr:"from-orange-500 to-red-500",
@@ -195,7 +208,9 @@ const DATA = [
   {n:"Statista", u:"https://statista.com/", d:"Barcha sohalarga oid so'nggi statistikalar bazasi", t:['dunyo','bepul','web']},
   {n:"AnswerThePublic", u:"https://answerthepublic.com/", d:"Odamlar nima haqida so'rashi — SEO kalit so'z g'oyalari", t:['dunyo','bepul','web']},
   {n:"Adobe Express", u:"https://express.adobe.com/", d:"Sosial media va marketing uchun tez kontent yaratish", t:['dunyo','bepul','web','mobil']},
-  {n:"AdAge", u:"https://adage.com/", d:"Reklama va marketing sohasi bo'yicha yangiliklar nashri", t:['dunyo','bepul','web']}
+  {n:"AdAge", u:"https://adage.com/", d:"Reklama va marketing sohasi bo'yicha yangiliklar nashri", t:['dunyo','bepul','web']},
+   {n:"Jobster HR", u:"https://jobster.hr", d:"HR va ish qidirish platforma — kadrlar boshqaruvi vositasi", t:['dunyo','bepul','web']},
+   {n:"Rezi", u:"https://rezi.one", d:"AI yordamida ATS-optimallashtirilgan professional resume tuzish", t:['dunyo','bepul','web']},
   ]},
   
   {id:'design',title:"Dizayn va kreativ",icon:"fa-palette",gr:"from-rose-500 to-pink-500",
@@ -318,7 +333,11 @@ const DATA = [
   {n:"Scite.ai", u:"https://scite.ai/", d:"Ilmiy maqolalar qanday iqtibos keltirilganini ko'rsatadi", t:['dunyo','bepul','web']},
   {n:"Class Central", u:"https://www.classcentral.com/", d:"Jahon universitetlarining onlayn kurslar katalogi", t:['dunyo','bepul','web'],v:true},
   {n:"Investopedia", u:"https://www.investopedia.com/", d:"Investitsiya, moliya va shaxsiy moliya bo'yicha ta'lim", t:['dunyo','bepul','web']},
-  {n:"Khan Academy (Ru)", u:"https://ru.khanacademy.org/", d:"Matematika va fanlar bo'yicha rus tilidagi bepul darslar", t:['dunyo','bepul','web']}
+  {n:"Khan Academy (Ru)", u:"https://ru.khanacademy.org/", d:"Matematika va fanlar bo'yicha rus tilidagi bepul darslar", t:['dunyo','bepul','web']},
+   {n:"Kahoot", u:"https://kahoot.it", d:"Interaktiv o'quv viktorinalar, testlar va o'yinlar platformasi", t:['dunyo','bepul','web'],v:true},
+   {n:"JavaTpoint", u:"https://javatpoint.com", d:"Java, Python, SQL va 100+ texnologiya bo'yicha bepul darsliklar", t:['dunyo','bepul','web']},
+   {n:"TutorialsPoint", u:"https://tutorialspoint.com", d:"500+ dasturlash va texnologiya bo'yicha bepul qo'llanmalar", t:['dunyo','bepul','web']},
+   {n:"Laws of UX", u:"https://lawsofux.com", d:"UX dizayn qonunlari va psixologik tamoyillar to'plami", t:['dunyo','bepul','web']},
   ]},
   
   {id:'languages',title:"Til o'rganish",icon:"fa-language",gr:"from-teal-500 to-emerald-500",
@@ -370,7 +389,8 @@ const DATA = [
   {n:"Toptal", u:"https://www.toptal.com/", d:"Dunyodagi top 3% freelancer mutaxassislari platformasi", t:['dunyo','bepul','web']},
   {n:"Resume.io", u:"https://resume.io/", d:"Professional rezyume va CV yaratish vositasi", t:['dunyo','bepul','web']},
   {n:"Zety", u:"https://zety.com/", d:"AI yordamida rezyume va qopqoq xat yaratish", t:['dunyo','bepul','web']},
-  {n:"Canva Resume", u:"https://www.canva.com/resumes/", d:"Chiroyli va zamonaviy rezyume shablonlari bilan yaratish", t:['dunyo','bepul','web']}
+  {n:"Canva Resume", u:"https://www.canva.com/resumes/", d:"Chiroyli va zamonaviy rezyume shablonlari bilan yaratish", t:['dunyo','bepul','web']},
+   {n:"JetBrains DevEcosystem", u:"https://devecosystem-2025.jetbrains.com", d:"2025 yil dasturchi ekotizimi bo'yicha yillik tadqiqot va statistika", t:['dunyo','bepul','web']},
   ]},
   
   {id:'crypto_finance',title:"Kripto va moliya",icon:"fa-bitcoin-sign",gr:"from-green-500 to-emerald-600",
@@ -425,7 +445,12 @@ const DATA = [
   {n:"IPLocation", u:"https://iplocation.net/find-ip-address", d:"Kompyuteringizning umumiy IP manzilini ko'rsatadi", t:['dunyo','bepul','web']},
   {n:"Therestartpage.com", u:"https://therestartpage.com/", d:"Windows 2000 dan 10 gacha eski OS yuklanishlarini ko'ring", t:['dunyo','bepul','web']},
   {n:"Flightradar24", u:"https://www.flightradar24.com/", d:"Ayni vaqtda qaysi samolyotlar parvoz qilishini ko'ring", t:['dunyo','bepul','web','mobil']},
-  {n:"Neal.fun", u:"https://neal.fun/", d:"Bepul o'yinlar va qiziqarli interaktiv saytlar to'plami", t:['dunyo','bepul','web']}
+  {n:"Neal.fun", u:"https://neal.fun/", d:"Bepul o'yinlar va qiziqarli interaktiv saytlar to'plami", t:['dunyo','bepul','web']},
+   {n:"HowToConvert", u:"https://howtoconvert.co", d:"Fayl konvertatsiya — video, audio, rasm formatlarini o'zgartirish", t:['dunyo','bepul','web']},
+   {n:"Tools3ox", u:"https://tools3ox.com", d:"Onlayn vositalar to'plami — matn, fayl va rasm ishlov berish", t:['dunyo','bepul','web']},
+   {n:"UseNotesGPT", u:"https://usenotesgpt.com", d:"AI yordamida eslatmalar yaratish va yig'ilish xulosalari", t:['dunyo','bepul','web']},
+   {n:"Viewport", u:"https://viewport.co", d:"Veb-saytni turli qurilmalar va ekranlarda qanday ko'rinishini tekshirish", t:['dunyo','bepul','web']},
+   {n:"Neal.fun", u:"https://neal.fun/", d:"Bepul o'yinlar va qiziqarli interaktiv saytlar to'plami", t:['dunyo','bepul','web']},
   ]},
   
   {id:'security',title:"Xavfsizlik va VPN",icon:"fa-shield-halved",gr:"from-slate-600 to-slate-900",
@@ -469,7 +494,9 @@ const DATA = [
   {n:"WorkPPT", u:"https://ppt.softtooler.com/", d:"AI yordamida tezkor professional PowerPoint tayyorlash", t:['dunyo','bepul','web']},
   {n:"Napkin AI", u:"https://app.napkin.ai/", d:"Matn va g'oyalarni chiroyli diagrammalarga aylantiruvchi AI", t:['dunyo','bepul','web'],v:true},
   {n:"Miro", u:"https://miro.com/", d:"Jamoaviy fikrlash va vizual hamkorlik uchun onlayn whiteboard", t:['dunyo','bepul','web','mobil']},
-  {n:"XMind", u:"https://xmind.app/", d:"Professional mind map va fikr xaritalarini yaratish vositasi", t:['dunyo','bepul','web','mobil']}
+  {n:"XMind", u:"https://xmind.app/", d:"Professional mind map va fikr xaritalarini yaratish vositasi", t:['dunyo','bepul','web','mobil']},
+   {n:"HackerOne", u:"https://hackerone.com", d:"Bug bounty platforma — xavfsizlik tadqiqotchilari uchun", t:['dunyo','bepul','web'],v:true},
+   {n:"Google Gruyere", u:"https://google-gruyere.appspot.com", d:"Veb xavfsizlik zaifliklarini o'rganish uchun Google laboratoriyasi", t:['dunyo','bepul','web']},
   ]},
   
   {id:'nocode',title:"No-code va sayt qurish",icon:"fa-wand-magic-sparkles",gr:"from-emerald-500 to-teal-500",
