@@ -534,23 +534,26 @@ function openResModal(dataOrIdx = null) {
   document.querySelectorAll('#tagWrap .tag-chip').forEach(e => e.remove());
   document.getElementById('tagInput').value = '';
 
-  const fields = ['resMId', 'resName', 'resUrl', 'resDesc', 'resAndroid', 'resIos'];
+  const fields = ['resMId', 'resName', 'resUrl', 'resDesc', 'resAndroid', 'resIos', 'resLogoUrl'];
   fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('resVerified').checked = true;
   document.getElementById('resCatId').value = '';
+  updateLogoPreview();
 
   if (data && typeof data === 'object') {
     document.getElementById('resModalTitle').textContent = 'Resursni tahrirlash';
     document.getElementById('resSaveTxt').textContent = 'Yangilash';
-    document.getElementById('resMId').value    = data._sid || '';
+    document.getElementById('resMId').value    = data._supaId || data._sid || '';
     document.getElementById('resName').value   = data.n || '';
     document.getElementById('resUrl').value    = data.u || '';
     document.getElementById('resDesc').value   = data.d || '';
-    document.getElementById('resAndroid').value = data.android || '';
-    document.getElementById('resIos').value    = data.ios || '';
+    document.getElementById('resAndroid').value = data.android || data.androidUrl || '';
+    document.getElementById('resIos').value    = data.ios || data.iosUrl || '';
+    document.getElementById('resLogoUrl').value = data.logo_url || data.logoUrl || '';
     document.getElementById('resVerified').checked = !!data.v;
     if (data._catId) document.getElementById('resCatId').value = data._catId;
     (data.t || []).forEach(addTag);
+    updateLogoPreview();
   } else {
     document.getElementById('resModalTitle').textContent = "Yangi resurs qo'shish";
     document.getElementById('resSaveTxt').textContent = 'Saqlash';
@@ -562,6 +565,70 @@ function openResModal(dataOrIdx = null) {
 
 function closeResModal() {
   document.getElementById('resModal').classList.remove('open');
+}
+
+// ── Logo preview helpers ──────────────────────────────
+function updateLogoPreview() {
+  const url = (document.getElementById('resLogoUrl').value || '').trim();
+  const name = (document.getElementById('resName').value || '?').trim();
+  const img  = document.getElementById('logoPreviewImg');
+  const ltr  = document.getElementById('logoPreviewLetter');
+
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    ltr.style.display = 'none';
+  } else {
+    // Avtomatik favicon ko'rsatish
+    const domain = getDomain(document.getElementById('resUrl').value || '');
+    if (domain) {
+      img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      img.style.display = 'block';
+      ltr.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      ltr.textContent = name[0]?.toUpperCase() || '?';
+      ltr.style.display = 'flex';
+    }
+  }
+}
+
+function onResUrlChange() {
+  updateLogoPreview();
+}
+
+function autoDetectLogo() {
+  const url    = document.getElementById('resUrl').value.trim();
+  const domain = getDomain(url);
+  if (!domain) { toast('Avval URL kiriting!', 'fa-circle-xmark', true, true); return; }
+
+  const sources = [
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+    `https://${domain}/favicon.ico`,
+    `https://${domain}/apple-touch-icon.png`,
+  ];
+
+  // Birinchi ishlaganini topish
+  let tried = 0;
+  function tryNext() {
+    if (tried >= sources.length) { toast("Logo topilmadi, URL qo'lda kiriting", 'fa-circle-xmark', true, true); return; }
+    const src = sources[tried++];
+    const tst = new Image();
+    tst.onload = () => {
+      document.getElementById('resLogoUrl').value = src;
+      updateLogoPreview();
+      toast('Logo topildi! ✅');
+    };
+    tst.onerror = tryNext;
+    tst.src = src;
+  }
+  tryNext();
+}
+
+function clearLogo() {
+  document.getElementById('resLogoUrl').value = '';
+  updateLogoPreview();
 }
 
 // Tags
@@ -598,13 +665,14 @@ async function saveResource() {
   const payload = {
     name, url, description: desc, category_id: catId,
     tags: resTagsArr, android: android || null, ios: ios || null,
-    verified, updated_at: new Date().toISOString()
+    verified, updated_at: new Date().toISOString(),
+    logo_url: (document.getElementById('resLogoUrl')?.value || '').trim() || null,
   };
 
   try {
     // Mavjud supabase ID bo'lsa — yangilash, yo'q bo'lsa — yangi yozuv sifatida saqlash
     // (statik data.js resurslarini ham shu yo'l bilan "override" qilish mumkin)
-    const existingInSupa = supaResources.find(s => s.name === document.getElementById('resName').value.trim());
+    const existingInSupa = supaResources.find(s => s.name?.toLowerCase() === name.toLowerCase());
     const realId = id || existingInSupa?.id;
 
     if (realId) {

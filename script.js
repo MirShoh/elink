@@ -138,26 +138,27 @@ if(count > 0){
 //  DATA — 330+ Premium va mahalliy resurslar to'plami
 // ═══════════════════════════════════════════════════════════
 let customApps = safeParse('lh_custom_apps', []);
-// Supabase dan sinxronlash (sahifa yuklanganda)
-(async ()=>{
+// Supabase sinxronlash — init() ichida amalga oshiriladi (renderga ta'sir qilmasin)
+async function _syncUserData(){
   const remote = await loadUserDataFromSupabase();
-  if(remote){
-    // Agar remote yangroq bo'lsa — undan foydalan
-    if(remote.customApps.length >= customApps.length){
-      customApps = remote.customApps;
-      localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
-      if(typeof DATA !== 'undefined'){
-        const cat = DATA?.find(c=>c.id==='my_apps');
-        if(cat){ cat.items = customApps; renderNav(); renderContent(); }
-      }
+  if(!remote) return false;
+  let changed = false;
+  if(remote.customApps.length >= customApps.length){
+    customApps = remote.customApps;
+    localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+    if(typeof DATA !== 'undefined'){
+      const cat = DATA?.find(c=>c.id==='my_apps');
+      if(cat) cat.items = customApps;
     }
-    if(remote.favorites.length >= favorites.length){
-      favorites = remote.favorites;
-      localStorage.setItem('lh_favs', JSON.stringify(favorites));
-      renderNav();
-    }
+    changed = true;
   }
-})();
+  if(remote.favorites.length >= favorites.length){
+    favorites = remote.favorites;
+    localStorage.setItem('lh_favs', JSON.stringify(favorites));
+    changed = true;
+  }
+  return changed;
+}
 
 
 // DATA massivi data.js dan yuklanadi (tezlik uchun)
@@ -274,14 +275,15 @@ for(let i=0;i<item.n.length;i++) hash = item.n.charCodeAt(i)+((hash<<5)-hash);
 const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
 const svgData = _globeSVG(c1, c2);
 
-// Favicon manba — data-src orqali lazy load
-const faviconSrc = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : svgData;
+// Admin paneldan o'rnatilgan maxsus logo birinchi ustunlik oladi
+const customLogo = item.logoUrl || item.logo_url || '';
+const faviconSrc = customLogo || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : svgData);
 
 return `<img src="${svgData}" data-src="${faviconSrc}" alt="${item.n}" loading="lazy"
   class="${cls} transition-transform group-hover:scale-110 lz-img"
   data-domain="${domain}"
   data-svg="${svgData}"
-  data-step="1"
+  data-step="${customLogo ? '2' : '1'}"
   onerror="window._logoFail(this)">`;
 }
 
@@ -348,9 +350,7 @@ grid.innerHTML=top.map((item,idx)=>{
     <span class="flex items-center gap-0.5 text-[10px] font-black text-orange-500"><i class="fa-solid fa-fire text-[8px]"></i>${getClicks(item.n)}</span>
   </div>`}).join('');
 // Trending rasmlarni lazy observer ga qo'shish
-if(typeof _imgObserver !== 'undefined'){
-  grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
-}
+if(_imgObserver) grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
 }
 
 function hl(s,q){
@@ -1545,7 +1545,7 @@ const el = document.getElementById('sidebarStats');
 if(!el) return;
 const total = DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a, 0);
 const totalClicks = Object.values(globalClicks).reduce((a,b)=>a+b,0) ||
-                    Object.values(localClicks).reduce((a,b)=>a+b,0);
+                    0;
 el.innerHTML = `
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-1.5">
@@ -1828,44 +1828,68 @@ const _mutObs = new MutationObserver(mutations => {
 });
 _mutObs.observe(document.body, { childList: true, subtree: true });
 
-// Supabase dan admin o'zgartirgan resurslarni yuklash
-(async ()=>{
+// Admin resurslarini DATA ga qo'shish/yangilash — init() chaqiradi
+async function _syncSiteResources(){
   try{
     const res = await fetch(SUPA_PROXY, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ path: '/rest/v1/site_resources?select=*&is_active=eq.true', method:'GET' })
     });
-    if(!res.ok) return;
+    if(!res.ok) return false;
     const rows = await res.json();
-    if(!Array.isArray(rows) || !rows.length) return;
+    if(!Array.isArray(rows) || !rows.length) return false;
+
     rows.forEach(sr => {
+      if(!sr.name || !sr.url) return;
+      let found = false;
       DATA.forEach(cat => {
         const idx = cat.items.findIndex(i => i.n?.toLowerCase() === sr.name?.toLowerCase());
         if(idx !== -1){
+          found = true;
           cat.items[idx] = { ...cat.items[idx],
             u: sr.url || cat.items[idx].u,
             d: sr.description || cat.items[idx].d,
             t: sr.tags?.length ? sr.tags : cat.items[idx].t,
             v: sr.verified ?? cat.items[idx].v,
+            ...(sr.logo_url  ? {logoUrl:     sr.logo_url}  : {}),
+            ...(sr.android ? {androidUrl: sr.android} : {}),
+            ...(sr.ios     ? {iosUrl:     sr.ios}     : {}),
           };
         }
       });
+      if(!found){
+        const newItem = {
+          n: sr.name, u: sr.url, d: sr.description || '',
+          t: sr.tags?.length ? sr.tags : ['web'],
+          v: sr.verified ?? true, _fromAdmin: true,
+          ...(sr.logo_url  ? {logoUrl:     sr.logo_url}  : {}),
+          ...(sr.android ? {androidUrl: sr.android} : {}),
+          ...(sr.ios     ? {iosUrl:     sr.ios}     : {}),
+        };
+        const targetCat = sr.category_id ? DATA.find(c => c.id === sr.category_id) : null;
+        const fallbackCat = DATA.find(c => c.id === 'uzbekistan') || DATA[1];
+        const cat = targetCat || fallbackCat;
+        if(cat) cat.items.unshift(newItem);
+      }
     });
-    renderNav(); renderContent();
-  }catch(e){ console.warn('[sync] site_resources:', e.message); }
-})();
+    return true;
+  }catch(e){ console.warn('[sync] site_resources:', e.message); return false; }
+}
 
 initCustomApps();
-renderNav();
-renderContent();     // skeleton + progressive render
 setupSearch();
 setupTheme();
 setupShare();
 setupScroll();
 setupTrendingScroll();
-// Og'ir operatsiyalar — idle vaqtda
-const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 100);
-idle(() => { renderTrending(); renderRecent(); initGlobalClicks(); updateSidebarStats(); });
+
+// Barcha async ma'lumotlarni bir vaqtda yuklash, keyin BIR MARTA render
+Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
+  renderNav();
+  renderContent();
+  const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 100);
+  idle(() => { renderTrending(); renderRecent(); initGlobalClicks(); updateSidebarStats(); });
+});
 }
 init();
 // selectReason — report modal
