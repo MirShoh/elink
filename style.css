@@ -18,6 +18,10 @@ body{font-family:"Plus Jakarta Sans",sans-serif}
 .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(0,0,0,.07)}
 .dark .glass{background:rgba(8,12,28,.85);border:1px solid rgba(255,255,255,.07)}
 
+/* Card ichida backdrop-filter o'chiriladi — hover transformda blur muammosi yo'qoladi */
+.card.glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.94)}
+.dark .card.glass{background:rgba(15,20,40,.88)}
+
 /* bg */
 .bg-app{position:fixed;inset:0;z-index:-1;background:#eff1fb;
   background-image:
@@ -34,6 +38,10 @@ body{font-family:"Plus Jakarta Sans",sans-serif}
 .card{
   transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s;
   position:relative;overflow:hidden;
+  will-change:transform;
+  isolation:isolate;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
 }
 .card::before{
   content:'';position:absolute;inset:0;

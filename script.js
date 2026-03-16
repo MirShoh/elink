@@ -845,18 +845,18 @@ function _renderMyApps(container, token){
   // Banner
   const banner = document.createElement('div');
   banner.innerHTML = `
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 dark:from-violet-500/15 dark:to-fuchsia-500/15 border border-violet-200/60 dark:border-violet-700/40">
-      <div class="flex items-center gap-2.5 flex-1 min-w-0">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-violet-500/25 shrink-0">
-          <i class="fa-solid fa-list-check text-sm"></i>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 dark:from-violet-500/20 dark:to-fuchsia-500/20 border-2 border-violet-300/50 dark:border-violet-600/50 shadow-sm">
+      <div class="flex items-center gap-3 flex-1 min-w-0">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/30 shrink-0">
+          <i class="fa-solid fa-list-check text-base"></i>
         </div>
         <div class="min-w-0">
-          <p class="text-xs font-black text-slate-800 dark:text-white leading-snug">Ro'yxat tuzish va ulashish</p>
-          <p class="text-[10px] text-slate-500 dark:text-slate-400">Resurslarni tanlang va havola orqali ulashing</p>
+          <p class="text-sm font-black text-slate-800 dark:text-white leading-snug">Ro'yxat tuzish va ulashish</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Resurslarni tanlang va havola orqali ulashing</p>
         </div>
       </div>
-      <button onclick="openListBuilderModal()" class="shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-[11px] transition-all shadow-md shadow-violet-500/25 active:scale-[0.98] whitespace-nowrap">
-        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Ro'yxat tuzish
+      <button onclick="openListBuilderModal()" class="shrink-0 flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-black rounded-xl px-4 py-2.5 text-[12px] transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98] whitespace-nowrap">
+        <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i> Ro'yxat tuzish
       </button>
     </div>`;
   sec.appendChild(banner);
