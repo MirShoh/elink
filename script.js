@@ -11,6 +11,25 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  DATA DECODE — _D dan DATA ni tiklash
+// ═══════════════════════════════════════════════════════════
+(function(){
+  if(typeof _D === 'undefined') return;
+  try{
+    // base64 → Uint8Array → XOR → inflate → JSON
+    const key = 'elink_uz_2026_secure';
+    const b64  = atob(_D);
+    const xored = new Uint8Array(b64.length);
+    for(let i=0;i<b64.length;i++) xored[i] = b64.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+
+    // pako inflate (zlib decompress)
+    const inflated = pako.inflate(xored, {to:'string'});
+    window.DATA = JSON.parse(inflated);
+  }catch(e){ console.error('[E-Link] Data decode failed:', e.message); window.DATA = []; }
+})();
+
+
+// ═══════════════════════════════════════════════════════════
 //  XSS HIMOYA — barcha foydalanuvchi kiritishlarini tozalash
 // ═══════════════════════════════════════════════════════════
 function escHtml(str){
