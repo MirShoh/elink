@@ -12,8 +12,7 @@ const PRECACHE = [
   '/style.css',
   '/data.js',
   '/script.js',
-  '/manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js'
+  '/manifest.json'
 ];
 
 // ── O'rnatish: asosiy fayllarni keshlash ─────────────────

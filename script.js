@@ -11,23 +11,18 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  DATA DECODE — native DecompressionStream (pako kerak emas)
+//  DATA DECODE — sync, TextDecoder (CDN shart emas)
 // ═══════════════════════════════════════════════════════════
-window._dataReady = (async function(){
+(function(){
   if(typeof _D === 'undefined'){ window.DATA=[]; return; }
   try{
     const key = 'elink_uz_2026_secure';
     const b64  = atob(_D);
-    const xored = new Uint8Array(b64.length);
-    for(let i=0;i<b64.length;i++) xored[i] = b64.charCodeAt(i) ^ key.charCodeAt(i % key.length);
-
-    // Native DecompressionStream — CDN shart emas, kutish yo'q
-    const ds     = new DecompressionStream('deflate');
-    const writer = ds.writable.getWriter();
-    writer.write(xored);
-    writer.close();
-    const buf = await new Response(ds.readable).arrayBuffer();
-    window.DATA = JSON.parse(new TextDecoder().decode(buf));
+    const bytes = new Uint8Array(b64.length);
+    for(let i=0;i<b64.length;i++)
+      bytes[i] = b64.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+    // TextDecoder — sync, UTF-8 ni to'g'ri o'qiydi
+    window.DATA = JSON.parse(new TextDecoder('utf-8').decode(bytes));
   }catch(e){ console.error('[E-Link] Data decode failed:', e.message); window.DATA = []; }
 })();
 
@@ -1913,8 +1908,7 @@ Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
   idle(() => { renderTrending(); renderRecent(); initGlobalClicks(); updateSidebarStats(); });
 });
 }
-// DATA tayyor bo'lgach init() ishga tushadi — sahifa darhol yuklanadi
-(window._dataReady || Promise.resolve()).then(() => init());
+init();
 // selectReason — report modal
 window.selectReason = function(btn, reason) {
   // Barcha tugmalardan active classni olib tashlash
