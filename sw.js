@@ -3,17 +3,14 @@
 //  Offline rejim + tezkor yuklanish uchun kesh
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'elink-v3';
+const CACHE_NAME = 'elink-v4';
 
 // Darhol keshlanadigan asosiy fayllar
 const PRECACHE = [
-  '/',
-  '/index.html',
   '/style.css',
-  '/script.js',
   '/manifest.json'
 ];
-// data.js alohida — har doim networkdan yuklanadi (encode o'zgarishi mumkin)
+// index.html, script.js, data.js — har doim networkdan (o'zgarishi mumkin)
 
 // ── O'rnatish: asosiy fayllarni keshlash ─────────────────
 self.addEventListener('install', e => {
@@ -43,8 +40,8 @@ self.addEventListener('fetch', e => {
   if(url.includes('/.netlify/') || url.includes('supabase') ||
      url.includes('googletagmanager') || url.includes('gtag')) return;
 
-  // data.js — har doim networkdan (encode o'zgarishi mumkin)
-  if(url.includes('/data.js')) return;
+  // Asosiy JS/HTML fayllar — har doim networkdan
+  if(url.includes('/data.js') || url.includes('/script.js') || url.endsWith('/') || url.includes('/index.html')) return;
 
   // Rasmlar va shriftlar: kesh birinchi
   if(url.includes('fonts.googleapis') || url.includes('fonts.gstatic') ||

@@ -11,7 +11,7 @@ function safeParse(key, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  DATA DECODE — sync, TextDecoder (CDN shart emas)
+//  DATA DECODE — XOR + base64, sync, ishonchli
 // ═══════════════════════════════════════════════════════════
 (function(){
   if(typeof _D === 'undefined'){ window.DATA=[]; return; }
@@ -21,9 +21,16 @@ function safeParse(key, fallback) {
     const bytes = new Uint8Array(b64.length);
     for(let i=0;i<b64.length;i++)
       bytes[i] = b64.charCodeAt(i) ^ key.charCodeAt(i % key.length);
-    // TextDecoder — sync, UTF-8 ni to'g'ri o'qiydi
     window.DATA = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-  }catch(e){ console.error('[E-Link] Data decode failed:', e.message); window.DATA = []; }
+    if(!Array.isArray(window.DATA) || !window.DATA.length) throw new Error('Empty DATA');
+  }catch(e){
+    console.error('[E-Link] Decode failed:', e.message);
+    window.DATA = [];
+    // Keshni o'chirish — keyingi yuklanishda yangi data.js oladi
+    if('caches' in window){
+      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    }
+  }
 })();
 
 
@@ -712,6 +719,11 @@ let _renderToken = 0;
 let _imgObserver = null;
 
 function renderContent(){
+// DATA hali yuklanmagan bo'lsa — qayta urinish
+if(!window.DATA || !Array.isArray(window.DATA) || window.DATA.length === 0){
+  setTimeout(()=>{ if(window.DATA?.length) renderContent(); }, 100);
+  return;
+}
 const myToken = ++_renderToken;
 const container = $('appsContainer');
 container.innerHTML = '';
