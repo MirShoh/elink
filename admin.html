@@ -3,12 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elink UZ — Admin Panel</title>
+<title>eLink UZ — Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="data.js"></script>
+<script>
+// ── DATA decode (admin panel uchun) ──────────────────────
+(function(){
+  if(typeof _D === 'undefined'){ window.DATA=[]; return; }
+  try{
+    const key = 'elink_uz_2026_secure';
+    const b64  = atob(_D);
+    const bytes = new Uint8Array(b64.length);
+    for(let i=0;i<b64.length;i++)
+      bytes[i] = b64.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+    window.DATA = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+  }catch(e){ console.error('[Admin] Data decode failed:', e.message); window.DATA = []; }
+})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:"Plus Jakarta Sans",sans-serif}
@@ -197,7 +211,7 @@ a.tbl-link:hover{text-decoration:underline}
   <div class="login-card" id="loginCard">
     <div class="login-logo">
       <div class="login-ico"><i class="fa-solid fa-shield-halved"></i></div>
-      <div><div class="login-title">Admin Panel</div><div class="login-sub">Elink UZ boshqaruv tizimi</div></div>
+      <div><div class="login-title">Admin Panel</div><div class="login-sub">eLink UZ boshqaruv tizimi</div></div>
     </div>
     <div class="lf">
       <label>Foydalanuvchi nomi</label>

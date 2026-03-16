@@ -86,6 +86,10 @@ async function initApp() {
   tickClock();
   setInterval(tickClock, 1000);
   populateSettingsFields();
+  // DATA bo'sh bo'lsa — bir oz kutib qayta urinish
+  if (!window.DATA || !window.DATA.length) {
+    await new Promise(r => setTimeout(r, 50));
+  }
   populateCatFilters();
   document.getElementById('curUsername').textContent = LS.user();
 
@@ -336,14 +340,14 @@ function renderRecentSugg() {
 //  RESOURCES
 // ════════════════════════════════════════════════════
 function getAllStaticResources() {
-  if (typeof DATA === 'undefined') return [];
+  if (typeof DATA === 'undefined' || !Array.isArray(DATA)) return [];
   return DATA.flatMap(cat =>
     (cat.items || []).map(item => ({ ...item, _catId: cat.id, _catTitle: cat.title }))
   );
 }
 
 function getCats() {
-  if (typeof DATA === 'undefined') return [];
+  if (typeof DATA === 'undefined' || !Array.isArray(DATA)) return [];
   return DATA.filter(c => c.id !== 'my_apps');
 }
 
@@ -351,6 +355,12 @@ function populateCatFilters() {
   const cats = getCats();
   const sel1 = document.getElementById('resCatFilter');
   const sel2 = document.getElementById('resCatId');
+  // Avvalgi optionlarni tozalash (my_apps va birinchi "Tanlang..." dan keyin)
+  [sel1, sel2].forEach(sel => {
+    if (!sel) return;
+    // "Barchasi" yoki "Tanlang..." dan keyin qo'shilganlarni o'chirish
+    while (sel.options.length > 1) sel.remove(1);
+  });
   cats.forEach(cat => {
     const label = stripEmoji(cat.title).substring(0, 36);
     if (sel1) { const o = document.createElement('option'); o.value = cat.id; o.textContent = label; sel1.appendChild(o); }
@@ -560,6 +570,9 @@ function openResModal(dataOrIdx = null) {
     document.getElementById('resSaveTxt').textContent = 'Saqlash';
   }
 
+  // Kategoriyalar bo'sh bo'lsa qayta to'ldirish
+  const sel2 = document.getElementById('resCatId');
+  if (sel2 && sel2.options.length <= 1) populateCatFilters();
   document.getElementById('resModal').classList.add('open');
   setTimeout(() => document.getElementById('resName').focus(), 100);
 }
