@@ -464,8 +464,9 @@ function renderResources() {
       <td>
         <div style="display:flex;align-items:center;gap:10px">
           <div class="res-favicon">
-            <img src="https://www.google.com/s2/favicons?domain=${dom}&sz=32" loading="lazy"
-              onerror="this.style.display='none'">
+            ${(supaMatch?.logo_url || r.logo_url || r.logoUrl)
+              ? `<img src="${esc(supaMatch?.logo_url || r.logo_url || r.logoUrl)}" loading="lazy" style="width:24px;height:24px;object-fit:contain;border-radius:6px" onerror="this.src='https://www.google.com/s2/favicons?domain=${dom}&sz=32'">`
+              : `<img src="https://www.google.com/s2/favicons?domain=${dom}&sz=32" loading="lazy" onerror="this.style.display='none'">` }
           </div>
           <div>
             <div style="font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px">
@@ -497,12 +498,12 @@ function renderResources() {
       </td>
       <td>
         <div class="act-btns">
-          <button class="act-btn edit" onclick="openResModal(${i})">
-            <i class="fa-solid fa-pen"></i> Tahrirlash
+          <button class="act-btn edit" onclick="openResModal(${i})" title="${sid ? 'Supabase da saqlangan' : 'Lokal resurs — tahrirlasa Supabase ga saqlanadi'}">
+            <i class="fa-solid fa-pen"></i> ${sid ? 'Tahrirlash' : 'Tahrirlash <span style=\"font-size:9px;opacity:.7;margin-left:2px\">☁️</span>'}
           </button>
           ${sid
             ? `<button class="act-btn delete" onclick="deleteResource('${sid}','${esc(r.n || '')}')"><i class="fa-solid fa-trash"></i></button>`
-            : `<button class="act-btn delete" onclick="hideStaticResource(${i})"><i class="fa-solid fa-eye-slash"></i></button>`
+            : `<button class="act-btn" onclick="hideStaticResource(${i})" title="Yashirish" style="color:var(--muted);border-color:transparent;background:transparent;padding:5px 8px"><i class="fa-solid fa-eye-slash" style="font-size:11px"></i></button>`
           }
           <a href="${esc(r.u || '#')}" target="_blank" class="act-btn view"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>
@@ -686,6 +687,7 @@ async function saveResource() {
     
     closeResModal();
     await loadSupaResources();
+    // _resCache yangilangach logo ham yangilanadi
     renderResources();
     renderResStats();
     renderOverview();
