@@ -347,6 +347,10 @@ grid.innerHTML=top.map((item,idx)=>{
     <span class="text-[11px] font-bold text-slate-800 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</span>
     <span class="flex items-center gap-0.5 text-[10px] font-black text-orange-500"><i class="fa-solid fa-fire text-[8px]"></i>${getClicks(item.n)}</span>
   </div>`}).join('');
+// Trending rasmlarni lazy observer ga qo'shish
+if(typeof _imgObserver !== 'undefined'){
+  grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
+}
 }
 
 function hl(s,q){
@@ -687,6 +691,8 @@ function skeletonCard(){
 
 // Har bir renderContent chaqiruviga unikal token — eski idle callbacklarni bekor qilish uchun
 let _renderToken = 0;
+// Global lazy-load observer (init() da to'ldiriladi)
+let _imgObserver = null;
 
 function renderContent(){
 const myToken = ++_renderToken;
@@ -892,7 +898,7 @@ function _renderMyApps(container, token){
     <p class="text-sm font-black text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Yangi qo'shish</p>
     <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy resurs qo'shing</p>`;
   grid.appendChild(addCard);
-  grid.innerHTML += items.map(i => card(i)).join('');
+  grid.insertAdjacentHTML('beforeend', items.map(i => card(i)).join(''));
 
   sec.appendChild(grid);
   container.appendChild(sec);
@@ -1527,6 +1533,8 @@ grid.innerHTML = recentlyVisited.map(item=>{
       <p class="text-[9px] text-slate-400 truncate">${(item.d||'').slice(0,30)}</p>
     </div>
   </div>`;}).join('');
+// Recent rasmlarni lazy observer ga qo'shish
+if(_imgObserver) grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1642,6 +1650,8 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
     </div>`
   modal.classList.remove('hidden');
   modal.classList.add('flex');
+  // Modal ichidagi logoni lazy observer ga qo'shish
+  if(_imgObserver) body.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
   setTimeout(()=>{
     content.classList.remove('scale-95','opacity-0');
     content.classList.add('scale-100','opacity-100');
@@ -1794,7 +1804,7 @@ window.submitSuggest = async function(){
 function init(){
 
 // ── Lazy favicon IntersectionObserver ─────────────────────
-const _imgObserver = new IntersectionObserver((entries, obs) => {
+_imgObserver = new IntersectionObserver((entries, obs) => {
   entries.forEach(entry => {
     if(!entry.isIntersecting) return;
     const img = entry.target;
@@ -1816,7 +1826,7 @@ const _mutObs = new MutationObserver(mutations => {
     });
   });
 });
-_mutObs.observe($('appsContainer'), { childList: true, subtree: true });
+_mutObs.observe(document.body, { childList: true, subtree: true });
 
 // Supabase dan admin o'zgartirgan resurslarni yuklash
 (async ()=>{
