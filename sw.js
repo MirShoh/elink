@@ -3,7 +3,7 @@
 //  Offline rejim + tezkor yuklanish uchun kesh
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'elink-v1';
+const CACHE_NAME = 'elink-v2';
 
 // Darhol keshlanadigan asosiy fayllar
 const PRECACHE = [
@@ -12,7 +12,8 @@ const PRECACHE = [
   '/style.css',
   '/data.js',
   '/script.js',
-  '/manifest.json'
+  '/manifest.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js'
 ];
 
 // ── O'rnatish: asosiy fayllarni keshlash ─────────────────
