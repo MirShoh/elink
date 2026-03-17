@@ -1,6 +1,3 @@
-// ═══════════════════════════════════════════════════════════
-//  XAVFSIZ JSON PARSE (JS xatolar oldini olish uchun)
-// ═══════════════════════════════════════════════════════════
 function safeParse(key, fallback) {
   try {
       const val = localStorage.getItem(key);
@@ -10,9 +7,7 @@ function safeParse(key, fallback) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  DATA DECODE — XOR + base64, sync, ishonchli
-// ═══════════════════════════════════════════════════════════
+
 (function(){
   if(typeof _D === 'undefined'){ window.DATA=[]; return; }
   try{
@@ -26,7 +21,6 @@ function safeParse(key, fallback) {
   }catch(e){
     console.error('[E-Link] Decode failed:', e.message);
     window.DATA = [];
-    // Keshni o'chirish — keyingi yuklanishda yangi data.js oladi
     if('caches' in window){
       caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
     }
@@ -34,9 +28,6 @@ function safeParse(key, fallback) {
 })();
 
 
-// ═══════════════════════════════════════════════════════════
-//  XSS HIMOYA — barcha foydalanuvchi kiritishlarini tozalash
-// ═══════════════════════════════════════════════════════════
 function escHtml(str){
   if(!str) return '';
   return String(str)
@@ -49,7 +40,7 @@ function escHtml(str){
 
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
-// ── Foydalanuvchi noyob ID (UUID, bir marta yaratiladi) ──────
+
 function getOrCreateUserId(){
   let uid = localStorage.getItem('lh_uid');
   if(!uid){
@@ -60,7 +51,7 @@ function getOrCreateUserId(){
 }
 const USER_ID = getOrCreateUserId();
 
-// ── Supabase dan foydalanuvchi ma'lumotlarini yuklash ─────────
+
 async function loadUserDataFromSupabase(){
   try{
     const res = await fetch(SUPA_PROXY,{
@@ -79,7 +70,7 @@ async function loadUserDataFromSupabase(){
   }catch(e){ console.warn('[sync] load error:', e.message); return null; }
 }
 
-// ── Supabase ga saqlash (debounced 1.5s) ─────────────────────
+
 let _syncTimer = null;
 function saveUserDataToSupabase(){
   clearTimeout(_syncTimer);
@@ -110,10 +101,10 @@ async function sendTelegram(text){
   } catch(e){ console.warn('[TG]', e.message); }
 }
 
-// Xotira
+
 let globalClicks = {};
 
-// ── Sahifa ochilganda: barcha kliklarni BIR so'rovda yuklash ──
+
 async function initGlobalClicks(){
 try {
   const res = await fetch(SUPA_PROXY, {
@@ -131,7 +122,6 @@ try {
 } catch(e){ console.warn('[E-Link] Supabase error:', e.message); }
 }
 
-// ── Klik: atomic increment (race-condition xavfsiz) ──
 async function _supaIncrement(name){
 try {
   const res = await fetch(SUPA_PROXY, {
@@ -145,8 +135,6 @@ try {
 } catch(e){ return null; }
 }
 
-// ── DOM element yangilash ──
-// DOM dagi klik elementini yangilash
 function _updateCountEl(name, count){
 const id = 'cb-' + name.replace(/[^a-zA-Z0-9]/g,'_');
 const el = document.getElementById(id);
@@ -158,11 +146,7 @@ if(count > 0){
 }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  DATA — 330+ Premium va mahalliy resurslar to'plami
-// ═══════════════════════════════════════════════════════════
 let customApps = safeParse('lh_custom_apps', []);
-// Supabase sinxronlash — init() ichida amalga oshiriladi (renderga ta'sir qilmasin)
 async function _syncUserData(){
   const remote = await loadUserDataFromSupabase();
   if(!remote) return false;
@@ -185,8 +169,7 @@ async function _syncUserData(){
 }
 
 
-// DATA massivi data.js dan yuklanadi (tezlik uchun)
-// my_apps kategoriyasiga customApps ni bog'lash
+
 function initCustomApps() {
   if(typeof DATA === 'undefined' || !Array.isArray(DATA)) {
     console.warn('[E-Link] DATA yuklanmagan, initCustomApps kechiktirildi');
@@ -197,9 +180,7 @@ function initCustomApps() {
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//  STATE & INIT
-// ═══════════════════════════════════════════════════════════
+
 let activeCat  = 'all';
 let query      = '';
 let filters    = [];
@@ -217,9 +198,7 @@ const FILTERS  = [
 
 const $=id=>document.getElementById(id);
 
-// ═══════════════════════════════════════════════════════════
-//  LOGO LOGIC (FONSZ, BITTALIK TOZA LOGOTIP / AVATAR)
-// ═══════════════════════════════════════════════════════════
+
 function getDomain(url){ try{return new URL(url).hostname.replace('www.','');}catch(e){return '';} }
 
 function getFallbackColor(name) {
@@ -229,19 +208,15 @@ function getFallbackColor(name) {
   return colors[Math.abs(hash) % colors.length];
 }
 
-// ── Global logo fallback — qo'shtirnoq muamosiz
 window._logoFail = function(img) {
   const domain = img.dataset.domain;
   const step   = parseInt(img.dataset.step || '0');
   if (step === 1 && domain) {
-    // 2-urinish: DuckDuckGo favicon
     img.dataset.step = '2';
     img.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   } else {
-    // Oxirgi fallback: rang + harf avatari (xira globus emas)
     img.onerror = null;
     img.src = img.dataset.svg;
-    // img ni yashirib, harf avatarini ko'rsatish
     const wrap = img.closest('.card-logo-wrap') || img.parentElement;
     if(wrap && !wrap.dataset.avatarSet){
       wrap.dataset.avatarSet = '1';
@@ -271,15 +246,10 @@ function _globeSVG(c1, c2) {
     `<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient>` +
     `</defs>` +
     `<rect width="64" height="64" rx="14" fill="url(#bg)"/>` +
-    // Globe circle
     `<circle cx="32" cy="32" r="16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>` +
-    // Equator line
     `<line x1="16" y1="32" x2="48" y2="32" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>` +
-    // Vertical center line
     `<line x1="32" y1="16" x2="32" y2="48" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>` +
-    // Left longitude arc
     `<path d="M32 16 Q22 32 32 48" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>` +
-    // Right longitude arc
     `<path d="M32 16 Q42 32 32 48" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>` +
     `</svg>`
   )}`;
@@ -299,7 +269,6 @@ for(let i=0;i<item.n.length;i++) hash = item.n.charCodeAt(i)+((hash<<5)-hash);
 const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
 const svgData = _globeSVG(c1, c2);
 
-// Admin paneldan o'rnatilgan maxsus logo birinchi ustunlik oladi
 const customLogo = item.logoUrl || item.logo_url || '';
 const faviconSrc = customLogo || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : svgData);
 
@@ -311,21 +280,19 @@ return `<img src="${svgData}" data-src="${faviconSrc}" alt="${item.n}" loading="
   onerror="window._logoFail(this)">`;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  CLICK TRACKING — optimistic UI + Supabase atomic increment
-// ═══════════════════════════════════════════════════════════
+
 function getClicks(name){
 return globalClicks[name] || 0;
 }
 
 function addClick(name){
-// 1. Optimistic: UI ni darhol oshir (tez ko'rinsin)
+
 globalClicks[name] = (globalClicks[name]||0) + 1;
 _updateCountEl(name, globalClicks[name]);
 renderTrending();
 updateSidebarStats();
 
-// 2. Supabase ga atomic increment — haqiqiy global qiymat
+
 _supaIncrement(name).then(serverVal => {
   if(serverVal !== null && serverVal !== globalClicks[name]){
     globalClicks[name] = serverVal;
@@ -334,7 +301,7 @@ _supaIncrement(name).then(serverVal => {
   }
 });
 
-// 3. So'nggi ko'rilganlar
+
 let foundItem = null;
 DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) foundItem=i; }));
 if(foundItem){
@@ -344,17 +311,17 @@ if(foundItem){
 }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  TRENDING SECTION
-// ═══════════════════════════════════════════════════════════
+
 function renderTrending(){
+const sec=$('trendingSection'), grid=$('trendingGrid');
+// Qidiruv aktiv bo'lsa trending yashiriladi
+if(query && query.trim()){sec.classList.add('hidden');return;}
 const all=[];
 DATA.forEach(c=>{
   if(c.id !== 'my_apps') c.items.forEach(i=>{ if(getClicks(i.n)>0) all.push({...i,_cat:c}); });
 });
 all.sort((a,b)=>getClicks(b.n)-getClicks(a.n));
 const top=all.slice(0,7);
-const sec=$('trendingSection'), grid=$('trendingGrid');
 if(!top.length){sec.classList.add('hidden');return;}
 sec.classList.remove('hidden');
 grid.innerHTML=top.map((item,idx)=>{
@@ -396,9 +363,7 @@ if(sortMode==='popular') return [...arr].sort((a,b)=>getClicks(b.n)-getClicks(a.
 return arr;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  CARD HTML
-// ═══════════════════════════════════════════════════════════
+
 function card(item){
 const isFav      = favorites.includes(item.n);
 const isBepul    = item.t?.includes('bepul');
@@ -413,7 +378,6 @@ const c          = getClicks(item.n);
 const isHot      = c >= 5;
 const esc        = item.n.replace(/'/g,"\\'");
 const escUrl     = item.u.replace(/'/g,"\\'");
-// XSS himoya: shaxsiy resurslarda foydalanuvchi kiritgan matnni tozalash
 const safeName   = isCustom ? escHtml(item.n) : item.n;
 const safeDesc   = isCustom ? escHtml(item.d||'') : (item.d||'');
 
@@ -421,7 +385,6 @@ const mainClick = (isMob || item.androidUrl)
   ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},${!!(isMob||item.androidUrl)})`
   : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
 
-// Platforma badgelari
 const badges = [
   isBepul  ? `<span class="badge-bepul">✓ Bepul</span>` : '',
   isPullik ? `<span class="badge-pullik">💎 Pullik</span>` : '',
@@ -518,20 +481,20 @@ if(btn) {
     btn.className = `fav-btn w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] ${on?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-slate-100 dark:bg-slate-700/50 text-slate-400 hover:text-rose-500'}`;
     btn.innerHTML = `<i class="fa-${on?'solid':'regular'} fa-heart"></i>`;
 }
-// favorites soni o'zgargani uchun sidebar badge ni yangilash
+
 renderNav();
-// faqat favorites ko'rinishida to'liq qayta render qilish
+
 if(activeCat==='favorites') renderContent();
 };
 
 function renderNav(){
 const total=DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a,0);
 $('sidebarCount').textContent=`${total} ta resurs`;
-// Mobil resurslar soni
+
 const mobCnt = $('mobResCount');
 if(mobCnt) mobCnt.textContent = total + ' ta resurs';
 
-// ── Helper: build one nav item ──
+
 const navBtn = (onclick, title, icon, label, count, extraClass='', countClass='') => {
   return `<button onclick="${onclick}" title="${title}"
     class="sb-nav-item ${extraClass} w-full flex items-center justify-between px-3 py-1.5 rounded-xl transition-all text-sm group">
@@ -543,15 +506,15 @@ const navBtn = (onclick, title, icon, label, count, extraClass='', countClass=''
   </button>`;
 };
 
-// ── Shaxsiy ro'yxat (pinned) ──
+
 const myActive = activeCat==='my_apps';
 const myCountCls = myActive ? 'bg-violet-200 dark:bg-violet-500/30 text-violet-600 dark:text-violet-300' : 'bg-slate-200 dark:bg-slate-700/80 text-slate-500';
 const myExtraCls = myActive ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
 const pinned = navBtn(`setCat('my_apps')`, "Shaxsiy ro'yxat", 'fa-folder-open',
   "Shaxsiy ro'yxat", customApps.length||'', myExtraCls, myCountCls);
 
-// ── Saqlanganlar — Shaxsiy ro'yxat ostida (pinned) ──
-const favActive = activeCat==='favorites';
+
+  const favActive = activeCat==='favorites';
 const favCountCls = favActive ? 'bg-rose-200 dark:bg-rose-500/30 text-rose-600' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-500';
 const favExtraCls = favActive ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
 const favPinned = navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saqlanganlar',
@@ -560,8 +523,8 @@ const favPinned = navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saq
 $('sidebarPinned').innerHTML = pinned + favPinned +
   `<div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 mt-2 mb-1"></div>`;
 
-// ── Kategoriyalar ──
-const allActive = activeCat==='all';
+
+  const allActive = activeCat==='all';
 
 let s = navBtn(`setCat('all')`, 'Barchasi', 'fa-border-all', 'Barchasi', total,
   allActive ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50',
@@ -578,7 +541,7 @@ DATA.forEach(c=>{
 
 $('sidebarNav').innerHTML = s;
 
-// ── Mobil nav (pills) ──
+
 let m=`
   <button onclick="openCustomModal()" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/20 transition-all active:scale-95"><i class="fa-solid fa-plus"></i></button>
   <button onclick="setCat('my_apps')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${activeCat==='my_apps'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">🛠️ Shaxsiy${customApps.length?` <span class="text-[9px] bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 px-1 rounded-full font-black">${customApps.length}</span>`:''}</button>
@@ -659,7 +622,7 @@ const catClr=$('catClr');
 if(catClr){catClr.classList.add('opacity-0','pointer-events-none');}
 hideDrop();
 
-// catSWrap: faqat specific kategoriyada ko'rinsin
+
 const catWrap=$('catSWrap');
 const isSpecificCat = id!=='all' && id!=='favorites' && id!=='my_apps';
 
@@ -687,9 +650,8 @@ renderNav(); renderContent();
 $('mainScroll').scrollTo({top:0,behavior:'smooth'});
 };
 
-// ═══════════════════════════════════════════════════════════
-//  SKELETON CARD — tezkor vizual feedback
-// ═══════════════════════════════════════════════════════════
+
+
 function skeletonCard(){
   return `<div class="skel-card glass rounded-2xl p-4 flex flex-col h-full">
     <div class="flex items-start gap-3 mb-3">
@@ -713,24 +675,27 @@ function skeletonCard(){
   </div>`;
 }
 
-// Har bir renderContent chaqiruviga unikal token — eski idle callbacklarni bekor qilish uchun
+
 let _renderToken = 0;
-// Global lazy-load observer (init() da to'ldiriladi)
+
 let _imgObserver = null;
 
 function renderContent(){
-// DATA hali yuklanmagan bo'lsa — qayta urinish
+
 if(!window.DATA || !Array.isArray(window.DATA) || window.DATA.length === 0){
   setTimeout(()=>{ if(window.DATA?.length) renderContent(); }, 100);
   return;
 }
+// Qidiruv holatiga qarab trending ko'rsat/yashir
+const _tSec=$('trendingSection');
+if(_tSec){ if(query&&query.trim()) _tSec.classList.add('hidden'); else renderTrending(); }
 const myToken = ++_renderToken;
 const container = $('appsContainer');
 container.innerHTML = '';
 $('noResults').classList.add('hidden');
 $('noResults').classList.remove('flex');
 
-// ── Skeleton ko'rsatish (darhol) ─────────────────────────
+
 const SKEL_COUNT = 10;
 const skelFrag = document.createDocumentFragment();
 const skelGrid = document.createElement('div');
@@ -740,12 +705,12 @@ skelGrid.innerHTML = Array(SKEL_COUNT).fill(skeletonCard()).join('');
 skelFrag.appendChild(skelGrid);
 container.appendChild(skelFrag);
 
-// ── Haqiqiy render (bir tick keyinroq, skeleton ko'rsatilgandan so'ng) ──
-setTimeout(()=>{
-  if(myToken !== _renderToken) return; // eskirgan render — bekor qilish
 
-  // Barcha ma'lumotlarni yig'ish
-  let sections = []; // [{heading, gr, catId, items}]
+setTimeout(()=>{
+  if(myToken !== _renderToken) return; 
+
+
+  let sections = []; 
   let totalFound = 0;
 
   if(activeCat==='favorites'){
@@ -756,7 +721,6 @@ setTimeout(()=>{
       totalFound = fItems.length;
     }
   } else if(activeCat==='my_apps'){
-    // my_apps alohida render (banner + grid)
     _renderMyApps(container, myToken);
     return;
   } else {
@@ -772,7 +736,7 @@ setTimeout(()=>{
     });
   }
 
-  // Skeletonni o'chirish
+
   const skelEl = document.getElementById('_skelGrid');
   if(skelEl) skelEl.remove();
 
@@ -788,17 +752,17 @@ setTimeout(()=>{
   $('resultCount').textContent = `${totalFound} ta resurs`;
   $('appsContainer').classList.remove('hidden');
 
-  // ── Progressive rendering: section'larni navbatma-navbat render qilish ──
+
   _renderSectionsProgressively(sections, container, myToken);
 }, 0);
 }
 
-// ── Sectionlarni idle chunklarda render qilish ────────────
+
 function _renderSectionsProgressively(sections, container, token){
   const FIRST_BATCH = 2; // birinchi 2 ta section darhol
   const frag = document.createDocumentFragment();
 
-  // Birinchi 2 ta section — darhol render
+
   const immediate = sections.slice(0, FIRST_BATCH);
   const deferred  = sections.slice(FIRST_BATCH);
 
@@ -807,7 +771,7 @@ function _renderSectionsProgressively(sections, container, token){
 
   if(!deferred.length) return;
 
-  // Qolgan sectionlar — idle vaqtda, har biri alohida
+
   let idx = 0;
   function scheduleNext(){
     if(token !== _renderToken) return;
@@ -817,7 +781,7 @@ function _renderSectionsProgressively(sections, container, token){
     el.style.opacity = '0';
     el.style.transform = 'translateY(6px)';
     container.appendChild(el);
-    // Animate in
+
     requestAnimationFrame(()=>{
       el.style.transition = 'opacity .2s ease-out, transform .2s ease-out';
       el.style.opacity = '1';
@@ -830,7 +794,7 @@ function _renderSectionsProgressively(sections, container, token){
   schedule(scheduleNext);
 }
 
-// ── Yagona section element yasash ────────────────────────
+
 function _buildSectionEl(s){
   const sec = document.createElement('div');
   sec.className = 'animate-fade-up';
@@ -852,7 +816,7 @@ function _buildSectionEl(s){
 
   const grid = document.createElement('div');
   grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-3';
-  // innerHTML bilan bir yozish — har bir card uchun alohida DOM operatsiyasidan tez
+
   grid.innerHTML = s.items.map(i => card(i)).join('');
 
   sec.innerHTML = heading;
@@ -860,7 +824,7 @@ function _buildSectionEl(s){
   return sec;
 }
 
-// ── my_apps — alohida (banner + grid) ────────────────────
+
 function _renderMyApps(container, token){
   const skelEl = document.getElementById('_skelGrid');
   if(skelEl) skelEl.remove();
@@ -871,7 +835,7 @@ function _renderMyApps(container, token){
   const sec = document.createElement('div');
   sec.className = 'animate-fade-up space-y-1.5';
 
-  // Banner
+
   const banner = document.createElement('div');
   banner.innerHTML = `
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 dark:from-violet-500/20 dark:to-fuchsia-500/20 border-2 border-violet-300/50 dark:border-violet-600/50 shadow-sm">
@@ -881,7 +845,7 @@ function _renderMyApps(container, token){
         </div>
         <div class="min-w-0">
           <p class="text-sm font-black text-slate-800 dark:text-white leading-snug">Ro'yxat tuzish va ulashish</p>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Resurslarni tanlang va havola orqali ulashing</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Resurslarni qo'shing va qisqa havola orqali ulashing</p>
         </div>
       </div>
       <button onclick="openListBuilderModal()" class="shrink-0 flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-black rounded-xl px-4 py-2.5 text-[12px] transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98] whitespace-nowrap">
@@ -890,7 +854,7 @@ function _renderMyApps(container, token){
     </div>`;
   sec.appendChild(banner);
 
-  // Bo'sh holat
+
   if(customApps.length === 0){
     const emptyGuide = document.createElement('div');
     emptyGuide.innerHTML = `
@@ -925,7 +889,7 @@ function _renderMyApps(container, token){
       <i class="fa-solid fa-plus text-base"></i>
     </div>
     <p class="text-sm font-black text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Yangi qo'shish</p>
-    <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy resurs qo'shing</p>`;
+    <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy link qo'shing va istalgan vaqtda 1 klikda oching</p>`;
   grid.appendChild(addCard);
   grid.insertAdjacentHTML('beforeend', items.map(i => card(i)).join(''));
 
@@ -956,7 +920,7 @@ $('mobClr').classList.toggle('pointer-events-none',!q);
 hideDrop(); renderContent();
 };
 
-// ── Global qidiruv helper ──────────────────────────────────
+
 window.applyGlobalSearch=function(q){
   activeCat='all';
   $('pageTitle').textContent='Barcha Resurslar';
@@ -1009,7 +973,7 @@ function buildDropHTML(q){
 
   let html = '';
 
-  // ── Kategoriya sarlavhasi (global emas, spetsifik kategoriyada) ──
+
   if(!isGlobal && activeCat !== 'my_apps' && (catSugg.length || otherSugg.length)){
     const cat = DATA.find(c => c.id === activeCat);
     html += `<div class="flex items-center gap-2 px-3 pt-2.5 pb-1">
@@ -1018,7 +982,7 @@ function buildDropHTML(q){
     </div>`;
   }
 
-  // ── Qidiruv natijalari ────────────────────────────────────
+
   if(catSugg.length){
     html += `<div class="flex items-center gap-1.5 px-3 pt-2 pb-1">
       <i class="fa-solid fa-magnifying-glass text-[9px] text-slate-300 dark:text-slate-600"></i>
@@ -1033,7 +997,7 @@ function buildDropHTML(q){
       const isPul = i.t?.includes('pullik');
       const hasW  = i.t?.includes('web') || i.isCustom || (i.u && !i.u.includes('play.google.com') && !i.u.includes('apps.apple.com'));
       const clk   = getClicks(i.n);
-      // Kategoriya nomi — emoji va qo'shimcha belgilarni olib tashlash
+
       const catLabel = isGlobal && i._c
         ? i._c.title.replace(/^\S+\s/, '').substring(0, 22)
         : '';
@@ -1062,7 +1026,7 @@ function buildDropHTML(q){
     });
   }
 
-  // ── Boshqa kategoriyalardan ───────────────────────────────
+
   if(!isGlobal && activeCat !== 'my_apps' && otherSugg.length){
     const qEsc = q.replace(/'/g, "\\'");
     html += `<div class="mx-2 my-1.5 border-t border-slate-100 dark:border-slate-700/50"></div>
@@ -1088,7 +1052,7 @@ function buildDropHTML(q){
     });
   }
 
-  // ── Qidiruv tarixi ────────────────────────────────────────
+
   if(histFiltered.length){
     if(catSugg.length || otherSugg.length)
       html += `<div class="mx-2 my-1.5 border-t border-slate-100 dark:border-slate-700/50"></div>`;
@@ -1115,7 +1079,7 @@ function buildDropHTML(q){
     });
   }
 
-  // ── Footer ────────────────────────────────────────────────
+
   if(q.length >= 1 && (catSugg.length > 0 || otherSugg.length > 0)){
     html += `<div class="px-3 py-2 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-2">
       <span class="text-[10px] text-slate-300 dark:text-slate-600 flex items-center gap-1">
@@ -1142,8 +1106,8 @@ function hideDrop(){ $('deskDrop').classList.add('hidden'); $('mobDrop').classLi
 
 let sTimer;
 function setupSearch(){
-// catSrc (content area top-right search in specific category)
-const catSrcEl=$('catSrc'), catClrEl=$('catClr');
+
+  const catSrcEl=$('catSrc'), catClrEl=$('catClr');
 const handleCat=e=>{
   query=e.target.value;
   $('deskSrc').value=$('mobSrc').value=query;
@@ -1208,7 +1172,7 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('click',e=>{
   if(!$('deskSWrap').contains(e.target)) $('deskDrop').classList.add('hidden');
   if(!$('mobSWrap').contains(e.target))  $('mobDrop').classList.add('hidden');
-  // Barcha sort dropdownlarni tashqi click da yopish
+
   const sd = $('sortDropMenu'), sw = $('sortDropWrap');
   if(sd && sw && !sw.contains(e.target)){ sd.classList.add('hidden'); const ch=$('sortChevron'); if(ch) ch.style.transform=''; }
   const td = $('topSortDropMenu'), tw = $('topSortDropWrap');
@@ -1242,9 +1206,7 @@ upd(html.classList.contains('dark'));
 }));
 }
 
-// ═══════════════════════════════════════════════════════════
-//  SHARE CATEGORY — kategoriya ulashish
-// ═══════════════════════════════════════════════════════════
+
 window.shareCat = async function(title, url, btn) {
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 if (isMobile && navigator.share) {
@@ -1255,7 +1217,7 @@ catch(e) {
   const t=document.createElement('input');t.value=url;
   document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
 }
-// Brief visual feedback on the button
+
 if(btn){
   const orig = btn.innerHTML;
   btn.innerHTML = '<i class="fa-solid fa-check text-[10px]"></i><span class="hidden sm:inline">Nusxalandi</span>';
@@ -1266,9 +1228,8 @@ showToast(`"${title}" havolasi nusxalandi!`, 'fa-link text-violet-400');
 };
 
 
-// ═══════════════════════════════════════════════════════════
-//  SHARE CARD — har bir kartochka uchun ulashish
-// ═══════════════════════════════════════════════════════════
+
+
 window.shareCard = async function(name, url) {
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 const shareData = { title: name + ' — E-Link UZ', text: name + ' — E-Link UZ da toping!', url };
@@ -1305,10 +1266,10 @@ ms.addEventListener('scroll',()=>{
   const max = ms.scrollHeight - ms.clientHeight;
   const pct = max > 0 ? (st / max) * 100 : 0;
 
-  // Progress bar
+
   if(prog) prog.style.width = pct + '%';
 
-  // Scroll-to-top button
+
   const show = st > 220;
   btn.classList.toggle('opacity-0', !show);
   btn.classList.toggle('translate-y-4', !show);
@@ -1325,11 +1286,9 @@ t.classList.remove('opacity-0','pointer-events-none');
 setTimeout(()=>t.classList.add('opacity-0','pointer-events-none'),2500);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  CUSTOM APPS LOGIC
-// ═══════════════════════════════════════════════════════════
-//  CUSTOM APP MODAL LOGIC
-// ═══════════════════════════════════════════════════════════
+
+
+
 let _caEnabled = {web:true, android:false, ios:false};
 
 window.caToggle = function(type){
@@ -1357,7 +1316,7 @@ function _resetCaModal(){
   $('caName').value=''; $('caDesc').value='';
   $('caUrl').value=''; $('caAndroidUrl').value=''; $('caIosUrl').value='';
   $('caEditName').value='';
-  // Reset toggles
+
   const map2 = {
     web:     {btn:'caToggleWeb',  field:'caWebField',     on:'border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400'},
     android: {btn:'caToggleAndroid', field:'caAndroidField', off:'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'},
@@ -1391,7 +1350,7 @@ window.openEditModal = function(name){
   $('caDesc').value = app.d||'';
   $('caEditName').value = app.n;
 
-  // URL fields — detect which platforms enabled
+
   const hasWeb = app.t?.includes('web') || app.u;
   const hasMob = app.t?.includes('mobil') || app.androidUrl || app.iosUrl;
 
@@ -1433,11 +1392,11 @@ window.saveCustomApp = function() {
   const fixUrl = s => (!s?'': (!s.startsWith('http://')&&!s.startsWith('https://'))?'https://'+s:s);
   u = fixUrl(u); aUrl = fixUrl(aUrl); iUrl = fixUrl(iUrl);
 
-  // Edit mode
+
   if(editName){
     const idx = customApps.findIndex(a=>a.n===editName);
     if(idx===-1) return;
-    // Name change conflict check
+
     if(n!==editName && customApps.find(a=>a.n.toLowerCase()===n.toLowerCase()))
       return showToast("Bu nomdagi ilova allaqachon bor!", "fa-triangle-exclamation text-amber-500");
 
@@ -1448,7 +1407,7 @@ window.saveCustomApp = function() {
     if(aUrl) updated.androidUrl=aUrl; else delete updated.androidUrl;
     if(iUrl) updated.iosUrl=iUrl;     else delete updated.iosUrl;
     customApps[idx]=updated;
-    // update favs if name changed
+
     if(n!==editName){
       favorites=favorites.map(f=>f===editName?n:f);
       localStorage.setItem('lh_favs',JSON.stringify(favorites));
@@ -1476,7 +1435,7 @@ window.saveCustomApp = function() {
 };
 
 window.deleteCustomApp = function(name) {
-  // Custom confirm modal — browser confirm() o'rniga
+
   const existing = document.getElementById('deleteConfirmModal');
   if(existing) existing.remove();
 
@@ -1536,9 +1495,8 @@ window.deleteCustomApp = function(name) {
 };
 
 
-// ═══════════════════════════════════════════════════════════
-//  SO'NGGI KO'RILGAN RESURSLAR
-// ═══════════════════════════════════════════════════════════
+
+
 function renderRecent(){
 const wrap = document.getElementById('recentSection');
 if(!wrap) return;
@@ -1562,13 +1520,13 @@ grid.innerHTML = recentlyVisited.map(item=>{
       <p class="text-[9px] text-slate-400 truncate">${(item.d||'').slice(0,30)}</p>
     </div>
   </div>`;}).join('');
-// Recent rasmlarni lazy observer ga qo'shish
-if(_imgObserver) grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
+
+  if(_imgObserver) grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
 }
 
-// ═══════════════════════════════════════════════════════════
-//  SIDEBAR STATS YANGILASH
-// ═══════════════════════════════════════════════════════════
+
+
+
 function updateSidebarStats(){
 const el = document.getElementById('sidebarStats');
 if(!el) return;
@@ -1594,9 +1552,8 @@ el.innerHTML = `
   </div>`;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  PLATFORM MODAL — sayt, Android yoki iOS tanlash
-// ═══════════════════════════════════════════════════════════
+
+
 window.openPlatformModal = function(name, url, hasWeb, hasMobil){
   let item = null;
   DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) item=i; }));
@@ -1606,18 +1563,18 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
   const escN  = name.replace(/'/g,"\'");
   const q     = encodeURIComponent(name);
 
-  // ── URL strategiyasi ──────────────────────────────────
+
   const isStoreUrl = u => u && (
     u.includes('play.google.com') ||
     u.includes('apps.apple.com') ||
     u.includes('appgallery.huawei')
   );
 
-  // Veb URL: item.webUrl > item.u (store emas bo'lsa) > null
+
   const webUrl  = item.webUrl  || (!isStoreUrl(item.u) ? item.u  : null);
-  // Play: item.androidUrl > play-search
+
   const playUrl = item.androidUrl || (item.u?.includes('play.google.com') ? item.u : `https://play.google.com/store/search?q=${q}&c=apps`);
-  // iOS: item.iosUrl > appstore-search
+
   const iosUrl  = item.iosUrl  || (item.u?.includes('apps.apple.com')    ? item.u : `https://apps.apple.com/search?term=${q}`);
 
   const showWeb = !!(webUrl && webUrl.trim());
@@ -1679,7 +1636,7 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
     </div>`
   modal.classList.remove('hidden');
   modal.classList.add('flex');
-  // Modal ichidagi logoni lazy observer ga qo'shish
+
   if(_imgObserver) body.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
   setTimeout(()=>{
     content.classList.remove('scale-95','opacity-0');
@@ -1706,13 +1663,13 @@ function setupTrendingScroll(){
     const rect = grid.parentElement.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const w = rect.width;
-    const zone = 90; // px — chetdan qancha masofada ishlaydi
-    const maxSpeed = 5; // px per frame
+    const zone = 90; 
+    const maxSpeed = 5; 
 
     cancelAnimationFrame(raf);
 
     if(x > w - zone) {
-      // O'ng tomon — oldinga sura
+
       const speed = maxSpeed * ((x - (w - zone)) / zone);
       const scroll = () => {
         grid.scrollLeft += speed;
@@ -1721,8 +1678,8 @@ function setupTrendingScroll(){
       };
       raf = requestAnimationFrame(scroll);
     } else if(x < zone) {
-      // Chap tomon — orqaga sura
       const speed = maxSpeed * ((zone - x) / zone);
+
       const scroll = () => {
         grid.scrollLeft -= speed;
         if(grid.scrollLeft > 0)
@@ -1737,21 +1694,20 @@ function setupTrendingScroll(){
   });
 }
 
-// ═══════════════════════════════════════════════════════════
-//  REPORT MODAL — "Ishlamayapti" xabari
-// ═══════════════════════════════════════════════════════════
+
+
 window.openReportModal = function(name, url){
   const m=$('reportModal'), mc=$('reportModalContent');
   $('reportSiteName').textContent = name;
   $('reportSiteUrl').value = url;
   $('reportSiteNameHidden').value = name;
   $('reportReason').value = '';
-  // Reason tugmalarini reset
+
   document.querySelectorAll('.reason-btn').forEach(b => {
     b.classList.remove('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
     b.classList.add('border-slate-200','dark:border-slate-700','text-slate-600','dark:text-slate-400');
   });
-  // Textarea yashirish
+
   const wrap = document.getElementById('otherReasonWrap');
   if(wrap){ wrap.style.maxHeight='0'; wrap.style.opacity='0'; wrap.classList.add('hidden'); }
   const ta = document.getElementById('otherReasonText');
@@ -1790,9 +1746,8 @@ window.submitReport = async function(){
   btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish';
 };
 
-// ═══════════════════════════════════════════════════════════
-//  SUGGEST MODAL — yangi resurs taklifi
-// ═══════════════════════════════════════════════════════════
+
+
 window.openSuggestModal = function(){
   const m=$('suggestModal'), mc=$('suggestModalContent');
   ['suggestName','suggestUrl','suggestDesc','suggestContact'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
@@ -1832,8 +1787,8 @@ window.submitSuggest = async function(){
 
 function init(){
 
-// ── Lazy favicon IntersectionObserver ─────────────────────
-_imgObserver = new IntersectionObserver((entries, obs) => {
+
+  _imgObserver = new IntersectionObserver((entries, obs) => {
   entries.forEach(entry => {
     if(!entry.isIntersecting) return;
     const img = entry.target;
@@ -1843,9 +1798,9 @@ _imgObserver = new IntersectionObserver((entries, obs) => {
     }
     obs.unobserve(img);
   });
-}, { rootMargin: '200px 0px' }); // 200px oldin yuklansin
+}, { rootMargin: '200px 0px' }); 
 
-// Yangi img.lz-img elementlarni kuzatish — MutationObserver orqali
+
 const _mutObs = new MutationObserver(mutations => {
   mutations.forEach(m => {
     m.addedNodes.forEach(node => {
@@ -1857,7 +1812,7 @@ const _mutObs = new MutationObserver(mutations => {
 });
 _mutObs.observe(document.body, { childList: true, subtree: true });
 
-// Admin resurslarini DATA ga qo'shish/yangilash — init() chaqiradi
+
 async function _syncSiteResources(){
   try{
     const res = await fetch(SUPA_PROXY, {
@@ -1912,7 +1867,7 @@ setupShare();
 setupScroll();
 setupTrendingScroll();
 
-// Barcha async ma'lumotlarni bir vaqtda yuklash, keyin BIR MARTA render
+
 Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
   renderNav();
   renderContent();
@@ -1921,19 +1876,19 @@ Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
 });
 }
 init();
-// selectReason — report modal
+
 window.selectReason = function(btn, reason) {
-  // Barcha tugmalardan active classni olib tashlash
+
   document.querySelectorAll('.reason-btn').forEach(b => {
     b.classList.remove('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
     b.classList.add('border-slate-200','dark:border-slate-700','text-slate-600','dark:text-slate-400');
   });
-  // Bosilgan tugmani belgilash
+
   btn.classList.add('border-amber-400','text-amber-600','bg-amber-50','dark:bg-amber-500/10');
   btn.classList.remove('border-slate-200','dark:border-slate-700');
   document.getElementById('reportReason').value = reason;
 
-  // "Boshqa muammo" tanlanganda textarea ko'rsatish
+
   const wrap = document.getElementById('otherReasonWrap');
   const ta   = document.getElementById('otherReasonText');
   if(reason === 'Boshqa muammo'){
@@ -1947,7 +1902,7 @@ window.selectReason = function(btn, reason) {
     setTimeout(()=>{ wrap.classList.add('hidden'); ta.value=''; }, 280);
   }
 };
-// ── CUSTOM SORT DROPDOWN ──────────────────────────────────
+
 const SORT_LABELS = {
   def:     { label: 'Standart tartib', icon: 'fa-bars-staggered' },
   popular: { label: '🔥 Eng mashhur',  icon: null },
@@ -1964,7 +1919,7 @@ function updateSortDropLabel(val){
     if(info.icon){ iconEl.className = `fa-solid ${info.icon} text-violet-400 text-[10px]`; iconEl.textContent = ''; }
     else { iconEl.className = ''; iconEl.textContent = ''; }
   }
-  // Highlight active option
+
   document.querySelectorAll('.sort-opt').forEach(b => {
     const isActive = b.dataset.val === val;
     b.classList.toggle('bg-violet-50', isActive);
@@ -1991,13 +1946,13 @@ window.toggleSortDrop = function(){
 
 window.setSortMode = function(val){
   sortMode = val;
-  // sync hidden select
+
   const ss = document.getElementById('sSort');
   if(ss) ss.value = val;
   const ts = document.getElementById('topSort');
   if(ts) ts.value = val;
   updateSortDropLabel(val);
-  // close dropdown
+
   const menu = document.getElementById('sortDropMenu');
   const chevron = document.getElementById('sortChevron');
   if(menu) menu.classList.add('hidden');
@@ -2005,7 +1960,7 @@ window.setSortMode = function(val){
   renderNav(); renderContent();
 };
 
-// Close on outside click
+
 document.addEventListener('click', function(e){
   const wrap = document.getElementById('sortDropWrap');
   if(wrap && !wrap.contains(e.target)){
@@ -2016,7 +1971,7 @@ document.addEventListener('click', function(e){
   }
 });
 
-// ── TOP SORT CUSTOM DROPDOWN ──────────────────────────────
+
 const TOP_SORT_LABELS = {
   def:     'Standart',
   popular: '🔥 Mashhur',
@@ -2051,7 +2006,7 @@ window.toggleTopSortDrop = function(){
   if(chev) chev.style.transform = open ? '' : 'rotate(180deg)';
 };
 
-// Close top sort on outside click
+
 document.addEventListener('click', function(e){
   const wrap = document.getElementById('topSortDropWrap');
   if(wrap && !wrap.contains(e.target)){
@@ -2062,12 +2017,12 @@ document.addEventListener('click', function(e){
   }
 });
 
-// Patch setSortMode to also update top sort label
+
 const _origSetSortMode = window.setSortMode;
 window.setSortMode = function(val){
   _origSetSortMode(val);
   updateTopSortLabel(val);
-  // close top sort dropdown too
+
   const menu = document.getElementById('topSortDropMenu');
   const chev = document.getElementById('topSortChevron');
   if(menu) menu.classList.add('hidden');
@@ -2080,7 +2035,7 @@ window.setSortMode = function(val){
 //  Bu tizim = do'stlar uchun alohida ro'yxat tuzish + ulashish
 // ═══════════════════════════════════════════════════════════
 
-// ── Compress / Decompress (LZ-string → 3-4x qisqa URL) ───
+
 function encodeShareList(data){
   try{
     const json = JSON.stringify(data);
@@ -2094,23 +2049,23 @@ function decodeShareList(str){
     let json;
     if(typeof LZString !== 'undefined')
       json = LZString.decompressFromEncodedURIComponent(str);
-    if(!json) json = decodeURIComponent(escape(atob(str))); // fallback eski format
+    if(!json) json = decodeURIComponent(escape(atob(str))); 
     return JSON.parse(json);
   }catch(e){ return null; }
 }
 
-// ── Barcha resurslar (katalog + shaxsiy) ─────────────────
+
 function getAllCatalogItems(){
   const all = [];
   DATA.forEach(cat => {
-    if(cat.id === 'my_apps') return; // shaxsiy ro'yxatni chiqarma
+    if(cat.id === 'my_apps') return; 
     cat.items.forEach(item => all.push({...item, _catId: cat.id, _catTitle: cat.title}));
   });
   return all;
 }
 
-// ── Yangi ro'yxat tuzish modali ──────────────────────────
-let _builderSelected = new Map(); // n → item
+
+let _builderSelected = new Map(); 
 
 window.openListBuilderModal = function(){
   const existing = document.getElementById('listBuilderModal');
@@ -2309,7 +2264,7 @@ window.filterBuilderItems = function(q){
   });
 };
 
-// ── toggleBcMobile — Android/iOS maydonlarini ko'rsatish/yashirish ──
+
 window.toggleBcMobile = function(){
   const fields = document.getElementById('bcMobileFields');
   const chev   = document.getElementById('bcMobileChevron');
@@ -2342,8 +2297,7 @@ function updateBuilderCount(){
   if(btn) btn.disabled = n === 0;
 }
 
-// ── Builder: shaxsiy resurs qo'shish ────────────────────
-// ── Builder qidiruv X tugmasi ─────────────────────────────
+
 window.builderSearchToggleX = function(val){
   const xBtn = document.getElementById('builderSearchX');
   if(!xBtn) return;
@@ -2386,7 +2340,7 @@ window.addBuilderCustomItem = function(){
   if(!url && !android && !ios){ showToast("Kamida bitta URL kiritilishi shart!", "fa-circle-xmark text-red-500"); urlEl?.focus(); return; }
   const key = '__c__' + name;
   if(_builderSelected.has(key)){ showToast("Bu resurs allaqachon qo'shilgan!", "fa-triangle-exclamation text-amber-500"); return; }
-  // Tags
+
   const tags = [];
   if(url)     tags.push('web');
   if(android || ios) tags.push('mobil');
@@ -2394,7 +2348,7 @@ window.addBuilderCustomItem = function(){
     ...(android ? {android} : {}), ...(ios ? {ios} : {}) };
   _builderSelected.set(key, item);
   updateBuilderCount();
-  // DOM card (2-col grid)
+
   const group = document.getElementById('builderCustomGroup');
   const list  = document.getElementById('builderCustomItems');
   if(group) group.classList.remove('hidden');
@@ -2425,7 +2379,7 @@ window.addBuilderCustomItem = function(){
       </button>`;
     list.appendChild(row);
   }
-  // Reset inputs
+
   [nameEl,urlEl,descEl,androidEl,iosEl].forEach(el=>{ if(el) el.value=''; });
   showToast(`"${name}" qo'shildi ✨`, 'fa-circle-check text-violet-400');
 };
@@ -2449,7 +2403,7 @@ window.closeListBuilderModal = function(){
   setTimeout(()=>modal.remove(), 200);
 };
 
-// ── Step 2: Nom va muallif kiritib havola olish ───────────
+
 window.openBuilderShareStep = function(){
   if(!_builderSelected.size) return;
   const existing = document.getElementById('builderShareModal');
@@ -2570,7 +2524,7 @@ window.closeBuilderShareModal = function(){
   setTimeout(()=>m.remove(), 200);
 };
 
-// ── Qisqa kod: 8 ta belgi a-z0-9 ─────────────────────────
+
 function genShortCode(len){
   len = len||8;
   const ch='abcdefghijklmnopqrstuvwxyz0123456789';
@@ -2620,7 +2574,7 @@ window.generateBuilderLink = async function(){
   if(badge) badge.textContent = shortCode ? `✓ ${url.length} belgi` : '(offline)';
   if(genBtn){genBtn.disabled=false; genBtn.innerHTML='<i class="fa-solid fa-rotate-right mr-1"></i> Yangilash';}
 
-  // Native share button show
+
   if(/Mobi|Android|iPhone/i.test(navigator.userAgent)&&navigator.share){
     const nb=document.getElementById('bsNativeBtn');
     if(nb){nb.classList.remove('hidden');nb.classList.add('flex');}
@@ -2653,7 +2607,7 @@ window.nativeBuilderShare = async function(){
 
 
 
-// ── Ulashish helperlari ───────────────────────────────────
+
 window.shareVia = function(via){
   const url   = window._bsUrl;
   const title = window._bsTitle||"E-Link ro'yxati";
@@ -2679,20 +2633,20 @@ function toggleBuilderQr(url){
   if(btn) btn.classList.add('bg-violet-100','dark:bg-violet-500/20','text-violet-600','dark:text-violet-400');
 }
 
-// ── IMPORT — havoladan kiritish ───────────────────────────
+
 async function detectShareHash(){
-  // Format 1: /share-XXXXXXXX (yangi format)
+
   const pathMatch = location.pathname.match(/\/share-([a-z0-9]{4,16})$/i);
-  // Format 2: #l=XXXXXXXX (eski uygunlik)
+
   const hashLMatch = !pathMatch && location.hash.match(/^#l=([a-z0-9]{4,16})$/);
 
   const code = (pathMatch||hashLMatch)?.[1];
   if(code){
-    // URL ni tozalash (path bo'lsa)
+
     if(pathMatch) history.replaceState(null,'', '/');
     else history.replaceState(null,'', location.pathname + location.search);
 
-    // Modal tezkor: avval skeleton ko'rsat
+
     showListPage({title:'Yuklanmoqda...', items:[]}, code, 0);
 
     try{
@@ -2708,7 +2662,7 @@ async function detectShareHash(){
             fetch(SUPA_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
               body:JSON.stringify({path:'/rest/v1/rpc/increment_list_views',method:'POST',body:{p_id:code}})
             }).catch(()=>{});
-            // Mavjud modalni yangilash
+
             const existing = document.getElementById('importListModal');
             if(existing) existing.remove();
             showListPage(data, code, (rows[0].views||0)+1);
@@ -2717,14 +2671,14 @@ async function detectShareHash(){
         }
       }
     }catch(e){console.warn('[share]',e.message);}
-    // Skeleton modalni yopib xato
+
     const existing = document.getElementById('importListModal');
     if(existing) existing.remove();
     showToast("Ro'yxat topilmadi yoki muddati o'tgan","fa-circle-xmark text-red-500");
     return;
   }
 
-  // Format 3: #s=... (offline fallback)
+
   const hash = location.hash;
   if(!hash || hash.length < 3) return;
   history.replaceState(null,'', location.pathname + location.search);
@@ -2735,7 +2689,7 @@ async function detectShareHash(){
   showListPage(data, null, 0);
 }
 
-// ── Chiroyli ulashilgan ro'yxat sahifasi ─────────────────
+
 function showListPage(data, shortCode, viewCount){
   const existing = document.getElementById('importListModal');
   if(existing) existing.remove();
@@ -2867,10 +2821,10 @@ function showListPage(data, shortCode, viewCount){
   modal.querySelectorAll('.import-chk').forEach(c=>c.addEventListener('change',updateImportSelCount));
 }
 
-// Eski nom bilan compat alias
+
 function showImportModal(data){ showListPage(data,null,0); }
 
-// ── Nusxalash helper ──────────────────────────────────────
+
 window.copyImportUrl = async function(url){
   try{ await navigator.clipboard.writeText(url); }
   catch(e){ const t=document.createElement('input');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
@@ -2916,7 +2870,7 @@ window.doImport = function(){
     const already = customApps.some(a=>a.n.toLowerCase()===(item.n||'').toLowerCase());
     if(already){ skipped++; return; }
     const newApp = { n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true };
-    // android/ios URL — har ikkala field nomini qabul qilish
+
     const aUrl = item.androidUrl || item.android || '';
     const iUrl = item.iosUrl     || item.ios     || '';
     if(aUrl) newApp.androidUrl = aUrl;
@@ -2928,7 +2882,7 @@ window.doImport = function(){
   if(!added){ showToast("Hech narsa tanlanmadi!", "fa-circle-xmark text-amber-500"); return; }
   localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
   saveUserDataToSupabase();
-  // Modal avval yopilsin, keyin toast ko'rinsin
+
   window.closeImportModal();
   setTimeout(()=>{
     showToast(`🎉 ${added} ta resurs shaxsiy ro'yxatga qo'shildi!`, 'fa-circle-check text-emerald-400');
@@ -2938,11 +2892,10 @@ window.doImport = function(){
 };
 
 
-// ── Detect on load ───────────────────────────────────────
+
 detectShareHash();
-// ═══════════════════════════════════════════════════════════
-//  ONBOARDING — Yangi foydalanuvchi uchun tanishish modali
-// ═══════════════════════════════════════════════════════════
+
+
 (function initOnboarding(){
   if(localStorage.getItem('lh_onboarded')) return;
   if(location.hash && location.hash.startsWith('#import')) return;
@@ -2951,7 +2904,7 @@ detectShareHash();
   const STEPS = [
     {
       id:0, icon:'🔗',
-      title:"Elink UZ ga\nxush kelibsiz!",
+      title:"eLink UZ ga\nxush kelibsiz!",
       subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 1200+ foydali sayt va ilova — bitta joyda.",
       feats:[
         {ico:'🗂️',bg:'from-violet-500 to-fuchsia-500',title:'1200+ resurs katalogi',desc:"Ta'lim, tibbiyot, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},
@@ -2988,12 +2941,12 @@ detectShareHash();
     const box=document.getElementById('onboardBox');
     box.className=box.className.replace(/ob-step-\d/g,'').trim()+' ob-step-'+s.id;
 
-    // Dots
+
     document.getElementById('obDots').innerHTML=
       STEPS.map((_,i)=>`<div class="ob-dot${i===step?' active':''}"></div>`).join('');
 
-    // Progress bar
-    let pb=box.querySelector('.ob-progress');
+
+      let pb=box.querySelector('.ob-progress');
     if(!pb){pb=document.createElement('div');pb.className='ob-progress';box.querySelector('.ob-header').appendChild(pb);}
     pb.style.width=((step+1)/STEPS.length*100)+'%';
 

@@ -1,18 +1,14 @@
-// ═══════════════════════════════════════════════════════════
-//  SERVICE WORKER — Elink UZ PWA
-//  Offline rejim + tezkor yuklanish uchun kesh
-// ═══════════════════════════════════════════════════════════
+
 
 const CACHE_NAME = 'elink-v4';
 
-// Darhol keshlanadigan asosiy fayllar
+
 const PRECACHE = [
   '/style.css',
   '/manifest.json'
 ];
-// index.html, script.js, data.js — har doim networkdan (o'zgarishi mumkin)
 
-// ── O'rnatish: asosiy fayllarni keshlash ─────────────────
+
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME)
@@ -21,7 +17,7 @@ self.addEventListener('install', e => {
   );
 });
 
-// ── Faollashtirish: eski keshlarni tozalash ──────────────
+
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -30,20 +26,20 @@ self.addEventListener('activate', e => {
   );
 });
 
-// ── Fetch: Network first, keyin kesh ────────────────────
+
 self.addEventListener('fetch', e => {
-  // Faqat GET so'rovlarini boshqarish
+
   if(e.request.method !== 'GET') return;
 
-  // Supabase / Netlify funksiyalarini keshlamaslik
+
   const url = e.request.url;
   if(url.includes('/.netlify/') || url.includes('supabase') ||
      url.includes('googletagmanager') || url.includes('gtag')) return;
 
-  // Asosiy JS/HTML fayllar — har doim networkdan
-  if(url.includes('/data.js') || url.includes('/script.js') || url.endsWith('/') || url.includes('/index.html')) return;
 
-  // Rasmlar va shriftlar: kesh birinchi
+     if(url.includes('/data.js') || url.includes('/script.js') || url.endsWith('/') || url.includes('/index.html')) return;
+
+
   if(url.includes('fonts.googleapis') || url.includes('fonts.gstatic') ||
      url.includes('s2/favicons') || url.includes('cdnjs.cloudflare')) {
     e.respondWith(
@@ -61,7 +57,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Asosiy sahifa va fayllar: network birinchi, offline uchun kesh
+
   e.respondWith(
     fetch(e.request)
       .then(res => {

@@ -1,10 +1,10 @@
 exports.handler = async (event) => {
-  // Faqat POST so'rovlarni qabul qilish
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // Netlify Dashboard > Environment Variables dan olinadi
+
   const SUPA_URL = process.env.SUPA_URL;
   const SUPA_KEY = process.env.SUPA_KEY;
 

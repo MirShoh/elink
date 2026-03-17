@@ -1,11 +1,5 @@
-// ═══════════════════════════════════════════════════════════
-//  admin.js — Elink UZ Admin Panel Logic
-//  Versiya: 2.0 | 2026
-// ═══════════════════════════════════════════════════════════
 
-// ════════════════════════════════════════════════════
-//  CONFIG — LocalStorage wrappers
-// ════════════════════════════════════════════════════
+
 const LS = {
   url:    () => localStorage.getItem('adm_url') || '',
   key:    () => localStorage.getItem('adm_key') || '',
@@ -14,9 +8,8 @@ const LS = {
   authed: () => sessionStorage.getItem('adm_authed') === '1',
 };
 
-// ════════════════════════════════════════════════════
-//  AUTH
-// ════════════════════════════════════════════════════
+
+
 function doLogin() {
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
@@ -51,9 +44,8 @@ function logout() {
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-// ════════════════════════════════════════════════════
-//  SUPABASE DIRECT FETCH (admin uses direct URL+key)
-// ════════════════════════════════════════════════════
+
+
 async function supa(path, method = 'GET', body = null, prefer = null) {
   if (!LS.url() || !LS.key()) throw new Error('Supabase sozlanmagan!');
   const url = LS.url() + path;
@@ -71,22 +63,19 @@ async function supa(path, method = 'GET', body = null, prefer = null) {
   try { return JSON.parse(text); } catch { return text; }
 }
 
-// ════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════
+
+
 let allClicks = [], allUsers = [], allSugg = [], allReports = [], supaResources = [];
 let suggFilter = 'all', repFilter = 'all';
 let resTagsArr = [];
 let _topChart = null, _catChart = null, _clicksChart = null;
 
-// ════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════
+
+
 async function initApp() {
   tickClock();
   setInterval(tickClock, 1000);
   populateSettingsFields();
-  // DATA bo'sh bo'lsa — bir oz kutib qayta urinish
   if (!window.DATA || !window.DATA.length) {
     await new Promise(r => setTimeout(r, 50));
   }
@@ -126,9 +115,8 @@ function tickClock() {
     '  ' + now.toLocaleDateString('uz', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-// ════════════════════════════════════════════════════
-//  TAB SWITCHING
-// ════════════════════════════════════════════════════
+
+
 const TAB_TITLES = {
   overview: '📊 Umumiy statistika',
   resources: '📦 Resurslar boshqaruvi',
@@ -153,9 +141,8 @@ function switchTab(id, btn) {
   if (id === 'reports')     renderReports();
 }
 
-// ════════════════════════════════════════════════════
-//  DATA LOADING
-// ════════════════════════════════════════════════════
+
+
 async function loadClicks() {
   try {
     const r = await supa('/rest/v1/clicks?select=name,count&order=count.desc&limit=1000');
@@ -165,7 +152,7 @@ async function loadClicks() {
 
 async function loadUsers() {
   try {
-    // user_data jadval: user_id, favorites (jsonb[]), custom_apps (jsonb[]), created_at
+
     const r = await supa('/rest/v1/user_data?select=user_id,favorites,custom_apps,created_at&order=created_at.desc&limit=1000');
     if (Array.isArray(r)) allUsers = r;
   } catch (e) { console.warn('[users]', e.message); }
@@ -173,7 +160,7 @@ async function loadUsers() {
 
 async function loadSugg() {
   try {
-    // suggestions jadval: id, name, url, description, contact, status, created_at
+
     const r = await supa('/rest/v1/suggestions?select=*&order=created_at.desc&limit=500');
     if (Array.isArray(r)) allSugg = r;
   } catch (e) { console.warn('[sugg]', e.message); }
@@ -181,8 +168,7 @@ async function loadSugg() {
 
 async function loadReports() {
   try {
-    // reports jadval: id, site_name, site_url, reason, status, created_at
-    // (script.js tomonidan yuboriladi)
+
     const r = await supa('/rest/v1/reports?select=*&order=created_at.desc&limit=500');
     if (Array.isArray(r)) allReports = r;
   } catch (e) { console.warn('[reports]', e.message); }
@@ -209,9 +195,8 @@ async function refreshAll() {
   toast('Yangilandi! ✅');
 }
 
-// ════════════════════════════════════════════════════
-//  OVERVIEW
-// ════════════════════════════════════════════════════
+
+
 function renderOverview() {
   const totalClicks  = allClicks.reduce((a, r) => a + (r.count || 0), 0);
   const pendingSugg  = allSugg.filter(s => !s.status || s.status === 'pending').length;
@@ -336,9 +321,8 @@ function renderRecentSugg() {
     </div>`).join('');
 }
 
-// ════════════════════════════════════════════════════
-//  RESOURCES
-// ════════════════════════════════════════════════════
+
+
 function getAllStaticResources() {
   if (typeof DATA === 'undefined' || !Array.isArray(DATA)) return [];
   return DATA.flatMap(cat =>
@@ -355,10 +339,10 @@ function populateCatFilters() {
   const cats = getCats();
   const sel1 = document.getElementById('resCatFilter');
   const sel2 = document.getElementById('resCatId');
-  // Avvalgi optionlarni tozalash (my_apps va birinchi "Tanlang..." dan keyin)
+
   [sel1, sel2].forEach(sel => {
     if (!sel) return;
-    // "Barchasi" yoki "Tanlang..." dan keyin qo'shilganlarni o'chirish
+
     while (sel.options.length > 1) sel.remove(1);
   });
   cats.forEach(cat => {
@@ -413,12 +397,11 @@ function renderResources() {
 
   let all = getAllStaticResources();
 
-  // Yashirilgan resurslarni filtrlash
+
   const hiddenRes = JSON.parse(localStorage.getItem('adm_hidden_res') || '[]');
   all = all.filter(r => !hiddenRes.includes(r.n));
 
-  // Supabase versiyasi statik versiyani OVERRIDE qiladi
-  // (admin tahrirlagan resurs Supabase da saqlansa — u ustunlik qiladi)
+
   supaResources.forEach(sr => {
     const existingIdx = all.findIndex(a => a.n?.toLowerCase() === sr.name?.toLowerCase());
     const supaItem = {
@@ -430,10 +413,10 @@ function renderResources() {
       _supaId: sr.id, _isCustom: true
     };
     if (existingIdx !== -1) {
-      // Mavjud statik resursni Supabase versiyasi bilan almashtirish
+
       all[existingIdx] = { ...all[existingIdx], ...supaItem };
     } else {
-      // Yangi resurs — faqat Supabase da bor
+
       all.push(supaItem);
     }
   });
@@ -458,7 +441,7 @@ function renderResources() {
     return;
   }
 
-  // Global cache — onclick da index orqali chaqiriladi (maxsus belgilar muammosini hal qiladi)
+
   window._resCache = all;
 
   const rows = all.map((r, i) => {
@@ -533,9 +516,9 @@ function renderResources() {
     </div>`;
 }
 
-// ── Resource Modal ──────────────────────────────────────
+
 function openResModal(dataOrIdx = null) {
-  // Index (raqam) bo'lsa — cache dan olish
+
   let data = dataOrIdx;
   if (typeof dataOrIdx === 'number') {
     data = window._resCache ? window._resCache[dataOrIdx] : null;
@@ -570,7 +553,7 @@ function openResModal(dataOrIdx = null) {
     document.getElementById('resSaveTxt').textContent = 'Saqlash';
   }
 
-  // Kategoriyalar bo'sh bo'lsa qayta to'ldirish
+
   const sel2 = document.getElementById('resCatId');
   if (sel2 && sel2.options.length <= 1) populateCatFilters();
   document.getElementById('resModal').classList.add('open');
@@ -581,7 +564,7 @@ function closeResModal() {
   document.getElementById('resModal').classList.remove('open');
 }
 
-// ── Logo preview helpers ──────────────────────────────
+
 function updateLogoPreview() {
   const url = (document.getElementById('resLogoUrl').value || '').trim();
   const name = (document.getElementById('resName').value || '?').trim();
@@ -593,7 +576,7 @@ function updateLogoPreview() {
     img.style.display = 'block';
     ltr.style.display = 'none';
   } else {
-    // Avtomatik favicon ko'rsatish
+
     const domain = getDomain(document.getElementById('resUrl').value || '');
     if (domain) {
       img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
@@ -623,7 +606,7 @@ function autoDetectLogo() {
     `https://${domain}/apple-touch-icon.png`,
   ];
 
-  // Birinchi ishlaganini topish
+
   let tried = 0;
   function tryNext() {
     if (tried >= sources.length) { toast("Logo topilmadi, URL qo'lda kiriting", 'fa-circle-xmark', true, true); return; }
@@ -645,7 +628,7 @@ function clearLogo() {
   updateLogoPreview();
 }
 
-// Tags
+
 function addTag(val) {
   val = val.toLowerCase().trim().replace(/[,;]/g, '').trim();
   if (!val || resTagsArr.includes(val)) return;
@@ -684,8 +667,7 @@ async function saveResource() {
   };
 
   try {
-    // Mavjud supabase ID bo'lsa — yangilash, yo'q bo'lsa — yangi yozuv sifatida saqlash
-    // (statik data.js resurslarini ham shu yo'l bilan "override" qilish mumkin)
+
     const existingInSupa = supaResources.find(s => s.name?.toLowerCase() === name.toLowerCase());
     const realId = id || existingInSupa?.id;
 
@@ -700,7 +682,7 @@ async function saveResource() {
     
     closeResModal();
     await loadSupaResources();
-    // _resCache yangilangach logo ham yangilanadi
+
     renderResources();
     renderResStats();
     renderOverview();
@@ -723,7 +705,7 @@ async function deleteResource(id, name) {
   );
 }
 
-// ── Statik resursni yashirish (localStorage) ─────────────
+
 function hideStaticResource(idx) {
   const r = window._resCache ? window._resCache[idx] : null;
   if (!r) return;
@@ -741,9 +723,8 @@ function hideStaticResource(idx) {
   );
 }
 
-// ════════════════════════════════════════════════════
-//  CLICKS
-// ════════════════════════════════════════════════════
+
+
 function renderClickList() {
   const q = (document.getElementById('clickSearch')?.value || '').toLowerCase();
   let data = q ? allClicks.filter(r => (r.name || '').toLowerCase().includes(q)) : allClicks;
@@ -794,9 +775,8 @@ function renderClickChart() {
   });
 }
 
-// ════════════════════════════════════════════════════
-//  SUGGESTIONS
-// ════════════════════════════════════════════════════
+
+
 function setSuggFilter(f, btn) {
   suggFilter = f;
   document.querySelectorAll('[data-sf]').forEach(b => b.classList.remove('active'));
@@ -875,9 +855,8 @@ async function deleteSugg(id) {
   }, false);
 }
 
-// ════════════════════════════════════════════════════
-//  REPORTS  (script.js → site_name, site_url, reason)
-// ════════════════════════════════════════════════════
+
+
 function setRepFilter(f, btn) {
   repFilter = f;
   document.querySelectorAll('[data-rf]').forEach(b => b.classList.remove('active'));
@@ -907,7 +886,7 @@ function renderReports() {
       <th>Sabab</th><th>Status</th><th>Sana</th><th>Amallar</th>
     </tr></thead>
     <tbody>${data.map((r, i) => {
-      // script.js dan kelgan field nomlari: site_name, site_url, reason
+
       const name = r.site_name || r.resource_name || r.title || 'Nomsiz';
       const url  = r.site_url  || r.url  || '';
       const msg  = r.reason    || r.message || r.description || '';
@@ -957,9 +936,8 @@ async function deleteReport(id) {
   }, false);
 }
 
-// ════════════════════════════════════════════════════
-//  USERS
-// ════════════════════════════════════════════════════
+
+
 function renderUsers() {
   const totalFavs   = allUsers.reduce((a, u) => a + (u.favorites?.length || 0), 0);
   const totalCustom = allUsers.reduce((a, u) => a + (u.custom_apps?.length || 0), 0);
@@ -1018,9 +996,8 @@ function renderUsers() {
     </tbody></table></div>`;
 }
 
-// ════════════════════════════════════════════════════
-//  SETTINGS
-// ════════════════════════════════════════════════════
+
+
 function populateSettingsFields() {
   const u = document.getElementById('cfgUrl2');
   const k = document.getElementById('cfgKey2');
@@ -1101,9 +1078,8 @@ function clearCustomResources() {
   }, false);
 }
 
-// ════════════════════════════════════════════════════
-//  HELPERS
-// ════════════════════════════════════════════════════
+
+
 function getDomain(url) {
   try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; }
 }
@@ -1143,7 +1119,7 @@ function statusBadge(status, type) {
   return `<span class="badge badge-open">🔴 Ochiq</span>`;
 }
 
-// Toast
+
 function toast(msg, ico = 'fa-circle-check', autoHide = true, isErr = false) {
   const t = document.getElementById('adminToast');
   document.getElementById('toastIco').className = 'fa-solid ' + ico;
@@ -1153,7 +1129,7 @@ function toast(msg, ico = 'fa-circle-check', autoHide = true, isErr = false) {
   if (autoHide !== false) setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// Confirm dialog
+
 let _confirmCbFn = null;
 function confirm2(title, msg, cb, safe = true) {
   document.getElementById('confirmTitle').textContent = title;
@@ -1167,23 +1143,22 @@ function confirm2(title, msg, cb, safe = true) {
 function confirmAction() { if (_confirmCbFn) _confirmCbFn(); hideConfirm(); }
 function hideConfirm() { document.getElementById('confirmDlg').classList.remove('show'); _confirmCbFn = null; }
 
-// ════════════════════════════════════════════════════
-//  BOOT
-// ════════════════════════════════════════════════════
+
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Dialog click-outside
+
   document.getElementById('confirmDlg').addEventListener('click', e => {
     if (e.target === e.currentTarget) hideConfirm();
   });
   document.getElementById('resModal').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeResModal();
   });
-  // .modal ichidagi barcha click eventlar tashqariga chiqmasin
+
   document.querySelector('#resModal .modal').addEventListener('click', e => {
     e.stopPropagation();
   });
 
-  // Tags input
+
   const tagInp = document.getElementById('tagInput');
   if (tagInp) {
     tagInp.addEventListener('keydown', e => {
@@ -1201,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Login enter key
+
   ['loginUser', 'loginPass'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();

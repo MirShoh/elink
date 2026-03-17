@@ -3,7 +3,7 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // Netlify Dashboard > Environment Variables dan olinadi
+
   const TG_TOKEN = process.env.TG_TOKEN;
   const TG_CHAT  = process.env.TG_CHAT;
 
