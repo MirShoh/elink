@@ -3,32 +3,52 @@
 const LS = {
   url:    () => localStorage.getItem('adm_url') || '',
   key:    () => localStorage.getItem('adm_key') || '',
-  pass:   () => localStorage.getItem('adm_pass') || btoa('admin123'),
-  user:   () => localStorage.getItem('adm_user') || 'admin',
   authed: () => sessionStorage.getItem('adm_authed') === '1',
 };
 
+async function doLogin() {
+  const pass = document.getElementById('loginPass').value.trim();
 
-
-function doLogin() {
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-
-  if (!user || !pass) { showLoginErr('Login va parol kiritilishi shart!'); return; }
-  if (user !== LS.user() || btoa(pass) !== LS.pass()) {
-    showLoginErr("Noto'g'ri foydalanuvchi nomi yoki parol!");
-    const card = document.getElementById('loginCard');
-    card.classList.add('login-shake');
-    setTimeout(() => card.classList.remove('login-shake'), 500);
+  if (!pass) {
+    showLoginErr('Parol kiritilishi shart!');
     return;
   }
 
-  sessionStorage.setItem('adm_authed', '1');
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appWrap').style.display = 'flex';
-  document.getElementById('sbUsername').textContent = capitalize(user);
-  document.getElementById('curUsername').textContent = user;
-  initApp();
+  try {
+    const res = await fetch('/.netlify/functions/check-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass })
+    });
+
+    if (!res.ok) throw new Error('Server javobi xato');
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      showLoginErr(data.msg || "Noto'g'ri parol!");
+      const card = document.getElementById('loginCard');
+      card.classList.add('login-shake');
+      setTimeout(() => card.classList.remove('login-shake'), 500);
+      return;
+    }
+
+    // Muvaffaqiyat
+    localStorage.setItem('adm_token', data.token);
+    sessionStorage.setItem('adm_authed', '1');
+
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'flex';
+
+    // Username o'rniga statik yoki token dan olingan qiymat
+    document.getElementById('sbUsername').textContent = 'Admin';
+    document.getElementById('curUsername').textContent = 'Admin';
+
+    initApp();
+
+  } catch (e) {
+    showLoginErr('Xato: ' + (e.message || 'Ulanib bo‘lmadi'));
+  }
 }
 
 function showLoginErr(msg) {
@@ -47,6 +67,13 @@ function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 
 async function supa(path, method = 'GET', body = null, prefer = null) {
+
+  const token = localStorage.getItem('adm_token');
+  if (!token || !token.startsWith('admin-ok-')) {
+    logout(); 
+    throw new Error('Ruxsat yo‘q');
+  }
+
   if (!LS.url() || !LS.key()) throw new Error('Supabase sozlanmagan!');
   const url = LS.url() + path;
   const headers = {
@@ -1187,7 +1214,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (LS.authed()) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appWrap').style.display = 'flex';
-    document.getElementById('sbUsername').textContent = capitalize(LS.user());
+    document.getElementById('sbUsername').textContent = 'Admin';
+  document.getElementById('curUsername').textContent = 'Admin';
     initApp();
   }
 });
