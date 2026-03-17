@@ -1,57 +1,68 @@
-exports.handler = async (event) => {
+// netlify/functions/supabase.js
+// Oddiy foydalanuvchilar uchun Supabase proxy (anon key)
 
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+export default async (request) => {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
+  const SUPABASE_URL  = process.env.SUPA_URL;
+  const SUPABASE_ANON = process.env.SUPA_KEY;
 
-  const SUPA_URL = process.env.SUPA_URL;
-  const SUPA_KEY = process.env.SUPA_KEY;
-
-  if (!SUPA_URL || !SUPA_KEY) {
-    console.error('[Supabase Proxy] Env vars topilmadi!');
-    return { statusCode: 500, body: JSON.stringify({ error: 'Server config xatosi' }) };
+  if (!SUPABASE_URL || !SUPABASE_ANON) {
+    console.error('[supabase proxy] SUPA_URL va SUPA_KEY env vars topilmadi!');
+    return new Response(JSON.stringify({ error: 'Server config xatosi' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   let payload;
   try {
-    payload = JSON.parse(event.body);
-  } catch (e) {
-    return { statusCode: 400, body: JSON.stringify({ error: "JSON parse xatosi" }) };
+    payload = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'JSON parse xatosi' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   const { path, method = 'GET', body, prefer } = payload;
 
-  if (!path) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'path kerak' }) };
+  if (!path || !path.startsWith('/rest/v1/')) {
+    return new Response(JSON.stringify({ error: "Noto'g'ri path" }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   const headers = {
-    'apikey': SUPA_KEY,
-    'Authorization': `Bearer ${SUPA_KEY}`,
-    'Content-Type': 'application/json',
+    'apikey':        SUPABASE_ANON,
+    'Authorization': 'Bearer ' + SUPABASE_ANON,
+    'Content-Type':  'application/json',
   };
   if (prefer) headers['Prefer'] = prefer;
 
+  const opts = { method, headers };
+  if (body && method !== 'GET') opts.body = JSON.stringify(body);
+
   try {
-    const fetchOptions = {
-      method,
-      headers,
-    };
-    if (body && method !== 'GET') {
-      fetchOptions.body = JSON.stringify(body);
-    }
+    const res = await fetch(SUPABASE_URL + path, opts);
+    if (res.status === 204) return new Response(null, { status: 204 });
 
-    const res = await fetch(`${SUPA_URL}${path}`, fetchOptions);
     const text = await res.text();
-
-    return {
-      statusCode: res.status,
-      headers: { 'Content-Type': 'application/json' },
-      body: text,
-    };
+    return new Response(text, {
+      status: res.status,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (e) {
-    console.error('[Supabase Proxy] Xato:', e.message);
-    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+    console.error('[supabase proxy] Xato:', e.message);
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 };
