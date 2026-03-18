@@ -428,7 +428,7 @@ const isCustom   = item.isCustom;
 const isVerified = !!item.v;
 const q2         = query.trim();
 const c          = getClicks(item.n);
-const isHot      = c >= 5;
+const isHot      = !!item._isTop;
 const esc        = item.n.replace(/'/g,"\\'");
 const escUrl     = item.u.replace(/'/g,"\\'");
 const safeName   = isCustom ? escHtml(item.n) : item.n;
@@ -885,7 +885,14 @@ function _buildSectionEl(s){
   const grid = document.createElement('div');
   grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-3';
 
-  grid.innerHTML = s.items.map(i => card(i)).join('');
+  // Top 3 ni kliklarga qarab aniqlash va tepaga chiqarish
+  const itemsWithMeta = s.items.map(i => ({...i, _clicks: getClicks(i.n), _isTop: false}));
+  const byClicks = [...itemsWithMeta].sort((a, b) => b._clicks - a._clicks);
+  const top3Names = new Set(byClicks.slice(0, 3).filter(i => i._clicks > 0).map(i => i.n));
+  const topItems = itemsWithMeta.filter(i => top3Names.has(i.n)).map(i => ({...i, _isTop: true}));
+  const restItems = itemsWithMeta.filter(i => !top3Names.has(i.n));
+  const finalItems = [...topItems, ...restItems];
+  grid.innerHTML = finalItems.map(i => card(i)).join('');
 
   sec.innerHTML = heading;
   sec.appendChild(grid);
