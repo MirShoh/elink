@@ -72,6 +72,59 @@ async function loadUserDataFromSupabase(){
 
 
 let _syncTimer = null;
+
+
+// ─── Drag-and-drop: shaxsiy ro'yxat tartibini o'zgartirish ───────────────────
+function _initMyAppsDnD(grid){
+  let dragSrc = null;
+
+  grid.querySelectorAll('[data-appname]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragSrc = el;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => el.classList.add('opacity-40', 'scale-95'), 0);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('opacity-40', 'scale-95');
+      grid.querySelectorAll('[data-appname]').forEach(c => c.classList.remove('ring-2','ring-violet-400','ring-offset-2'));
+      dragSrc = null;
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if(dragSrc && el !== dragSrc){
+        grid.querySelectorAll('[data-appname]').forEach(c => c.classList.remove('ring-2','ring-violet-400','ring-offset-2'));
+        el.classList.add('ring-2','ring-violet-400','ring-offset-2');
+      }
+    });
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      if(!dragSrc || dragSrc === el) return;
+      // DOM da joylarini almashtirish
+      const allCards = [...grid.querySelectorAll('[data-appname]')];
+      const fromIdx  = allCards.indexOf(dragSrc);
+      const toIdx    = allCards.indexOf(el);
+      if(fromIdx < toIdx) el.after(dragSrc);
+      else el.before(dragSrc);
+      // customApps massivini yangi tartibga keltirish
+      const newOrder = [...grid.querySelectorAll('[data-appname]')].map(c => c.dataset.appname);
+      customApps.sort((a,b) => newOrder.indexOf(a.n) - newOrder.indexOf(b.n));
+      localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
+      const cat = DATA.find(c=>c.id==='my_apps');
+      if(cat) cat.items = customApps;
+      saveUserDataToSupabase();
+    });
+  });
+
+  // Drag handle bosib drag boshlash (touch yoki cursor)
+  grid.querySelectorAll('.drag-handle').forEach(handle => {
+    handle.addEventListener('mousedown', e => {
+      const wrapper = handle.closest('[data-appname]');
+      if(wrapper) wrapper.draggable = true;
+    });
+  });
+}
+
 function saveUserDataToSupabase(){
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(async ()=>{
@@ -381,9 +434,11 @@ const escUrl     = item.u.replace(/'/g,"\\'");
 const safeName   = isCustom ? escHtml(item.n) : item.n;
 const safeDesc   = isCustom ? escHtml(item.d||'') : (item.d||'');
 
-const mainClick = (isMob || item.androidUrl)
-  ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},${!!(isMob||item.androidUrl)})`
-  : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
+const mainClick = isCustom
+  ? `window.open('${escUrl}','_blank','noopener,noreferrer')`
+  : (isMob || item.androidUrl)
+    ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},${!!(isMob||item.androidUrl)})`
+    : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
 
 const badges = [
   isBepul  ? `<span class="badge-bepul">✓ Bepul</span>` : '',
@@ -397,15 +452,14 @@ return `
 <div onclick="${mainClick}" class="card glass rounded-2xl p-4 flex flex-col h-full group relative cursor-pointer">
   ${isHot ? `<div class="ribbon-top" aria-label="Top"><i class="fa-solid fa-fire text-[8px] mr-0.5"></i>Top</div>` : ''}
 
-  <!-- TOP RIGHT: fav always, edit/delete for custom (hover) -->
+  <!-- TOP RIGHT: fav + drag handle for custom -->
   <div class="absolute top-3 right-3 flex items-center gap-1.5 z-20">
     ${isCustom ? `
-    <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-      <button onclick="event.stopPropagation();openEditModal('${esc}')" title="Tahrirlash" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-pen text-[9px]"></i></button>
-      <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" title="O'chirish" class="w-7 h-7 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/20 transition-colors flex items-center justify-center shadow-sm backdrop-blur-sm"><i class="fa-solid fa-trash text-[9px]"></i></button>
+    <div class="drag-handle opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Tartibni o'zgartirish">
+      <i class="fa-solid fa-grip-dots-vertical text-[9px]"></i>
     </div>` : ''}
     <button onclick="event.stopPropagation();toggleFav('${esc}',this)"
-        class="fav-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] shadow-sm backdrop-blur-sm transition-colors ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'bg-white/80 dark:bg-slate-800/80 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'}">
+        class="fav-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] shadow-sm backdrop-blur-sm transition-colors ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':isCustom?'bg-transparent text-slate-300 opacity-0 group-hover:opacity-100 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10':'bg-white/80 dark:bg-slate-800/80 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'}">
         <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
     </button>
   </div>
@@ -427,18 +481,31 @@ return `
   </div>
 
   <!-- DESCRIPTION -->
-  <p class="text-[11.5px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">${hl(safeDesc,q2)}</p>
+  <p class="text-[11.5px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed ${isCustom?'':'flex-1'} relative z-10">${hl(safeDesc,q2)}</p>
 
-  <!-- CARD FOOTER: views(left) — report+share(right) -->
-  <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100/80 dark:border-slate-800/50 relative z-10">
-    <!-- Ko'rishlar soni — chap -->
+  <!-- CARD FOOTER -->
+  <div class="flex items-center justify-between ${isCustom?'mt-1.5 pt-1.5':'mt-2.5 pt-2'} border-t border-slate-100/80 dark:border-slate-800/50 relative z-10">
+    ${isCustom ? `
+    <!-- Shaxsiy: o'ng pastda hover ikonkalar -->
+    <div class="flex-1"></div>
+    <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <button onclick="event.stopPropagation();openEditModal('${esc}')" title="Tahrirlash"
+          class="card-action-btn text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10">
+          <i class="fa-solid fa-pen text-[11px]"></i>
+      </button>
+      <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" title="O'chirish"
+          class="card-action-btn text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
+          <i class="fa-solid fa-trash text-[11px]"></i>
+      </button>
+    </div>
+    ` : `
+    <!-- Oddiy: Ko'rishlar + Report + Share -->
     <div class="flex items-center gap-1 text-[10px] font-bold rounded-full px-1.5 py-0.5
       ${c ? 'text-violet-500 dark:text-violet-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity'}"
       id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
       <i class="fa-regular fa-eye text-[9px]"></i>
       <span>${c||0}</span>
     </div>
-    <!-- Report + Share — o'ng -->
     <div class="flex items-center gap-1.5">
       <button onclick="event.stopPropagation();openReportModal('${esc}','${escUrl}')"
           title="Muammo bildirish"
@@ -451,6 +518,7 @@ return `
           <i class="fa-solid fa-share-nodes text-sm"></i>
       </button>
     </div>
+    `}
   </div>
 
 </div>`;
@@ -879,11 +947,13 @@ function _renderMyApps(container, token){
   }
 
   const grid = document.createElement('div');
+  grid.id = 'myAppsGrid';
   grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-3';
 
   const addCard = document.createElement('div');
   addCard.onclick = openCustomModal;
   addCard.className = 'add-card glass rounded-2xl p-4 flex flex-col items-center justify-center h-full cursor-pointer group border-2 border-dashed border-violet-200 dark:border-violet-800/50 hover:border-violet-400 dark:hover:border-violet-600 transition-all min-h-[130px]';
+  addCard.dataset.addcard = '1';
   addCard.innerHTML = `
     <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 mb-2.5 group-hover:scale-110 transition-transform">
       <i class="fa-solid fa-plus text-base"></i>
@@ -891,13 +961,22 @@ function _renderMyApps(container, token){
     <p class="text-sm font-black text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Yangi qo'shish</p>
     <p class="text-[10px] text-slate-400 mt-0.5">Shaxsiy link qo'shing va istalgan vaqtda 1 klikda oching</p>`;
   grid.appendChild(addCard);
-  grid.insertAdjacentHTML('beforeend', items.map(i => card(i)).join(''));
+  items.forEach(i => {
+    const wrapper = document.createElement('div');
+    wrapper.dataset.appname = i.n;
+    wrapper.draggable = true;
+    wrapper.innerHTML = card(i);
+    grid.appendChild(wrapper);
+  });
 
   sec.appendChild(grid);
   container.appendChild(sec);
   $('resultCount').textContent = `${found} ta resurs`;
   $('appsContainer').classList.remove('hidden');
   $('noResults').classList.add('hidden');
+
+  // Drag-and-drop
+  _initMyAppsDnD(grid);
   $('noResults').classList.remove('flex');
 }
 
