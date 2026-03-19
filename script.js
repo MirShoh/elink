@@ -77,35 +77,71 @@ let _syncTimer = null;
 // ─── Drag-and-drop: shaxsiy ro'yxat tartibini o'zgartirish ───────────────────
 function _initMyAppsDnD(grid){
   let dragSrc = null;
+  let dropIndicator = null;
+
+  function getIndicator(){
+    if(!dropIndicator){
+      dropIndicator = document.createElement('div');
+      dropIndicator.className = 'dnd-drop-indicator';
+      dropIndicator.innerHTML = '<div class="dnd-drop-line"></div>';
+    }
+    return dropIndicator;
+  }
+  function clearIndicator(){
+    if(dropIndicator && dropIndicator.parentNode)
+      dropIndicator.parentNode.removeChild(dropIndicator);
+    grid.querySelectorAll('[data-appname]').forEach(c=>{
+      c.classList.remove('dnd-over-left','dnd-over-right');
+    });
+  }
 
   grid.querySelectorAll('[data-appname]').forEach(el => {
     el.addEventListener('dragstart', e => {
       dragSrc = el;
       e.dataTransfer.effectAllowed = 'move';
-      setTimeout(() => el.classList.add('opacity-40', 'scale-95'), 0);
+      e.dataTransfer.setData('text/plain', el.dataset.appname);
+      setTimeout(() => {
+        el.classList.add('opacity-30','scale-95','ring-2','ring-violet-400/50');
+      }, 0);
     });
     el.addEventListener('dragend', () => {
-      el.classList.remove('opacity-40', 'scale-95');
-      grid.querySelectorAll('[data-appname]').forEach(c => c.classList.remove('ring-2','ring-violet-400','ring-offset-2'));
+      el.classList.remove('opacity-30','scale-95','ring-2','ring-violet-400/50');
+      clearIndicator();
       dragSrc = null;
     });
     el.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      if(dragSrc && el !== dragSrc){
-        grid.querySelectorAll('[data-appname]').forEach(c => c.classList.remove('ring-2','ring-violet-400','ring-offset-2'));
-        el.classList.add('ring-2','ring-violet-400','ring-offset-2');
+      if(!dragSrc || dragSrc === el) return;
+      // Karta markaziga nisbatan chap yoki o'ng tomonini aniqla
+      const rect = el.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const insertBefore = e.clientX < midX;
+      clearIndicator();
+      const ind = getIndicator();
+      ind.style.cssText = `position:absolute;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,#8b5cf6,#d946ef);border-radius:99px;z-index:50;pointer-events:none;box-shadow:0 0 8px #8b5cf666;`;
+      if(insertBefore){
+        el.style.position='relative';
+        ind.style.left='-6px'; ind.style.right='';
+        el.insertBefore(ind, el.firstChild);
+      } else {
+        el.style.position='relative';
+        ind.style.right='-6px'; ind.style.left='';
+        el.appendChild(ind);
       }
+      el.dataset.insertBefore = insertBefore ? '1' : '0';
+    });
+    el.addEventListener('dragleave', () => {
+      clearIndicator();
     });
     el.addEventListener('drop', e => {
       e.preventDefault();
       if(!dragSrc || dragSrc === el) return;
-      // DOM da joylarini almashtirish
-      const allCards = [...grid.querySelectorAll('[data-appname]')];
-      const fromIdx  = allCards.indexOf(dragSrc);
-      const toIdx    = allCards.indexOf(el);
-      if(fromIdx < toIdx) el.after(dragSrc);
-      else el.before(dragSrc);
+      clearIndicator();
+      const insertBefore = el.dataset.insertBefore !== '0';
+      delete el.dataset.insertBefore;
+      if(insertBefore) el.before(dragSrc);
+      else el.after(dragSrc);
       // customApps massivini yangi tartibga keltirish
       const newOrder = [...grid.querySelectorAll('[data-appname]')].map(c => c.dataset.appname);
       customApps.sort((a,b) => newOrder.indexOf(a.n) - newOrder.indexOf(b.n));
@@ -113,10 +149,13 @@ function _initMyAppsDnD(grid){
       const cat = DATA.find(c=>c.id==='my_apps');
       if(cat) cat.items = customApps;
       saveUserDataToSupabase();
+      // Mini animatsiya
+      dragSrc.classList.add('scale-105');
+      setTimeout(()=>dragSrc?.classList.remove('scale-105'),200);
     });
   });
 
-  // Drag handle bosib drag boshlash (touch yoki cursor)
+  // Drag handle
   grid.querySelectorAll('.drag-handle').forEach(handle => {
     handle.addEventListener('mousedown', e => {
       const wrapper = handle.closest('[data-appname]');
@@ -262,98 +301,163 @@ function getFallbackColor(name) {
 }
 
 window._logoFail = function(img) {
-  const domain = img.dataset.domain;
-  const step   = parseInt(img.dataset.step || '0');
-  if (step === 1 && domain) {
-    img.dataset.step = '2';
-    img.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
-  } else {
-    img.onerror = null;
-    img.src = img.dataset.svg;
-    const wrap = img.closest('.card-logo-wrap') || img.parentElement;
-    if(wrap && !wrap.dataset.avatarSet){
-      wrap.dataset.avatarSet = '1';
-      img.style.display = 'none';
-      const letter = (img.alt || '?')[0].toUpperCase();
+  img.onerror = null;
+  const wrap = img.closest('.card-logo-wrap') || img.parentElement;
+  if(wrap && !wrap.dataset.avatarSet){
+    wrap.dataset.avatarSet = '1';
+    img.style.display = 'none';
       const palettes = [
-        ['#6366f1','#8b5cf6'],['#8b5cf6','#d946ef'],['#06b6d4','#3b82f6'],
-        ['#10b981','#059669'],['#f59e0b','#ef4444'],['#f97316','#ec4899'],
-        ['#14b8a6','#6366f1'],['#3b82f6','#0ea5e9'],['#d946ef','#f43f5e'],
-        ['#ef4444','#f97316'],['#84cc16','#10b981'],['#a855f7','#6366f1']
+        ['#6366f1','#8b5cf6'],['#ec4899','#f97316'],['#06b6d4','#6366f1'],
+        ['#10b981','#06b6d4'],['#f59e0b','#ef4444'],['#8b5cf6','#ec4899'],
+        ['#14b8a6','#3b82f6'],['#f97316','#fbbf24'],['#d946ef','#6366f1'],
+        ['#ef4444','#f97316'],['#84cc16','#10b981'],['#a855f7','#ec4899'],
+        ['#0ea5e9','#06b6d4'],['#f43f5e','#fb7185'],['#7c3aed','#4f46e5'],
+        ['#059669','#84cc16'],['#ea580c','#f59e0b'],['#be185d','#9333ea'],
+        ['#0284c7','#0ea5e9'],['#16a34a','#15803d'],['#dc2626','#b91c1c'],
+        ['#7c3aed','#c026d3'],['#0891b2','#0e7490'],['#ca8a04','#b45309']
       ];
       let hash = 0;
       for(let i=0;i<(img.alt||'').length;i++) hash = (img.alt||'').charCodeAt(i)+((hash<<5)-hash);
       const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
       const av = document.createElement('div');
-      av.style.cssText = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,${c1},${c2});border-radius:inherit;font-weight:900;font-size:1.1em;color:#fff;letter-spacing:-.02em;font-family:inherit;`;
-      av.textContent = letter;
+      av.style.cssText = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,${c1},${c2});border-radius:inherit;`;
+      /* Tiniq globus ikoni — _globeSVG bilan bir xil Q-bezier yondashuvi */
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svgEl = document.createElementNS(svgNS,'svg');
+      svgEl.setAttribute('viewBox','0 0 64 64');
+      svgEl.style.cssText = 'width:72%;height:72%;';
+      const shapes = [
+        ['circle',{cx:32,cy:32,r:18,fill:'none',stroke:'rgba(255,255,255,0.92)','stroke-width':2.4}],
+        ['line',{x1:14,y1:32,x2:50,y2:32,stroke:'rgba(255,255,255,0.75)','stroke-width':1.8}],
+        ['line',{x1:32,y1:14,x2:32,y2:50,stroke:'rgba(255,255,255,0.75)','stroke-width':1.8}],
+        ['path',{d:'M32 14 Q20 32 32 50',fill:'none',stroke:'rgba(255,255,255,0.65)','stroke-width':1.8}],
+        ['path',{d:'M32 14 Q44 32 32 50',fill:'none',stroke:'rgba(255,255,255,0.65)','stroke-width':1.8}],
+      ];
+      shapes.forEach(([tag,attrs])=>{
+        const el = document.createElementNS(svgNS,tag);
+        Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+        svgEl.appendChild(el);
+      });
+      av.appendChild(svgEl);
       wrap.appendChild(av);
     }
+};
+
+/* Google S2 favicon xizmati mavjud bo'lmagan domenlar uchun
+   16×16 px xira globus qaytaradi (onerror o'rniga 200 OK).
+   onload orqali o'lchamni tekshirib, kichik bo'lsa fallbackga o'tamiz. */
+window._logoLoaded = function(img) {
+  if (img.src.startsWith('data:')) return; // boshlang'ich SVG placeholder — o'tkazib yubor
+  /* Google S2 servisi favicon yo'q domenlar uchun 16×16 px xira globus qaytaradi.
+     Faqat Google URL, step=1 va kichik rasm bo'lsa fallbackga o'tamiz. */
+  if (parseInt(img.dataset.step) === 1 &&
+      img.src.includes('google.com/s2/favicons') &&
+      img.naturalWidth > 0 && img.naturalWidth <= 16) {
+    window._logoFail(img);
   }
 };
 
 function _globeSVG(c1, c2) {
+  /* MUHIM: url(#id) gradient referansi <img src> da ishlamaydi,
+     shuning uchun to'g'ridan-to'g'ri c1 solid fill ishlatamiz. */
   return `data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
-    `<defs>` +
-    `<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient>` +
-    `</defs>` +
-    `<rect width="64" height="64" rx="14" fill="url(#bg)"/>` +
-    `<circle cx="32" cy="32" r="16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>` +
-    `<line x1="16" y1="32" x2="48" y2="32" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>` +
-    `<line x1="32" y1="16" x2="32" y2="48" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>` +
-    `<path d="M32 16 Q22 32 32 48" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>` +
-    `<path d="M32 16 Q42 32 32 48" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>` +
+    `<rect width="64" height="64" rx="14" fill="${c1}"/>` +
+    `<circle cx="32" cy="32" r="18" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2.2"/>` +
+    `<line x1="14" y1="32" x2="50" y2="32" stroke="rgba(255,255,255,0.7)" stroke-width="1.7"/>` +
+    `<line x1="32" y1="14" x2="32" y2="50" stroke="rgba(255,255,255,0.7)" stroke-width="1.7"/>` +
+    `<path d="M32 14 Q20 32 32 50" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="1.7"/>` +
+    `<path d="M32 14 Q44 32 32 50" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="1.7"/>` +
     `</svg>`
   )}`;
+}
+
+function _gradientGlobeDiv(c1, c2, cls) {
+  return `<div class="${cls} transition-transform group-hover:scale-110 flex items-center justify-center"
+    style="background:linear-gradient(135deg,${c1},${c2});border-radius:inherit;">
+    <svg viewBox="0 0 64 64" style="width:72%;height:72%;" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="18" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="2.4"/>
+      <line x1="14" y1="32" x2="50" y2="32" stroke="rgba(255,255,255,0.75)" stroke-width="1.8"/>
+      <line x1="32" y1="14" x2="32" y2="50" stroke="rgba(255,255,255,0.75)" stroke-width="1.8"/>
+      <path d="M32 14 Q20 32 32 50" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="1.8"/>
+      <path d="M32 14 Q44 32 32 50" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="1.8"/>
+    </svg>
+  </div>`;
 }
 
 function iconHTML(item, cls="w-10 h-10 object-contain drop-shadow-sm") {
 const domain = getDomain(item.u);
 
 const palettes = [
-  ['#6366f1','#8b5cf6'],['#8b5cf6','#d946ef'],['#06b6d4','#3b82f6'],
-  ['#10b981','#059669'],['#f59e0b','#ef4444'],['#f97316','#ec4899'],
-  ['#14b8a6','#6366f1'],['#3b82f6','#0ea5e9'],['#d946ef','#f43f5e'],
-  ['#ef4444','#f97316'],['#84cc16','#10b981'],['#a855f7','#6366f1']
+  ['#6366f1','#8b5cf6'],['#ec4899','#f97316'],['#06b6d4','#6366f1'],
+  ['#10b981','#06b6d4'],['#f59e0b','#ef4444'],['#8b5cf6','#ec4899'],
+  ['#14b8a6','#3b82f6'],['#f97316','#fbbf24'],['#d946ef','#6366f1'],
+  ['#ef4444','#f97316'],['#84cc16','#10b981'],['#a855f7','#ec4899'],
+  ['#0ea5e9','#06b6d4'],['#f43f5e','#fb7185'],['#7c3aed','#4f46e5'],
+  ['#059669','#84cc16'],['#ea580c','#f59e0b'],['#be185d','#9333ea'],
+  ['#0284c7','#0ea5e9'],['#16a34a','#15803d'],['#dc2626','#b91c1c'],
+  ['#7c3aed','#c026d3'],['#0891b2','#0e7490'],['#ca8a04','#b45309']
 ];
 let hash = 0;
 for(let i=0;i<item.n.length;i++) hash = item.n.charCodeAt(i)+((hash<<5)-hash);
 const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
-const svgData = _globeSVG(c1, c2);
 
 const customLogo = item.logoUrl || item.logo_url || '';
-const faviconSrc = customLogo || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : svgData);
+
+/* Real domain: kamida bitta nuqta bo'lishi kerak (masalan google.com, uzb.uz).
+   'sad', 'as', 'localhost' kabi TLD'siz domenlar uchun ham gradient globe. */
+const hasRealDomain = domain && domain.includes('.');
+if (!hasRealDomain && !customLogo) {
+  return _gradientGlobeDiv(c1, c2, cls.replace('object-contain',''));
+}
+
+const svgData = _globeSVG(c1, c2);
+const faviconSrc = customLogo || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
 return `<img src="${svgData}" data-src="${faviconSrc}" alt="${item.n}" loading="lazy"
   class="${cls} transition-transform group-hover:scale-110 lz-img"
   data-domain="${domain}"
   data-svg="${svgData}"
   data-step="${customLogo ? '2' : '1'}"
+  onload="window._logoLoaded(this)"
   onerror="window._logoFail(this)">`;
 }
+
 
 
 function getClicks(name){
 return globalClicks[name] || 0;
 }
 
+/* Klik qayd qilish — 2 soatda 1 marta (har foydalanuvchi, har resurs uchun) */
+const CLICK_THROTTLE_MS = 2 * 60 * 60 * 1000; // 2 soat
+function _canClick(name){
+  const key = 'lh_ct_' + name.replace(/[^a-zA-Z0-9]/g,'_');
+  const last = parseInt(localStorage.getItem(key)||'0',10);
+  return Date.now() - last > CLICK_THROTTLE_MS;
+}
+function _markClicked(name){
+  const key = 'lh_ct_' + name.replace(/[^a-zA-Z0-9]/g,'_');
+  localStorage.setItem(key, String(Date.now()));
+}
+
 function addClick(name){
-
-globalClicks[name] = (globalClicks[name]||0) + 1;
-_updateCountEl(name, globalClicks[name]);
-renderTrending();
-updateSidebarStats();
-
-
-_supaIncrement(name).then(serverVal => {
-  if(serverVal !== null && serverVal !== globalClicks[name]){
-    globalClicks[name] = serverVal;
-    _updateCountEl(name, serverVal);
-    updateSidebarStats();
-  }
-});
-
+/* 2 soat o'tmagan bo'lsa faqat recentlyVisited ga qo'shamiz, click hisoblamaymiz */
+const doCount = _canClick(name);
+if(doCount){
+  _markClicked(name);
+  globalClicks[name] = (globalClicks[name]||0) + 1;
+  _updateCountEl(name, globalClicks[name]);
+  renderTrending();
+  updateSidebarStats();
+  _supaIncrement(name).then(serverVal => {
+    if(serverVal !== null && serverVal !== globalClicks[name]){
+      globalClicks[name] = serverVal;
+      _updateCountEl(name, serverVal);
+      updateSidebarStats();
+    }
+  });
+}
 
 let foundItem = null;
 DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) foundItem=i; }));
@@ -588,7 +692,11 @@ const favExtraCls = favActive ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 fo
 const favPinned = navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saqlanganlar',
   favorites.length||'', favExtraCls, favCountCls);
 
-$('sidebarPinned').innerHTML = pinned + favPinned +
+const collActive = activeCat==='collections';
+const collExtraCls = collActive ? 'bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
+const collBtn = navBtn(`setCat('collections')`, 'Kolleksiyalar', 'fa-rectangle-list', 'Kolleksiyalar',
+  getCollections().length||'', collExtraCls, collActive?'bg-violet-200 dark:bg-violet-500/30 text-violet-600':'bg-slate-200 dark:bg-slate-700/80 text-slate-500');
+$('sidebarPinned').innerHTML = pinned + favPinned + collBtn +
   `<div class="h-px w-full bg-slate-200 dark:bg-slate-700/60 mt-2 mb-1"></div>`;
 
 
@@ -692,7 +800,7 @@ hideDrop();
 
 
 const catWrap=$('catSWrap');
-const isSpecificCat = id!=='all' && id!=='favorites' && id!=='my_apps';
+const isSpecificCat = id!=='all' && id!=='favorites' && id!=='my_apps' && id!=='collections';
 
 if(catWrap){
   if(isSpecificCat){
@@ -709,6 +817,8 @@ if(id==='all'){
   $('pageTitle').textContent='Saqlanganlar';
 } else if(id==='my_apps'){
   $('pageTitle').textContent="Shaxsiy ro'yxat";
+} else if(id==='collections'){
+  $('pageTitle').textContent='Kolleksiyalar';
 } else {
   const catTitle=DATA.find(c=>c.id===id)?.title||'';
   $('pageTitle').textContent=catTitle;
@@ -748,6 +858,535 @@ let _renderToken = 0;
 
 let _imgObserver = null;
 
+
+/* ═══════════════════════════════════════════════════════════
+   KOLLEKSIYALAR TIZIMI — v2
+   ═══════════════════════════════════════════════════════════ */
+const DEFAULT_COLLECTIONS = [
+  {
+    id:'c_frontend', faIcon:'fa-code', title:"Frontend dasturchi", emoji:'💻',
+    color:'from-violet-500 to-purple-600',
+    desc:"Zamonaviy frontend dasturlash uchun eng kerakli vositalar",
+    items:['Visual Studio Code','GitHub','Figma','Vercel','Netlify','Stack Overflow','CodePen','MDN Web Docs','Tailwind CSS','Chrome DevTools','Postman','npm']
+  },
+  {
+    id:'c_abitur', faIcon:'fa-graduation-cap', title:"Abituriyent to'plami", emoji:'🎓',
+    color:'from-emerald-500 to-teal-600',
+    desc:"O'zbekiston abituriyentlari uchun eng muhim resurslar",
+    items:['My.gov.uz','HEMIS','Khan Academy','Duolingo','Photomath','Brainly','Google Classroom','Quizlet','Engli.uz','YouTube']
+  },
+  {
+    id:'c_ai_start', faIcon:'fa-robot', title:"AI boshlang'ich to'plam", emoji:'🤖',
+    color:'from-sky-500 to-blue-600',
+    desc:"AI vositalarini birinchi marta ishlatuvchilar uchun",
+    items:['ChatGPT','Gemini','Microsoft Copilot','Claude','Perplexity AI','Midjourney','Canva','Grammarly','DeepL','Notion']
+  },
+  {
+    id:'c_freelance', faIcon:'fa-briefcase', title:"O'zbek frilanser", emoji:'🚀',
+    color:'from-orange-500 to-amber-500',
+    desc:"Masofadan ishlash va daromad topish uchun kerakli platformalar",
+    items:['Upwork','Freelancer.com','Fiverr','Toptal','Payoneer','Wise','Trello','Slack','Zoom','Notion','HH.uz','LinkedIn']
+  },
+  {
+    id:'c_designer', faIcon:'fa-palette', title:"Dizayner vositalari", emoji:'🎨',
+    color:'from-pink-500 to-rose-500',
+    desc:"Professional dizaynerlar uchun eng foydali vositalar",
+    items:['Figma','Adobe Photoshop','Canva','Dribbble','Behance','Unsplash','Adobe Color','Coolors','Google Fonts','Framer','Blender','Spline']
+  },
+  {
+    id:'c_student', faIcon:'fa-book-open', title:"Talaba vositalari", emoji:'📚',
+    color:'from-indigo-500 to-violet-600',
+    desc:"O'qish, yozish va loyiha ishlash uchun eng yaxshi vositalar",
+    items:['Notion','Google Docs','Google Drive','Grammarly','DeepL','Coursera','Khan Academy','Quizlet','YouTube','Wolfram Alpha','Mendeley','Overleaf']
+  },
+  {
+    id:'c_uzb_daily', faIcon:'fa-flag', title:"O'zbek kundalik", emoji:'🇺🇿',
+    color:'from-blue-500 to-cyan-500',
+    desc:"O'zbekistonda kundalik hayotda eng ko'p ishlatiladigan xizmatlar",
+    items:['Payme','Click','MyGov.uz','Telegram','YouTube','Instagram','Uzum Market','OLX.uz','HH.uz','2GIS','Express24','Yandex Maps']
+  },
+  {
+    id:'c_backend', faIcon:'fa-server', title:"Backend dasturchi", emoji:'⚙️',
+    color:'from-slate-600 to-slate-800',
+    desc:"Server, API va infratuzilma uchun kerakli vositalar",
+    items:['GitHub','Supabase','Vercel','Railway','Postman','Docker','Linux','MongoDB','PostgreSQL','Redis','Nginx','AWS']
+  }
+];
+
+let userCollections = safeParse('lh_collections', []);
+
+function getCollections(){ return [...DEFAULT_COLLECTIONS, ...userCollections]; }
+function saveUserCollections(){ localStorage.setItem('lh_collections', JSON.stringify(userCollections)); }
+
+function _colAccentColor(color){
+  if(color.includes('violet')||color.includes('purple')) return {text:'text-violet-600 dark:text-violet-400', bg:'bg-violet-50 dark:bg-violet-500/10', border:'border-violet-200 dark:border-violet-500/30'};
+  if(color.includes('emerald')||color.includes('teal'))  return {text:'text-emerald-600 dark:text-emerald-400', bg:'bg-emerald-50 dark:bg-emerald-500/10', border:'border-emerald-200 dark:border-emerald-500/30'};
+  if(color.includes('sky')||color.includes('blue')||color.includes('cyan')) return {text:'text-sky-600 dark:text-sky-400', bg:'bg-sky-50 dark:bg-sky-500/10', border:'border-sky-200 dark:border-sky-500/30'};
+  if(color.includes('orange')||color.includes('amber'))  return {text:'text-orange-600 dark:text-orange-400', bg:'bg-orange-50 dark:bg-orange-500/10', border:'border-orange-200 dark:border-orange-500/30'};
+  if(color.includes('pink')||color.includes('rose'))     return {text:'text-pink-600 dark:text-pink-400', bg:'bg-pink-50 dark:bg-pink-500/10', border:'border-pink-200 dark:border-pink-500/30'};
+  if(color.includes('indigo'))                           return {text:'text-indigo-600 dark:text-indigo-400', bg:'bg-indigo-50 dark:bg-indigo-500/10', border:'border-indigo-200 dark:border-indigo-500/30'};
+  return {text:'text-slate-600 dark:text-slate-400', bg:'bg-slate-50 dark:bg-slate-800', border:'border-slate-200 dark:border-slate-600'};
+}
+
+function _getColItems(col){
+  const found=[];
+  DATA.forEach(cat=>{ if(cat.id==='my_apps') return; cat.items.forEach(i=>{ if(col.items.includes(i.n)) found.push({...i,_cat:cat}); }); });
+  return found;
+}
+
+/* ── RENDER COLLECTIONS PAGE ── */
+function _renderCollections(container, token){
+  const skelEl=document.getElementById('_skelGrid');
+  if(skelEl) skelEl.remove();
+  $('appsContainer').classList.remove('hidden');
+  $('noResults').classList.add('hidden');
+  const collections=getCollections();
+  $('resultCount').textContent=collections.length+' ta kolleksiya';
+
+  const wrap=document.createElement('div');
+  wrap.className='animate-fade-up';
+
+  // Sticky subheader — qidiruv + yangi tugma
+  wrap.innerHTML=`
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
+      <div class="relative flex-1 w-full">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"></i>
+        <input id="colSearch" placeholder="Kolleksiya qidirish..." oninput="filterCollections(this.value)"
+          class="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-violet-400 placeholder-slate-400">
+      </div>
+      <button onclick="openNewCollectionModal()"
+        class="shrink-0 flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl px-4 py-2.5 text-[12px] transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98] whitespace-nowrap">
+        <i class="fa-solid fa-plus text-[10px]"></i> Yangi kolleksiya
+      </button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" id="collectionsGrid"></div>`;
+
+  container.appendChild(wrap);
+  _fillCollectionGrid(collections);
+}
+
+window.filterCollections = function(q){
+  const all=getCollections();
+  const filtered=q.trim()?all.filter(c=>c.title.toLowerCase().includes(q.toLowerCase())||c.desc.toLowerCase().includes(q.toLowerCase())):all;
+  _fillCollectionGrid(filtered);
+};
+
+function _fillCollectionGrid(collections){
+  const grid=document.getElementById('collectionsGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  collections.forEach(col=>{
+    const isUser=col.id.startsWith('uc_');
+    const acc=_colAccentColor(col.color);
+    const found=_getColItems(col).length;
+    // Preview icons — first 4 items
+    const previewItems=[];
+    DATA.forEach(cat=>{ col.items.slice(0,6).forEach(name=>{ const it=cat.items.find(i=>i.n===name); if(it&&!previewItems.find(p=>p.n===name)) previewItems.push(it); }); });
+    const previewHtml=previewItems.slice(0,4).map(it=>{
+      const dm=getDomain(it.u||'');
+      const hasRealDomain=dm&&dm.includes('.');
+      const palettes=['#6366f1,#8b5cf6','#ec4899,#f97316','#06b6d4,#6366f1','#10b981,#06b6d4','#f59e0b,#ef4444','#8b5cf6,#ec4899','#14b8a6,#3b82f6','#f97316,#fbbf24'];
+      let hash=0; for(let i=0;i<it.n.length;i++) hash=it.n.charCodeAt(i)+((hash<<5)-hash);
+      const [c1,c2]=palettes[Math.abs(hash)%palettes.length].split(',');
+      if(hasRealDomain) return `<img src="https://www.google.com/s2/favicons?domain=${dm}&sz=32" class="w-6 h-6 rounded-md object-contain bg-white border border-white dark:border-slate-700 shadow-sm" onerror="this.outerHTML='<div style=\\'background:linear-gradient(135deg,${c1},${c2})\\' class=\\'w-6 h-6 rounded-md flex items-center justify-center text-white text-[9px] font-bold\\'>${it.n[0]}</div>'" loading="lazy">`;
+      return `<div style="background:linear-gradient(135deg,${c1},${c2})" class="w-6 h-6 rounded-md flex items-center justify-center text-white text-[9px] font-bold shadow-sm border border-white dark:border-slate-700">${it.n[0]}</div>`;
+    }).join('');
+
+    const card=document.createElement('div');
+    card.className='col-card group cursor-pointer rounded-2xl overflow-hidden border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-800/90 hover:border-violet-300 dark:hover:border-violet-600/50 hover:shadow-xl hover:shadow-violet-500/10 dark:hover:shadow-violet-500/5 transition-all duration-200';
+    card.onclick=()=>openCollectionView(col.id);
+    card.innerHTML=`
+      <!-- Compact header: gradient strip, icon+title left, actions right -->
+      <div class="bg-gradient-to-br ${col.color} relative overflow-hidden px-3 py-3">
+        <div class="absolute inset-0 opacity-15" style="background:radial-gradient(circle at 80% 20%,rgba(255,255,255,0.5),transparent 60%)"></div>
+        <div class="relative z-10 flex items-center gap-2.5">
+          <!-- Oq ikonka -->
+          <div class="w-9 h-9 rounded-xl bg-white/25 flex items-center justify-center shrink-0">
+            <i class="fa-solid ${col.faIcon||'fa-layer-group'} text-white text-[15px]"></i>
+          </div>
+          <!-- Nomi va tavsifi -->
+          <div class="flex-1 min-w-0">
+            <h4 class="text-[12.5px] font-black text-white leading-snug line-clamp-1">${col.title}</h4>
+            <p class="text-[9.5px] text-white/70 leading-snug line-clamp-1 mt-0.5">${col.desc}</p>
+          </div>
+          <!-- Actions -->
+          <div class="flex gap-1 shrink-0">
+            ${isUser?`
+              <button onclick="event.stopPropagation();openEditCollection('${col.id}')" title="Tahrirlash"
+                class="w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                <i class="fa-solid fa-pen text-[8px]"></i>
+              </button>
+              <button onclick="event.stopPropagation();deleteUserCollection('${col.id}')" title="O'chirish"
+                class="w-6 h-6 rounded-full bg-white/20 hover:bg-red-400 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                <i class="fa-solid fa-trash text-[8px]"></i>
+              </button>`:`<span class="text-[8px] font-bold bg-white/20 text-white/90 px-1.5 py-0.5 rounded-full">Tavsiya</span>`}
+          </div>
+        </div>
+      </div>
+      <!-- Content -->
+      <div class="p-3">
+        <!-- Preview icons row -->
+        <div class="flex items-center gap-1 mb-3 -space-x-1">
+          ${previewHtml}
+          ${found>4?`<div class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-500 dark:text-slate-400 border border-white dark:border-slate-700 shadow-sm">+${found-4}</div>`:''}
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold ${acc.text} flex items-center gap-1 ${acc.bg} px-2 py-0.5 rounded-full">
+            <i class="fa-solid fa-layer-group text-[8px]"></i> ${found} ta resurs
+          </span>
+          <span class="flex items-center gap-1 text-[10px] text-slate-400 group-hover:text-violet-500 transition-colors font-semibold">
+            Ko'rish <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover:translate-x-0.5"></i>
+          </span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  if(collections.length===0){
+    grid.innerHTML=`<div class="col-span-full flex flex-col items-center py-12 text-center">
+      <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
+      <p class="text-sm font-bold text-slate-400">Hech narsa topilmadi</p>
+    </div>`;
+  }
+}
+
+/* ── COLLECTION VIEW MODAL ── */
+window.openCollectionView=function(colId){
+  const col=getCollections().find(c=>c.id===colId);
+  if(!col) return;
+  const items=_getColItems(col);
+  const acc=_colAccentColor(col.color);
+
+  if(!document.getElementById('collectionViewModal')) _buildCollectionViewModal();
+  const m=document.getElementById('collectionViewModal');
+
+  document.getElementById('cvGrad').className=`bg-gradient-to-br ${col.color} px-5 py-5 relative overflow-hidden`;
+  document.getElementById('cvGrad').innerHTML=`
+    <div class="absolute inset-0 opacity-15" style="background:radial-gradient(circle at 75% 20%,rgba(255,255,255,0.5),transparent 60%)"></div>
+    <div class="relative z-10 flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl bg-white/25 flex items-center justify-center shrink-0 shadow-sm">
+        <i class="fa-solid ${col.faIcon||'fa-layer-group'} text-white text-xl"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-[17px] font-black text-white leading-tight">${col.title}</h3>
+        <p class="text-[11px] text-white/75 mt-0.5 line-clamp-1">${col.desc}</p>
+      </div>
+      <button onclick="closeCollectionView()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all shrink-0">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>`;
+
+  // Toolbar
+  const isUser=col.id.startsWith('uc_');
+  document.getElementById('cvToolbar').innerHTML=`
+    <div class="flex items-center gap-2 flex-1">
+      <span class="text-[11px] font-bold ${acc.text} ${acc.bg} px-2.5 py-1 rounded-full flex items-center gap-1 border ${acc.border}">
+        <i class="fa-solid fa-layer-group text-[9px]"></i> ${items.length} ta resurs
+      </span>
+      ${isUser?`<button onclick="openAddToCollection('${col.id}')" class="flex items-center gap-1.5 text-[11px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100 dark:hover:bg-violet-500/20 border border-violet-200 dark:border-violet-500/30 px-2.5 py-1 rounded-full transition-colors">
+        <i class="fa-solid fa-plus text-[9px]"></i> Resurs qo'shish
+      </button>`:''}
+    </div>
+    <button onclick="shareCollection('${col.id}')" class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-violet-600 px-2.5 py-1 rounded-full hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors border border-slate-200 dark:border-slate-700">
+      <i class="fa-solid fa-share-nodes text-[10px]"></i> Ulashish
+    </button>`;
+
+  const body=document.getElementById('cvBody');
+  body.innerHTML='';
+  if(items.length===0){
+    body.innerHTML=`<div class="flex flex-col items-center py-12 text-center">
+      <i class="fa-solid fa-inbox text-4xl text-slate-300 mb-3"></i>
+      <p class="text-sm font-bold text-slate-500 mb-1">Hali resurslar yo'q</p>
+      <p class="text-xs text-slate-400">${isUser?'Yuqoridagi "+ Resurs qo\'shish" tugmasini bosing':'Resurslar topilmadi'}</p>
+    </div>`;
+  } else {
+    const grid=document.createElement('div');
+    grid.className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5';
+    items.forEach(item=>{
+      const wrapper=document.createElement('div');
+      wrapper.className='relative group/cvitem';
+      wrapper.innerHTML=card(item);
+      if(isUser){
+        const removeBtn=document.createElement('button');
+        removeBtn.className='absolute top-2 left-2 w-6 h-6 rounded-full bg-red-500 text-white text-[9px] items-center justify-center shadow-md z-30 hidden group-hover/cvitem:flex transition-all hover:bg-red-600 active:scale-90';
+        removeBtn.title="Kolleksiyadan olib tashlash";
+        removeBtn.innerHTML='<i class="fa-solid fa-minus"></i>';
+        removeBtn.onclick=(e)=>{ e.stopPropagation(); removeFromCollection(col.id, item.n); };
+        wrapper.appendChild(removeBtn);
+      }
+      grid.appendChild(wrapper);
+    });
+    body.appendChild(grid);
+    if(_imgObserver) body.querySelectorAll('.lz-img').forEach(img=>_imgObserver.observe(img));
+  }
+
+  m.classList.remove('hidden'); m.classList.add('flex');
+};
+
+window.closeCollectionView=function(){
+  const m=document.getElementById('collectionViewModal');
+  if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }
+};
+
+function _buildCollectionViewModal(){
+  const m=document.createElement('div');
+  m.id='collectionViewModal';
+  m.className='fixed inset-0 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm';
+  m.innerHTML=`
+    <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-5xl flex flex-col shadow-2xl overflow-auto">
+      <div id="cvGrad" class="shrink-0"></div>
+      <div id="cvToolbar" class="flex items-center gap-2 px-4 py-3 border-b border-slate-200/60 dark:border-slate-700/60 shrink-0 flex-wrap"></div>
+      <div id="cvBody" class="p-4"></div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{ if(e.target===m) closeCollectionView(); });
+}
+
+/* ── ADD ITEMS TO COLLECTION ── */
+window.openAddToCollection=function(colId){
+  const col=getCollections().find(c=>c.id===colId);
+  if(!col) return;
+  const existing=new Set(col.items);
+
+  let modal=document.getElementById('addToColModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='addToColModal';
+    modal.className='fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm';
+    modal.innerHTML=`
+      <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div class="px-5 pt-5 pb-3 shrink-0">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-plus text-white text-sm"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-[13px] font-black text-slate-800 dark:text-white" id="atcTitle">Resurs qo'shish</h3>
+              <p class="text-[10px] text-slate-400">Kolleksiyaga resurs qo'shing</p>
+            </div>
+            <button onclick="document.getElementById('addToColModal').classList.add('hidden');document.getElementById('addToColModal').classList.remove('flex')"
+              class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-colors">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"></i>
+            <input id="atcSearch" placeholder="Resurs nomi..." oninput="searchForCollection(this.value)"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-violet-400">
+          </div>
+        </div>
+        <div id="atcList" class="flex-1 overflow-y-auto px-4 pb-4 space-y-1"></div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{ if(e.target===modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+  }
+
+  modal.dataset.colId=colId;
+  document.getElementById('atcTitle').textContent=`"${col.title}" ga qo'shish`;
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  searchForCollection('');
+  setTimeout(()=>document.getElementById('atcSearch')?.focus(),100);
+};
+
+window.searchForCollection=function(q){
+  const modal=document.getElementById('addToColModal');
+  if(!modal) return;
+  const colId=modal.dataset.colId;
+  const col=getCollections().find(c=>c.id===colId);
+  if(!col) return;
+  const existing=new Set(col.items);
+
+  const allItems=[];
+  DATA.forEach(cat=>{ if(cat.id==='my_apps') return; cat.items.forEach(i=>allItems.push(i)); });
+  const filtered=q.trim()?allItems.filter(i=>i.n.toLowerCase().includes(q.toLowerCase())||(i.d||'').toLowerCase().includes(q.toLowerCase())):allItems.slice(0,40);
+
+  const list=document.getElementById('atcList');
+  list.innerHTML=filtered.slice(0,50).map(item=>{
+    const dm=getDomain(item.u||'');
+    const hasReal=dm&&dm.includes('.');
+    const inCol=existing.has(item.n);
+    const palettes=['#6366f1,#8b5cf6','#ec4899,#f97316','#06b6d4,#6366f1','#10b981,#06b6d4'];
+    let hash=0; for(let k=0;k<item.n.length;k++) hash=item.n.charCodeAt(k)+((hash<<5)-hash);
+    const [c1,c2]=palettes[Math.abs(hash)%palettes.length].split(',');
+    const icoHtml=hasReal
+      ?`<img src="https://www.google.com/s2/favicons?domain=${dm}&sz=32" class="w-8 h-8 rounded-xl object-contain" onerror="this.outerHTML='<div style=\\'background:linear-gradient(135deg,${c1},${c2})\\' class=\\'w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold\\'>${item.n[0]}</div>'" loading="lazy">`
+      :`<div style="background:linear-gradient(135deg,${c1},${c2})" class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold">${item.n[0]}</div>`;
+    return `<div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors cursor-pointer group/atc" onclick="toggleInCollection('${colId}','${item.n.replace(/'/g,"\\'")}',this)">
+      <div class="shrink-0">${icoHtml}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-bold text-slate-800 dark:text-white truncate">${item.n}</p>
+        ${item.d?`<p class="text-[10px] text-slate-400 truncate">${item.d.slice(0,50)}</p>`:''}
+      </div>
+      <div class="shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${inCol?'bg-violet-500 border-violet-500':'border-slate-300 dark:border-slate-600 group-hover/atc:border-violet-400'}" data-checked="${inCol?'1':'0'}">
+        ${inCol?'<i class="fa-solid fa-check text-white text-[9px]"></i>':''}
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.toggleInCollection=function(colId, name, el){
+  const col=userCollections.find(c=>c.id===colId);
+  if(!col) return;
+  const check=el.querySelector('[data-checked]');
+  const inCol=check.dataset.checked==='1';
+  if(inCol){
+    col.items=col.items.filter(n=>n!==name);
+    check.dataset.checked='0';
+    check.className='shrink-0 w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center transition-all';
+    check.innerHTML='';
+  } else {
+    if(!col.items.includes(name)) col.items.push(name);
+    check.dataset.checked='1';
+    check.className='shrink-0 w-6 h-6 rounded-full border-2 bg-violet-500 border-violet-500 flex items-center justify-center transition-all';
+    check.innerHTML='<i class="fa-solid fa-check text-white text-[9px]"></i>';
+  }
+  saveUserCollections();
+  // Refresh open collection view if same
+  const m=document.getElementById('collectionViewModal');
+  if(m&&!m.classList.contains('hidden')) openCollectionView(colId);
+};
+
+window.removeFromCollection=function(colId, name){
+  const col=userCollections.find(c=>c.id===colId);
+  if(!col) return;
+  col.items=col.items.filter(n=>n!==name);
+  saveUserCollections();
+  openCollectionView(colId);
+};
+
+/* ── SHARE COLLECTION ── */
+window.shareCollection=function(colId){
+  const col=getCollections().find(c=>c.id===colId);
+  if(!col) return;
+  const items=_getColItems(col);
+  const text=`📚 ${col.emoji} *${col.title}*\n\n${items.slice(0,10).map((it,i)=>`${i+1}. ${it.n} — ${it.u}`).join('\n')}\n\n🔗 eLink UZ — https://elink.uz`;
+  if(navigator.share){ navigator.share({title:col.title, text}); }
+  else { navigator.clipboard?.writeText(text).then(()=>showToast('Nusxalandi!','fa-circle-check text-emerald-400')); }
+};
+
+/* ── EDIT USER COLLECTION ── */
+window.openEditCollection=function(colId){
+  const col=userCollections.find(c=>c.id===colId);
+  if(!col) return;
+  // Reuse new collection modal with prefill
+  openNewCollectionModal();
+  setTimeout(()=>{
+    const t=document.getElementById('ncTitle'); if(t) t.value=col.title;
+    const e=document.getElementById('ncEmoji'); if(e) e.value=col.emoji;
+    const d=document.getElementById('ncDesc');  if(d) d.value=col.desc||'';
+    // Set color
+    document.querySelectorAll('.nc-color').forEach(b=>{
+      b.classList.remove('ring-2','ring-offset-1','ring-violet-500');
+      if(b.dataset.color===col.color) b.classList.add('ring-2','ring-offset-1','ring-violet-500');
+    });
+    // Change save button to update
+    const btn=document.querySelector('#newCollectionModal button[onclick="saveNewCollection()"]');
+    if(btn){ btn.onclick=()=>updateUserCollection(colId); btn.innerHTML='<i class="fa-solid fa-check mr-2"></i> Yangilash'; }
+    const h=document.querySelector('#newCollectionModal h3'); if(h) h.textContent='Kolleksiyani tahrirlash';
+  },50);
+};
+
+window.updateUserCollection=function(colId){
+  const col=userCollections.find(c=>c.id===colId);
+  if(!col) return;
+  col.title=document.getElementById('ncTitle')?.value.trim()||col.title;
+  col.emoji=document.getElementById('ncEmoji')?.value.trim()||col.emoji;
+  col.desc=document.getElementById('ncDesc')?.value.trim()||'';
+  const colorBtn=document.querySelector('.nc-color.ring-2');
+  if(colorBtn) col.color=colorBtn.dataset.color;
+  col.faIcon = col.faIcon||'fa-layer-group';
+  saveUserCollections();
+  document.getElementById('newCollectionModal')?.classList.add('hidden');
+  document.getElementById('newCollectionModal')?.classList.remove('flex');
+  renderContent();
+  showToast('Kolleksiya yangilandi!','fa-circle-check text-emerald-400');
+};
+
+/* ── NEW COLLECTION MODAL ── */
+window.openNewCollectionModal=function(){
+  let modal=document.getElementById('newCollectionModal');
+  if(modal){ modal.remove(); }
+  modal=document.createElement('div');
+  modal.id='newCollectionModal';
+  modal.className='fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm';
+  const COLORS=[
+    ['from-violet-500 to-fuchsia-500','bg-gradient-to-br from-violet-500 to-fuchsia-500'],
+    ['from-sky-500 to-blue-600','bg-gradient-to-br from-sky-500 to-blue-600'],
+    ['from-emerald-500 to-teal-600','bg-gradient-to-br from-emerald-500 to-teal-600'],
+    ['from-orange-500 to-amber-500','bg-gradient-to-br from-orange-500 to-amber-500'],
+    ['from-pink-500 to-rose-500','bg-gradient-to-br from-pink-500 to-rose-500'],
+    ['from-indigo-500 to-violet-600','bg-gradient-to-br from-indigo-500 to-violet-600'],
+    ['from-red-500 to-orange-500','bg-gradient-to-br from-red-500 to-orange-500'],
+    ['from-cyan-500 to-sky-600','bg-gradient-to-br from-cyan-500 to-sky-600'],
+    ['from-slate-600 to-slate-800','bg-gradient-to-br from-slate-600 to-slate-800'],
+    ['from-lime-500 to-green-600','bg-gradient-to-br from-lime-500 to-green-600'],
+  ];
+  modal.innerHTML=`
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+      <div class="px-5 pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-folder-plus text-white text-sm"></i>
+        </div>
+        <h3 class="text-[13px] font-black text-slate-800 dark:text-white flex-1">Yangi kolleksiya</h3>
+        <button onclick="document.getElementById('newCollectionModal').classList.add('hidden');document.getElementById('newCollectionModal').classList.remove('flex')"
+          class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 block">Emoji va nomi *</label>
+          <div class="flex gap-2">
+            <input id="ncEmoji" maxlength="2" value="📁" class="w-12 text-center text-xl rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-violet-400 py-2.5">
+            <input id="ncTitle" placeholder="Masalan: Mening AI to'plamim" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-violet-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 block">Qisqacha tavsif</label>
+          <input id="ncDesc" placeholder="Bu to'plam nima uchun?" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-violet-400">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2 block">Rang tanlang</label>
+          <div class="grid grid-cols-5 gap-2">
+            ${COLORS.map(([val,cls],i)=>`<button class="nc-color w-full aspect-square rounded-xl ${cls} transition-all hover:scale-105 active:scale-95 ${i===0?'ring-2 ring-offset-2 ring-violet-500':''}" data-color="${val}" onclick="document.querySelectorAll('.nc-color').forEach(b=>b.classList.remove('ring-2','ring-offset-2','ring-violet-500'));this.classList.add('ring-2','ring-offset-2','ring-violet-500')"></button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="px-5 pb-5">
+        <button onclick="saveNewCollection()" class="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98]">
+          <i class="fa-solid fa-check mr-2 text-[11px]"></i> Yaratish
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{ if(e.target===modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  setTimeout(()=>document.getElementById('ncTitle')?.focus(),100);
+};
+
+window.saveNewCollection=function(){
+  const title=document.getElementById('ncTitle')?.value.trim();
+  const emoji=document.getElementById('ncEmoji')?.value.trim()||'📁';
+  const desc=document.getElementById('ncDesc')?.value.trim()||'';
+  const colorBtn=document.querySelector('.nc-color.ring-2');
+  const color=colorBtn?.dataset.color||'from-violet-500 to-fuchsia-500';
+  if(!title){ showToast('Nomi kiritilishi shart!','fa-circle-xmark text-red-400'); return; }
+  userCollections.push({ id:'uc_'+Date.now(), title, emoji, desc, color, faIcon:'fa-layer-group', items:[] });
+  saveUserCollections();
+  document.getElementById('newCollectionModal')?.classList.add('hidden');
+  document.getElementById('newCollectionModal')?.classList.remove('flex');
+  renderNav(); renderContent();
+  showToast(`"${title}" yaratildi! Endi resurs qo'shing.`,'fa-circle-check text-emerald-400');
+};
+
+window.deleteUserCollection=function(id){
+  if(!confirm("Kolleksiyani o'chirmoqchimisiz?")) return;
+  userCollections=userCollections.filter(c=>c.id!==id);
+  saveUserCollections();
+  renderContent();
+  showToast("Kolleksiya o'chirildi",'fa-circle-check text-emerald-400');
+};
+
+
 function renderContent(){
 
 if(!window.DATA || !Array.isArray(window.DATA) || window.DATA.length === 0){
@@ -781,12 +1420,56 @@ setTimeout(()=>{
   let sections = []; 
   let totalFound = 0;
 
-  if(activeCat==='favorites'){
+  if(activeCat==='collections'){
+    _renderCollections(container, myToken);
+    return;
+  } else if(activeCat==='favorites'){
     const fItems=[];
     DATA.forEach(c=>c.items.forEach(i=>{ if(favorites.includes(i.n)&&matchItem(i,c)) fItems.push(i); }));
     if(fItems.length){
       sections.push({heading:null, gr:'from-rose-400 to-rose-600', catId:null, items:sortItems(fItems)});
       totalFound = fItems.length;
+    } else {
+      // Bo'sh saqlanganlar — maxsus yo'riqnoma ko'rsat
+      const skelEl2 = document.getElementById('_skelGrid');
+      if(skelEl2) skelEl2.remove();
+      container.innerHTML = '';
+      $('noResults').classList.add('hidden');
+      $('noResults').classList.remove('flex');
+      $('resultCount').textContent = '';
+      $('appsContainer').classList.remove('hidden');
+      const favEmpty = document.createElement('div');
+      favEmpty.className = 'animate-fade-up flex flex-col items-center text-center py-12 px-4';
+      favEmpty.innerHTML = `
+        <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-white text-3xl shadow-lg shadow-rose-400/30 mb-5">
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-800 dark:text-white mb-2">Saqlanganlar bo'sh</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed mb-6">
+          Yoqtirgan resursingizni saqlash uchun istalgan kartaning <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/15 text-rose-500 font-bold text-xs border border-rose-200 dark:border-rose-500/30"><i class="fa-regular fa-heart text-[10px]"></i> yurakcha</span> belgisini bosing
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md w-full mb-6 text-left">
+          <div class="p-3 rounded-2xl bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20">
+            <i class="fa-solid fa-globe text-violet-500 text-base mb-1.5 block"></i>
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Veb-saytlar</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Sevimli saytlaringiz</p>
+          </div>
+          <div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20">
+            <i class="fa-solid fa-robot text-emerald-500 text-base mb-1.5 block"></i>
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">AI vositalar</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Eng ko'p ishlatadiganlar</p>
+          </div>
+          <div class="p-3 rounded-2xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20">
+            <i class="fa-solid fa-mobile-screen-button text-sky-500 text-base mb-1.5 block"></i>
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Mobil ilovalar</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Qulay ilova havolalar</p>
+          </div>
+        </div>
+        <button onclick="setCat('all')" class="flex items-center gap-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:opacity-90 text-white font-bold rounded-xl px-5 py-3 text-sm transition-all shadow-lg shadow-rose-400/25 active:scale-[0.98]">
+          <i class="fa-solid fa-border-all text-sm"></i> Barcha resurslarga o'tish
+        </button>`;
+      container.appendChild(favEmpty);
+      return;
     }
   } else if(activeCat==='my_apps'){
     _renderMyApps(container, myToken);
@@ -1029,11 +1712,8 @@ function buildDropHTML(q){
   let catSugg = [], otherSugg = [];
 
   if(q.length >= 1){
-    if(activeCat === 'my_apps'){
-      customApps.forEach(i => {
-        if((i.n.toLowerCase().includes(q.toLowerCase()) || (i.d||'').toLowerCase().includes(q.toLowerCase())) && catSugg.length < 8)
-          catSugg.push({...i, _c:{title:"Shaxsiy ro'yxat", icon:'fa-folder-open'}});
-      });
+    if(false){ // my_apps da ham global suggest — bu blok endi ishlatilmaydi
+      void 0;
     } else {
       DATA.forEach(c => {
         if(c.id === 'my_apps') return;
@@ -1225,6 +1905,14 @@ const handle=e=>{
   $('deskClr').classList.toggle('pointer-events-none',!query);
   $('mobClr').classList.toggle('opacity-0',!query);
   $('mobClr').classList.toggle('pointer-events-none',!query);
+  /* Yuqori qidiruv DOIM global — my_apps yoki favorites da bo'lsa 'all' ga o'tkazamiz */
+  if(query.trim() && (activeCat === 'my_apps' || activeCat === 'favorites')){
+    activeCat = 'all';
+    $('pageTitle').textContent = 'Barcha Resurslar';
+    const catWrap=$('catSWrap');
+    if(catWrap) catWrap.classList.add('hidden');
+    renderNav();
+  }
   updateDrops(query);
   clearTimeout(sTimer);
   sTimer=setTimeout(()=>{ if(query.trim()) saveHist(query); renderContent(); },160);
@@ -2287,8 +2975,6 @@ window.openListBuilderModal = function(){
             <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1 py-2 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-slate-800/80 mb-1">${cat.title}</p>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               ${cat.items.map(item=>{
-                const domain = getDomain(item.u||'');
-                const src = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
                 const key = item.n;
                 const hasMob  = item.t?.includes('mobil');
                 const hasWeb  = item.t?.includes('web');
@@ -2297,8 +2983,8 @@ window.openListBuilderModal = function(){
                   <input type="checkbox" class="builder-chk mt-0.5 w-4 h-4 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5 mb-0.5">
-                      <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 flex items-center justify-center shrink-0">
-                        ${src ? `<img src="${src}" class="w-6 h-6 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+                      <div class="card-logo-wrap w-8 h-8 rounded-xl shrink-0">
+                        ${iconHTML(item, 'w-full h-full object-contain')}
                       </div>
                       <p class="text-[13px] font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
                     </div>
@@ -2847,8 +3533,6 @@ function showListPage(data, shortCode, viewCount){
       <!-- Items -->
       <div class="flex-1 overflow-y-auto px-3 py-2 space-y-0.5" id="importItemsList">
         ${items.map((item,idx)=>{
-          const domain = getDomain(item.u||'');
-          const src    = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
           const exists = existNames.has((item.n||'').toLowerCase());
           const isBepul= (item.t||[]).includes('bepul');
           const hasWeb = (item.t||[]).includes('web');
@@ -2857,9 +3541,9 @@ function showListPage(data, shortCode, viewCount){
           const openUrl  = item.u || item.android || item.ios || '';
           return `<label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group ${exists?'bg-emerald-50/40 dark:bg-emerald-500/5':''}">
             <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${exists?'':'checked'}>
-            <div class="w-9 h-9 rounded-xl overflow-hidden border ${exists?'border-emerald-200 dark:border-emerald-600/30':'border-slate-100 dark:border-slate-700/60'} bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm relative">
-              ${src?`<img src="${src}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none'">` : `<i class="fa-solid fa-${isCustom?'star':'globe'} text-${isCustom?'violet':'slate'}-300 text-xs"></i>`}
-              ${exists?`<div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm"><i class="fa-solid fa-check text-white text-[7px]"></i></div>`:''}
+            <div class="card-logo-wrap w-9 h-9 rounded-xl shrink-0 relative shadow-sm ${exists?'ring-2 ring-emerald-400/60':''}">
+              ${iconHTML(item, 'w-full h-full object-contain')}
+              ${exists?`<div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm z-10"><i class="fa-solid fa-check text-white text-[7px]"></i></div>`:''}
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
@@ -2987,35 +3671,37 @@ detectShareHash();
   if(location.hash && location.hash.startsWith('#import')) return;
   if(new URLSearchParams(location.search).get('list')) return;
 
+  /* Oq SVG ikonalar — fa-solid Font Awesome */
+  const _obi = (fa) => `<i class="fa-solid ${fa} text-white text-xl"></i>`;
   const STEPS = [
     {
-      id:0, icon:'🔗',
+      id:0, iconFA:'fa-link',
       title:"eLink UZ ga\nxush kelibsiz!",
-      subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 1200+ foydali sayt va ilova — bitta joyda.",
+      subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 1700+ foydali sayt va ilova — bitta joyda.",
       feats:[
-        {ico:'🗂️',bg:'from-violet-500 to-fuchsia-500',title:'1200+ resurs katalogi',desc:"Ta'lim, tibbiyot, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},
-        {ico:'🔍',bg:'from-violet-400 to-purple-500',title:'Tez va aqlli qidiruv',desc:"Kategoriya bo'yicha yoki barcha resurslardan bir zumda toping"},
-        {ico:'🌙',bg:'from-slate-600 to-slate-800',title:'Qulay interfeys',desc:"Tungi rejim, mobil va kompyuter uchun optimallashtirilgan"}
+        {faIco:'fa-layer-group',     bg:'from-violet-500 to-fuchsia-500', title:'1700+ resurs katalogi',     desc:"Ta'lim, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},
+        {faIco:'fa-magnifying-glass',bg:'from-violet-400 to-purple-600',  title:'Tez va aqlli qidiruv',      desc:"Kategoriya bo'yicha yoki barcha resurslardan bir zumda toping"},
+        {faIco:'fa-moon',            bg:'from-slate-600 to-slate-900',    title:'Qulay interfeys',           desc:"Tungi rejim, mobil va kompyuter uchun optimallashtirilgan"}
       ]
     },
     {
-      id:1, icon:'📌',
+      id:1, iconFA:'fa-thumbtack',
       title:"Shaxsiy linklar\nqo'shing va saqlang",
       subtitle:"O'zingizning sevimli saytlaringizni qo'shing — istalgan vaqt 1 klik bilan kiring.",
       feats:[
-        {ico:'➕',bg:'from-sky-500 to-cyan-500',title:"Har qanday saytni qo'shing",desc:"O'z shaxsiy resurslaringizni katalogga qo'shing va boshqaring"},
-        {ico:'❤️',bg:'from-rose-500 to-pink-500',title:"Sevimlilar ro'yxati",desc:"Tez-tez foydalanayotgan resurslarni ❤️ bilan belgilang"},
-        {ico:'☁️',bg:'from-blue-500 to-indigo-500',title:'Bulutda sinxronlanadi',desc:"Ro'yxatingiz barcha qurilmalaringizda avtomatik saqlanadi"}
+        {faIco:'fa-plus',        bg:'from-sky-500 to-cyan-500',    title:"Har qanday saytni qo'shing", desc:"O'z shaxsiy resurslaringizni katalogga qo'shing va boshqaring"},
+        {faIco:'fa-heart',       bg:'from-rose-500 to-pink-500',   title:"Sevimlilar ro'yxati",        desc:"Tez-tez foydalanayotgan resurslarni ♥ bilan belgilang"},
+        {faIco:'fa-cloud',       bg:'from-blue-500 to-indigo-600', title:'Bulutda sinxronlanadi',      desc:"Ro'yxatingiz barcha qurilmalaringizda avtomatik saqlanadi"}
       ]
     },
     {
-      id:2, icon:'📤',
+      id:2, iconFA:'fa-share-nodes',
       title:"Ro'yxat tuzing\nva ulashing",
       subtitle:"Telegram kanal yoki guruhingiz uchun foydali resurslar to'plamini tuzing va bitta qisqa URL orqali ulashing.",
       feats:[
-        {ico:'📋',bg:'from-emerald-500 to-teal-500',title:"Maxsus to'plam yarating",desc:"Kerakli resurslarni tanlang, sarlavha bering va o'z kutubxonangizni hosil qiling"},
-        {ico:'🔗',bg:'from-teal-500 to-cyan-500',title:"1 ta qisqa URL",desc:"Bir marta ulashing — barcha a'zolar tezda foydalansin"},
-        {ico:'📲',bg:'from-cyan-500 to-blue-500',title:"Telegram / WhatsApp orqali",desc:"Havola orqali do'stlar to'plamingizni bir bosishda import qilsin"}
+        {faIco:'fa-rectangle-list', bg:'from-emerald-500 to-teal-600', title:"Maxsus to'plam yarating",   desc:"Kerakli resurslarni tanlang, sarlavha bering va kutubxona hosil qiling"},
+        {faIco:'fa-link',           bg:'from-teal-500 to-cyan-600',    title:"1 ta qisqa URL",            desc:"Bir marta ulashing — barcha a'zolar tezda foydalansin"},
+        {faIco:'fa-paper-plane',    bg:'from-cyan-500 to-blue-600',    title:"Telegram / WhatsApp orqali",desc:"Havola orqali do'stlar to'plamingizni bir bosishda import qilsin"}
       ]
     }
   ];
@@ -3040,7 +3726,7 @@ detectShareHash();
     const anim=el=>{el.classList.remove('ob-slide-in','ob-slide-in-left');void el.offsetWidth;el.classList.add(cls);};
 
     const ico=document.getElementById('obIcon');
-    ico.textContent=s.icon; anim(ico);
+    ico.innerHTML=`<i class="fa-solid ${s.iconFA} text-white text-2xl"></i>`; anim(ico);
 
     const ttl=document.getElementById('obTitle');
     ttl.innerHTML=s.title.replace('\n','<br>'); anim(ttl);
@@ -3051,7 +3737,7 @@ detectShareHash();
     const body=document.getElementById('obBody');
     body.innerHTML=s.feats.map((f,i)=>`
       <div class="ob-feat" style="animation-delay:${i*0.06}s">
-        <div class="ob-feat-ico bg-gradient-to-br ${f.bg} text-white">${f.ico}</div>
+        <div class="ob-feat-ico bg-gradient-to-br ${f.bg} flex items-center justify-center"><i class="fa-solid ${f.faIco} text-white text-base"></i></div>
         <div class="min-w-0">
           <p class="text-sm font-black text-slate-800 dark:text-white leading-snug">${f.title}</p>
           <p class="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">${f.desc}</p>

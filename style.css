@@ -409,3 +409,38 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-r
   pointer-events:none;
   min-height:150px;
 }
+/* ── DnD DROP INDICATOR ── */
+.dnd-drop-indicator {
+  position: absolute;
+  top: 4px; bottom: 4px;
+  width: 3px;
+  border-radius: 99px;
+  background: linear-gradient(to bottom, #8b5cf6, #d946ef);
+  box-shadow: 0 0 10px #8b5cf680;
+  z-index: 50;
+  pointer-events: none;
+  animation: dnd-pulse .6s ease-in-out infinite alternate;
+}
+@keyframes dnd-pulse {
+  from { opacity: .7; box-shadow: 0 0 6px #8b5cf680; }
+  to   { opacity: 1;  box-shadow: 0 0 14px #8b5cf6cc; }
+}
+
+/* ── COLLECTION CARD ── */
+.collection-card {
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+}
+.collection-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ── COLLECTION CARDS v2 ── */
+.col-card {
+  transition: transform .18s cubic-bezier(.4,0,.2,1), box-shadow .18s, border-color .18s;
+}
+.col-card:hover {
+  transform: translateY(-3px);
+}
+.col-card:active {
+  transform: translateY(-1px) scale(.99);
+}
