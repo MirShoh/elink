@@ -1,29 +1,46 @@
-
-
 [build]
-  # Functions papkasi
   functions = "netlify/functions"
-  # Publish papkasi (HTML fayllar qayerda bo'lsa)
-  publish = "."
+  publish   = "."
 
 [functions]
-  # Node.js versiyasi
   node_bundler = "esbuild"
 
-# Xavfsizlik headerlari
+# JS va CSS ni Netlify deploy vaqtida minify qilish
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle  = false
+  minify  = true
+
+[build.processing.js]
+  bundle  = false
+  minify  = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# ── Xavfsizlik headerlari (barcha sahifalar) ──────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-Frame-Options            = "DENY"
+    X-Content-Type-Options     = "nosniff"
+    Referrer-Policy            = "strict-origin-when-cross-origin"
+    Permissions-Policy         = "camera=(), microphone=(), geolocation=()"
 
+# ── HTML — hech qachon cache'lamaslik (har deploy'da yangi) ──────
 [[headers]]
   for = "/index.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
+[[headers]]
+  for = "/pentester.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── JS ma'lumot va logika — har deploy'da yangi ──────────────────
 [[headers]]
   for = "/data.js"
   [headers.values]
@@ -35,11 +52,28 @@
     Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
-  for = "/sw.js"
+  for = "/widgets.js"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── CSS — versiyalash bilan uzoq cache (1 yil) ───────────────────
+[[headers]]
   for = "/style.css"
   [headers.values]
-    Cache-Control = "public, max-age=36000, immutable"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/widgets-style.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Manifest va SW ───────────────────────────────────────────────
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

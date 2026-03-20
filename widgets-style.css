@@ -1,0 +1,210 @@
+/* ═══════════════════════════════════════════════════════════
+   eLink UZ — widgets-style.css  v11
+   1) Statistika pill   [NEW — esf-*]
+   2) Ob-havo           [OLD v6 — ew-*]
+   3) Dark/Light toggle [OLD v6 — ew-theme-btn]
+   4) Sticky Category Bar [NEW — csb-*]
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1. STATISTIKA PILL (o'ng pastki) ──────────────────────── */
+#elinkStatsFloat {
+  position: fixed; bottom: 24px; right: 72px; z-index: 49;
+  display: flex; align-items: center; gap: 2px;
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,.07); border-radius: 16px; padding: 6px 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+}
+.dark #elinkStatsFloat {
+  background: rgba(10,14,30,.94); border-color: rgba(255,255,255,.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,.45), 0 1px 4px rgba(0,0,0,.2);
+}
+.esf-cell { display:flex; align-items:center; gap:7px; padding:4px 10px; border-radius:10px; transition:background .15s; cursor:default; }
+.esf-cell:hover { background:rgba(139,92,246,.06); }
+.dark .esf-cell:hover { background:rgba(139,92,246,.1); }
+.esf-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.esf-icon svg { width:14px; height:14px; }
+.esf-icon-green  { background:rgba(34,197,94,.12); color:#16a34a; }
+.dark .esf-icon-green  { background:rgba(34,197,94,.15); color:#4ade80; }
+.esf-icon-violet { background:rgba(139,92,246,.12); color:#7c3aed; }
+.dark .esf-icon-violet { background:rgba(139,92,246,.18); color:#a78bfa; }
+.esf-icon-blue   { background:rgba(59,130,246,.12); color:#2563eb; }
+.dark .esf-icon-blue   { background:rgba(59,130,246,.18); color:#60a5fa; }
+.esf-info { display:flex; flex-direction:column; line-height:1.2; }
+.esf-info b { font-size:14px; font-weight:900; color:#0f172a; font-family:"Plus Jakarta Sans",sans-serif; letter-spacing:-.3px; }
+.dark .esf-info b { color:#f1f5f9; }
+.esf-info span { font-size:9.5px; font-weight:600; color:#94a3b8; font-family:"Plus Jakarta Sans",sans-serif; }
+.dark .esf-info span { color:#475569; }
+.esf-icon-green svg circle:first-child { animation:esfDot 2s ease-in-out infinite; }
+@keyframes esfDot { 0%,100%{opacity:1} 50%{opacity:.5} }
+.esf-sep { width:1px; height:24px; background:rgba(0,0,0,.06); flex-shrink:0; margin:0 2px; }
+.dark .esf-sep { background:rgba(255,255,255,.07); }
+@media (max-width:768px) {
+  #elinkStatsFloat { bottom:72px; right:12px; padding:5px 6px; gap:0; }
+  .esf-cell { padding:3px 8px; }
+  .esf-icon { width:24px; height:24px; }
+  .esf-info b { font-size:12px; }
+}
+
+
+/* ── 2. OB-HAVO tugmasi ──────────────────────────────────── */
+.ew-top-wrap { position: relative; }
+
+.ew-top-btn {
+  display: flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 10px 0 5px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.1);
+  background: rgba(255,255,255,.85);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dark .ew-top-btn {
+  background: rgba(15,20,40,.7);
+  border-color: rgba(255,255,255,.1);
+}
+.ew-top-btn:hover { border-color:#a78bfa; background:rgba(237,233,254,.5); }
+.dark .ew-top-btn:hover { background:rgba(139,92,246,.15); border-color:#7c3aed; }
+
+.ew-t-icon {
+  width:26px; height:26px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:12px; flex-shrink:0;
+  background:linear-gradient(135deg,#fbbf24,#f97316);
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.ew-t-temp  { font-size:13px; font-weight:900; color:#1e293b; }
+.dark .ew-t-temp { color:#f1f5f9; }
+.ew-t-city  { font-size:11px; font-weight:700; color:#64748b; max-width:72px; overflow:hidden; text-overflow:ellipsis; }
+.dark .ew-t-city { color:#94a3b8; }
+.ew-t-chev  { font-size:8px; color:#94a3b8; transition:transform .18s; margin-left:2px; }
+
+.ew-dropdown {
+  position:absolute; top:calc(100% + 8px); right:0; width:260px;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(0,0,0,.1); border-radius:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:200; padding:12px;
+}
+.dark .ew-dropdown {
+  background:rgba(10,14,30,.98); border-color:rgba(255,255,255,.1);
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.ew-detail-row { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+.ew-d-pill {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:11px; font-weight:700; color:#475569;
+  background:rgba(0,0,0,.04); border-radius:7px; padding:3px 8px;
+}
+.dark .ew-d-pill { color:#94a3b8; background:rgba(255,255,255,.06); }
+.ew-d-pill i { font-size:10px; color:#8b5cf6; }
+.ew-divider { height:1px; background:rgba(0,0,0,.06); margin-bottom:10px; }
+.dark .ew-divider { background:rgba(255,255,255,.07); }
+.ew-cities { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.ew-chip {
+  font-size:10px; font-weight:700; padding:4px 10px; border-radius:8px;
+  border:1px solid rgba(0,0,0,.09); background:#fff; color:#475569; cursor:pointer;
+}
+.dark .ew-chip { background:rgba(15,23,42,.7); border-color:rgba(255,255,255,.09); color:#94a3b8; }
+.ew-chip:hover,.ew-chip-on { background:#ede9fe; border-color:#a78bfa; color:#6d28d9; }
+.dark .ew-chip:hover,.dark .ew-chip-on { background:rgba(139,92,246,.18); border-color:#7c3aed; color:#c4b5fd; }
+.ew-geo-btn {
+  width:100%; font-size:11px; font-weight:800; padding:7px; border-radius:10px;
+  border:1px dashed rgba(139,92,246,.4); background:rgba(139,92,246,.05);
+  color:#7c3aed; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.dark .ew-geo-btn { border-color:rgba(139,92,246,.3); background:rgba(139,92,246,.08); color:#a78bfa; }
+.ew-geo-btn:hover { background:rgba(139,92,246,.12); border-color:#8b5cf6; }
+
+
+/* ── 3. DARK/LIGHT TOGGLE ────────────────────────────────── */
+.ew-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.1);
+  background: rgba(255,255,255,.85);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+  transition: border-color .12s, background .12s, color .12s;
+}
+.dark .ew-theme-btn {
+  background: rgba(15,20,40,.7);
+  border-color: rgba(255,255,255,.1);
+  color: #94a3b8;
+}
+.ew-theme-btn:hover {
+  border-color: #a78bfa;
+  background: rgba(237,233,254,.5);
+  color: #6d28d9;
+}
+.dark .ew-theme-btn:hover {
+  background: rgba(139,92,246,.15);
+  border-color: #7c3aed;
+  color: #c4b5fd;
+}
+.ew-theme-btn i { font-size:14px; color:#6366f1; transition:color .12s; }
+.ew-theme-btn.ew-theme-dark i { color:#f59e0b; }
+
+
+/* ── 4. STICKY CATEGORY BAR ─────────────────────────────── */
+#catStickyBar {
+  position: sticky;
+  top: 0;
+  z-index: 38;
+  background: rgba(239,241,251,.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  padding: 0 1rem;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: height .2s cubic-bezier(.4,0,.2,1), opacity .18s ease;
+  pointer-events: none;
+}
+#catStickyBar.csb--visible {
+  height: 44px;
+  opacity: 1;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  pointer-events: auto;
+}
+.dark #catStickyBar {
+  background: rgba(6,10,24,.9);
+  border-color: rgba(255,255,255,.06);
+}
+.dark #catStickyBar.csb--visible { box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+
+.csb-inner { display:flex; align-items:center; height:44px; gap:10px; }
+.csb-stripe {
+  width:3px; height:20px; border-radius:2px; flex-shrink:0;
+  background:linear-gradient(to bottom,#8b5cf6,#ec4899);
+  transition:background .22s;
+}
+.csb-name {
+  font-size:13px; font-weight:800; color:#1e293b;
+  font-family:"Plus Jakarta Sans",sans-serif;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  flex:1; min-width:0; letter-spacing:-.01em;
+}
+.dark .csb-name { color:#e2e8f0; }
+.csb-count {
+  font-size:11px; font-weight:700; color:#64748b;
+  background:rgba(0,0,0,.05); padding:2px 8px; border-radius:99px;
+  font-family:"Plus Jakarta Sans",sans-serif;
+  white-space:nowrap; flex-shrink:0;
+}
+.dark .csb-count { color:#94a3b8; background:rgba(255,255,255,.07); }
+.csb-progress {
+  position:absolute; bottom:0; left:0;
+  height:2px;
+  background:linear-gradient(to right,#8b5cf6,#ec4899);
+  border-radius:0 2px 0 0;
+  transition:width .1s linear;
+  pointer-events:none;
+}

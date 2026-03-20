@@ -1,9 +1,9 @@
 function safeParse(key, fallback) {
   try {
-      const val = localStorage.getItem(key);
-      return val ? JSON.parse(val) : fallback;
+    const val = localStorage.getItem(key);
+    return val ? JSON.parse(val) : fallback;
   } catch (e) {
-      return fallback;
+    return fallback;
   }
 }
 
@@ -197,34 +197,34 @@ async function sendTelegram(text){
 let globalClicks = {};
 
 
-async function initGlobalClicks(){
-try {
-  const res = await fetch(SUPA_PROXY, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ path: '/rest/v1/clicks?select=name,count&limit=1000', method: 'GET' })
-  });
-  if(!res.ok) return;
-  const rows = await res.json();
-  if(!Array.isArray(rows)) return;
-  rows.forEach(r => { if(r.count > 0) globalClicks[r.name] = r.count; });
-  Object.entries(globalClicks).forEach(([n, c]) => _updateCountEl(n, c));
-  renderTrending();
-  updateSidebarStats();
-} catch(e){ console.warn('[E-Link] Supabase error:', e.message); }
+async function initGlobalClicks() {
+  try {
+    const res = await fetch(SUPA_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: '/rest/v1/clicks?select=name,count&limit=1000', method: 'GET' })
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return;
+    rows.forEach(r => { if (r.count > 0) globalClicks[r.name] = r.count; });
+    Object.entries(globalClicks).forEach(([n, c]) => _updateCountEl(n, c));
+    renderTrending();
+    updateSidebarStats();
+  } catch (e) { console.warn('[E-Link] Supabase error:', e.message); }
 }
 
-async function _supaIncrement(name){
-try {
-  const res = await fetch(SUPA_PROXY, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ path: '/rest/v1/rpc/increment_click', method: 'POST', body: { p_name: name } })
-  });
-  if(!res.ok) return null;
-  const val = await res.json();
-  return typeof val === 'number' ? val : null;
-} catch(e){ return null; }
+async function _supaIncrement(name) {
+  try {
+    const res = await fetch(SUPA_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: '/rest/v1/rpc/increment_click', method: 'POST', body: { p_name: name } })
+    });
+    if (!res.ok) return null;
+    const val = await res.json();
+    return typeof val === 'number' ? val : null;
+  } catch (e) { return null; }
 }
 
 function _updateCountEl(name, count){
@@ -469,36 +469,35 @@ if(foundItem){
 }
 
 
-function renderTrending(){
-const sec=$('trendingSection'), grid=$('trendingGrid');
-// Qidiruv aktiv bo'lsa trending yashiriladi
-if(query && query.trim()){sec.classList.add('hidden');return;}
-const all=[];
-DATA.forEach(c=>{
-  if(c.id !== 'my_apps') c.items.forEach(i=>{ if(getClicks(i.n)>0) all.push({...i,_cat:c}); });
-});
-all.sort((a,b)=>getClicks(b.n)-getClicks(a.n));
-const top=all.slice(0,7);
-if(!top.length){sec.classList.add('hidden');return;}
-sec.classList.remove('hidden');
-grid.innerHTML=top.map((item,idx)=>{
-  const esc=item.n.replace(/'/g,"\\'");
-  const escUrl=item.u.replace(/'/g,"\\'");
-  const isMob=item.t?.includes('mobil');
-  const hasWeb=item.t?.includes('web');
-  const clickAct=(isMob||item.androidUrl)
-    ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},true)`
-    : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
-  const rankColor = idx===0?'from-yellow-400 to-amber-500': idx===1?'from-slate-400 to-slate-500': idx===2?'from-orange-400 to-amber-600':'from-violet-500 to-fuchsia-500';
-  return `
-  <div onclick="${clickAct}" class="trend-card group">
-    <span class="text-[9px] font-black ${idx===0?'text-amber-500':idx===1?'text-slate-400':idx===2?'text-orange-500':'text-violet-400'} w-5 text-center">#${idx+1}</span>
-    <div class="shrink-0">${iconHTML(item, 'w-7 h-7 rounded-lg shadow-sm object-contain')}</div>
-    <span class="text-[11px] font-bold text-slate-800 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</span>
-    <span class="flex items-center gap-0.5 text-[10px] font-black text-orange-500"><i class="fa-solid fa-fire text-[8px]"></i>${getClicks(item.n)}</span>
-  </div>`}).join('');
-// Trending rasmlarni lazy observer ga qo'shish
-if(_imgObserver) grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
+function renderTrending() {
+  const sec = $('trendingSection'), grid = $('trendingGrid');
+  if (query && query.trim()) { sec.classList.add('hidden'); return; }
+  const all = [];
+  DATA.forEach(c => {
+    if (c.id !== 'my_apps') c.items.forEach(i => { if (getClicks(i.n) > 0) all.push({ ...i, _cat: c }); });
+  });
+  all.sort((a, b) => getClicks(b.n) - getClicks(a.n));
+  const top = all.slice(0, 7);
+  if (!top.length) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  grid.innerHTML = top.map((item, idx) => {
+    const esc    = item.n.replace(/'/g, "\\'");
+    const escUrl = item.u.replace(/'/g, "\\'");
+    const isMob  = item.t?.includes('mobil');
+    const hasWeb = item.t?.includes('web');
+    const clickAct = (isMob || item.androidUrl)
+      ? `openPlatformModal('${esc}','${escUrl}',${hasWeb},true)`
+      : `addClick('${esc}');setTimeout(()=>rerenderClickFor('${esc}'),50);window.open('${escUrl}','_blank','noopener,noreferrer')`;
+    const rankCls = idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-slate-400' : idx === 2 ? 'text-orange-500' : 'text-violet-400';
+    return `
+      <div onclick="${clickAct}" class="trend-card group">
+        <span class="text-[9px] font-black ${rankCls} w-5 text-center">#${idx + 1}</span>
+        <div class="shrink-0">${iconHTML(item, 'w-7 h-7 rounded-lg shadow-sm object-contain')}</div>
+        <span class="text-[11px] font-bold text-slate-800 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</span>
+        <span class="flex items-center gap-0.5 text-[10px] font-black text-orange-500"><i class="fa-solid fa-fire text-[8px]"></i>${getClicks(item.n)}</span>
+      </div>`;
+  }).join('');
+  if (_imgObserver) grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
 }
 
 function hl(s,q){
@@ -2301,29 +2300,28 @@ grid.innerHTML = recentlyVisited.map(item=>{
 
 
 
-function updateSidebarStats(){
-const el = document.getElementById('sidebarStats');
-if(!el) return;
-const total = DATA.reduce((a,c)=> c.id !== 'my_apps' ? a+c.items.length : a, 0);
-const totalClicks = Object.values(globalClicks).reduce((a,b)=>a+b,0) ||
-                    0;
-el.innerHTML = `
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-1.5">
-      <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-      <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">Jonli statistika</span>
+function updateSidebarStats() {
+  const el = document.getElementById('sidebarStats');
+  if (!el) return;
+  const total = DATA.reduce((a, c) => c.id !== 'my_apps' ? a + c.items.length : a, 0);
+  const totalClicks = Object.values(globalClicks).reduce((a, b) => a + b, 0);
+  el.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">Jonli statistika</span>
+      </div>
     </div>
-  </div>
-  <div class="grid grid-cols-2 gap-2 mt-1.5">
-    <div class="bg-violet-50 dark:bg-violet-500/10 rounded-lg px-2.5 py-2 text-center">
-      <div class="text-[15px] font-black text-violet-600 dark:text-violet-400">${total}</div>
-      <div class="text-[9px] text-slate-400 font-bold">Resurs</div>
-    </div>
-    <div class="bg-fuchsia-50 dark:bg-fuchsia-500/10 rounded-lg px-2.5 py-2 text-center">
-      <div class="text-[15px] font-black text-fuchsia-600 dark:text-fuchsia-400">${totalClicks}</div>
-      <div class="text-[9px] text-slate-400 font-bold">Klik</div>
-    </div>
-  </div>`;
+    <div class="grid grid-cols-2 gap-2 mt-1.5">
+      <div class="bg-violet-50 dark:bg-violet-500/10 rounded-lg px-2.5 py-2 text-center">
+        <div class="text-[15px] font-black text-violet-600 dark:text-violet-400">${total}</div>
+        <div class="text-[9px] text-slate-400 font-bold">Resurs</div>
+      </div>
+      <div class="bg-fuchsia-50 dark:bg-fuchsia-500/10 rounded-lg px-2.5 py-2 text-center">
+        <div class="text-[15px] font-black text-fuchsia-600 dark:text-fuchsia-400">${totalClicks}</div>
+        <div class="text-[9px] text-slate-400 font-bold">Klik</div>
+      </div>
+    </div>`;
 }
 
 
@@ -2559,95 +2557,89 @@ window.submitSuggest = async function(){
   btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish';
 };
 
-function init(){
-
-
+function init() {
   _imgObserver = new IntersectionObserver((entries, obs) => {
-  entries.forEach(entry => {
-    if(!entry.isIntersecting) return;
-    const img = entry.target;
-    const realSrc = img.dataset.src;
-    if(realSrc && img.src !== realSrc){
-      img.src = realSrc;
-    }
-    obs.unobserve(img);
-  });
-}, { rootMargin: '200px 0px' }); 
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      const realSrc = img.dataset.src;
+      if (realSrc && img.src !== realSrc) img.src = realSrc;
+      obs.unobserve(img);
+    });
+  }, { rootMargin: '200px 0px' });
 
-
-const _mutObs = new MutationObserver(mutations => {
-  mutations.forEach(m => {
-    m.addedNodes.forEach(node => {
-      if(node.nodeType !== 1) return;
-      if(node.classList?.contains('lz-img')) _imgObserver.observe(node);
-      node.querySelectorAll?.('.lz-img').forEach(img => _imgObserver.observe(img));
+  const _mutObs = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      m.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        if (node.classList?.contains('lz-img')) _imgObserver.observe(node);
+        node.querySelectorAll?.('.lz-img').forEach(img => _imgObserver.observe(img));
+      });
     });
   });
-});
-_mutObs.observe(document.body, { childList: true, subtree: true });
+  _mutObs.observe(document.body, { childList: true, subtree: true });
 
-
-async function _syncSiteResources(){
-  try{
-    const res = await fetch(SUPA_PROXY, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ path: '/rest/v1/site_resources?select=*&is_active=eq.true', method:'GET' })
-    });
-    if(!res.ok) return false;
-    const rows = await res.json();
-    if(!Array.isArray(rows) || !rows.length) return false;
-
-    rows.forEach(sr => {
-      if(!sr.name || !sr.url) return;
-      let found = false;
-      DATA.forEach(cat => {
-        const idx = cat.items.findIndex(i => i.n?.toLowerCase() === sr.name?.toLowerCase());
-        if(idx !== -1){
-          found = true;
-          cat.items[idx] = { ...cat.items[idx],
-            u: sr.url || cat.items[idx].u,
-            d: sr.description || cat.items[idx].d,
-            t: sr.tags?.length ? sr.tags : cat.items[idx].t,
-            v: sr.verified ?? cat.items[idx].v,
-            ...(sr.logo_url  ? {logoUrl:     sr.logo_url}  : {}),
-            ...(sr.android ? {androidUrl: sr.android} : {}),
-            ...(sr.ios     ? {iosUrl:     sr.ios}     : {}),
+  async function _syncSiteResources() {
+    try {
+      const res = await fetch(SUPA_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: '/rest/v1/site_resources?select=*&is_active=eq.true', method: 'GET' })
+      });
+      if (!res.ok) return false;
+      const rows = await res.json();
+      if (!Array.isArray(rows) || !rows.length) return false;
+      rows.forEach(sr => {
+        if (!sr.name || !sr.url) return;
+        let found = false;
+        DATA.forEach(cat => {
+          const idx = cat.items.findIndex(i => i.n?.toLowerCase() === sr.name?.toLowerCase());
+          if (idx !== -1) {
+            found = true;
+            cat.items[idx] = {
+              ...cat.items[idx],
+              u: sr.url || cat.items[idx].u,
+              d: sr.description || cat.items[idx].d,
+              t: sr.tags?.length ? sr.tags : cat.items[idx].t,
+              v: sr.verified ?? cat.items[idx].v,
+              ...(sr.logo_url ? { logoUrl: sr.logo_url } : {}),
+              ...(sr.android  ? { androidUrl: sr.android } : {}),
+              ...(sr.ios      ? { iosUrl: sr.ios } : {}),
+            };
+          }
+        });
+        if (!found) {
+          const newItem = {
+            n: sr.name, u: sr.url, d: sr.description || '',
+            t: sr.tags?.length ? sr.tags : ['web'],
+            v: sr.verified ?? true, _fromAdmin: true,
+            ...(sr.logo_url ? { logoUrl: sr.logo_url } : {}),
+            ...(sr.android  ? { androidUrl: sr.android } : {}),
+            ...(sr.ios      ? { iosUrl: sr.ios } : {}),
           };
+          const targetCat  = sr.category_id ? DATA.find(c => c.id === sr.category_id) : null;
+          const fallbackCat = DATA.find(c => c.id === 'uzbekistan') || DATA[1];
+          const cat = targetCat || fallbackCat;
+          if (cat) cat.items.unshift(newItem);
         }
       });
-      if(!found){
-        const newItem = {
-          n: sr.name, u: sr.url, d: sr.description || '',
-          t: sr.tags?.length ? sr.tags : ['web'],
-          v: sr.verified ?? true, _fromAdmin: true,
-          ...(sr.logo_url  ? {logoUrl:     sr.logo_url}  : {}),
-          ...(sr.android ? {androidUrl: sr.android} : {}),
-          ...(sr.ios     ? {iosUrl:     sr.ios}     : {}),
-        };
-        const targetCat = sr.category_id ? DATA.find(c => c.id === sr.category_id) : null;
-        const fallbackCat = DATA.find(c => c.id === 'uzbekistan') || DATA[1];
-        const cat = targetCat || fallbackCat;
-        if(cat) cat.items.unshift(newItem);
-      }
-    });
-    return true;
-  }catch(e){ console.warn('[sync] site_resources:', e.message); return false; }
-}
+      return true;
+    } catch (e) { console.warn('[sync] site_resources:', e.message); return false; }
+  }
 
-initCustomApps();
-setupSearch();
-setupTheme();
-setupShare();
-setupScroll();
-setupTrendingScroll();
+  initCustomApps();
+  setupSearch();
+  setupTheme();
+  setupShare();
+  setupScroll();
+  setupTrendingScroll();
 
-
-Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
-  renderNav();
-  renderContent();
-  const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 100);
-  idle(() => { renderTrending(); renderRecent(); initGlobalClicks(); updateSidebarStats(); });
-});
+  Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
+    renderNav();
+    renderContent();
+    const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 100);
+    idle(() => { renderTrending(); renderRecent(); initGlobalClicks(); updateSidebarStats(); });
+  });
 }
 init();
 
