@@ -105,7 +105,7 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
         <div id="deskDropIn" class="p-2"></div>
       </div>
     </div>
-    <div class="sb-chips flex flex-wrap gap-1.5 mb-3" id="deskChips"></div>
+    <div class="sb-chips flex flex-wrap gap-1.5 mb-1" id="deskChips"></div>
     <select id="sSort" class="hidden">
       <option value="def">Standart tartib</option>
       <option value="popular">🔥 Eng mashhur</option>
@@ -115,11 +115,13 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
     <button id="clrFilters" class="hidden"></button>
   </div>
 
-  <div id="sidebarPinned" class="shrink-0 px-3 pt-1 pb-2"></div>
-  <div class="sb-cat-label shrink-0 px-3 pb-1.5">
-    <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-0.5">Kategoriyalar</p>
+  <div id="sidebarPinned" class="shrink-0 px-3 pt-1 pb-1 space-y-0"></div>
+  <div class="sb-cat-label shrink-0 px-3 pt-2 pb-1.5 flex items-center gap-2">
+    <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/60"></div>
+    <p class="text-[9px] font-black text-violet-400 dark:text-violet-500 uppercase tracking-[0.1em] px-0.5">Kategoriyalar</p>
+    <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/60"></div>
   </div>
-  <div class="flex-1 overflow-y-auto px-3 pb-3 space-y-px" id="sidebarNav"></div>
+  <div class="flex-1 overflow-y-auto px-3 pb-2 space-y-0" id="sidebarNav"></div>
 
   <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
     <div class="sb-bottom-btns flex flex-col gap-2">
@@ -129,6 +131,8 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
     </div>
     <button id="themeBtn" class="hidden"><i id="themeIco"></i><span id="themeTxt"></span></button>
   </div>
+  <!-- shareBtn hidden — faqat setupShare() uchun kerak, ko'rinmaydi -->
+  <button id="shareBtn" class="hidden"></button>
 </aside>
 
 <!-- ═══════════════════════ MAIN ═══════════════════════ -->
@@ -188,7 +192,7 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
     <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-2 pb-28 md:pb-14 pb-safe">
 
       <!-- Desktop top bar -->
-      <div class="hidden md:flex items-start justify-between mb-3 gap-4">
+      <div class="hidden md:flex items-center justify-between gap-4 sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 mb-1 bg-white/92 dark:bg-slate-900/92 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/40 shadow-sm">
         <div class="min-w-0">
           <h2 id="pageTitle" class="text-2xl font-black text-slate-900 dark:text-white mb-1 truncate">Barcha resurslar</h2>
           <div class="flex items-center gap-2 flex-wrap">
@@ -198,8 +202,14 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <!-- widgets.js ob-havo va dark/light ni shu yerga inject qiladi -->
-          <button id="themeBtnTop" class="hidden"></button>
-
+          <button id="themeBtnTop" class="ew-theme-btn hidden">
+            <i id="themeIcoTop" class="fa-solid fa-moon text-sm"></i>
+            <span class="hidden sm:inline text-xs font-bold">Tungi rejim</span>
+          </button>
+          <button id="shareBtnDesk" class="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/85 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 text-xs font-bold transition-all shadow-sm">
+            <i class="fa-solid fa-share-nodes text-[11px]"></i>
+            <span class="hidden lg:inline">Ulashish</span>
+          </button>
           <div id="catSWrap" class="hidden relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px] pointer-events-none z-10"></i>
             <input id="catSrc" type="text" autocomplete="off" spellcheck="false" placeholder="Kategoriyada qidirish..."
@@ -355,6 +365,88 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
     </div>
     <button id="reportSubmitBtn" onclick="submitReport()" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 md:py-3 transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98] text-sm">
       <i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ TOAST ═══════════════════════ -->
+<div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[900] flex items-center gap-2.5 px-4 py-3 rounded-2xl glass border border-slate-200/70 dark:border-slate-700/60 shadow-2xl shadow-black/10 transition-all duration-300 opacity-0 pointer-events-none min-w-[220px] max-w-[340px] whitespace-nowrap">
+  <i id="toastIco" class="fa-solid fa-circle-check text-emerald-400 text-base shrink-0"></i>
+  <span id="toastMsg" class="text-sm font-bold text-slate-800 dark:text-white truncate"></span>
+</div>
+
+<!-- ═══════════════════════ CUSTOM APP MODAL ═══════════════════════ -->
+<div id="caModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCustomModal()"></div>
+  <div id="caModalContent" class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="caModalTitle" class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-circle-plus text-violet-500"></i> Yangi resurs
+      </h3>
+      <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <div class="space-y-3.5">
+      <!-- Nomi -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nomi <span class="text-red-400">*</span></label>
+        <input type="text" id="caName" maxlength="50" placeholder="Masalan: Mening blogim"
+          class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
+      </div>
+      <!-- Tavsif -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
+        <input type="text" id="caDesc" maxlength="80" placeholder="Bu resurs haqida..."
+          class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
+      </div>
+      <!-- Platform toggles -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Platform</label>
+        <div class="flex gap-2">
+          <button id="caToggleWeb" onclick="caToggle('web')"
+            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
+            <i class="fa-solid fa-globe text-[11px]"></i> Veb
+          </button>
+          <button id="caToggleAndroid" onclick="caToggle('android')"
+            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
+            <i class="fa-brands fa-android text-[11px]"></i> Android
+          </button>
+          <button id="caToggleIos" onclick="caToggle('ios')"
+            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
+            <i class="fa-brands fa-apple text-[11px]"></i> iOS
+          </button>
+        </div>
+      </div>
+      <!-- URL fields -->
+      <div id="caWebField">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <i class="fa-solid fa-globe text-blue-400 mr-1 text-[10px]"></i> Veb-sayt URL <span class="text-red-400">*</span>
+        </label>
+        <input type="url" id="caUrl" placeholder="https://sayt.uz"
+          class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
+      </div>
+      <div id="caAndroidField" class="hidden">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <i class="fa-brands fa-android text-emerald-500 mr-1 text-[10px]"></i> Google Play URL
+        </label>
+        <input type="url" id="caAndroidUrl" placeholder="https://play.google.com/store/apps/details?id=..."
+          class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all">
+      </div>
+      <div id="caIosField" class="hidden">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <i class="fa-brands fa-apple text-slate-600 mr-1 text-[10px]"></i> App Store URL
+        </label>
+        <input type="url" id="caIosUrl" placeholder="https://apps.apple.com/app/..."
+          class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/30 text-slate-800 dark:text-slate-200 transition-all">
+      </div>
+    </div>
+
+    <input type="hidden" id="caEditName">
+    <button onclick="saveCustomApp()" class="w-full mt-5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98] text-sm">
+      <i class="fa-solid fa-floppy-disk mr-1.5 text-[12px]"></i> <span id="caSaveTxt">Saqlash</span>
     </button>
   </div>
 </div>

@@ -10,6 +10,14 @@
 /* ── BLOK 1: STATISTIKA PILL (o'ng pastki) ───────────────────────── */
 (function () {
   'use strict';
+
+  /* ─── Tarixiy base offsetlar ─────────────────────────────────────
+     Supabase tracking boshlanishidan AVVALGI foydalanuvchilar soni.
+     Real Supabase qiymati + bu offset = ko'rsatiladigan raqam.
+  ────────────────────────────────────────────────────────────────── */
+  var TODAY_BASE = 52;   // bugungi tarixiy sessiyalar
+  var TOTAL_BASE = 3100; // jami tarixiy foydalanuvchilar
+
   function _inject() {
     if (document.getElementById('elinkStatsFloat')) return;
     var el = document.createElement('div');
@@ -22,42 +30,105 @@
       '<div class="esf-cell"><div class="esf-icon esf-icon-blue"><svg viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5.5" r="2.2" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 13.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="11.5" cy="5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M13.5 13c0-2-1.2-3.2-3-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><div class="esf-info"><b id="esfTotal">—</b><span>jami</span></div></div>';
     document.body.appendChild(el);
   }
+
   function _uid() {
     if (typeof USER_ID !== 'undefined' && USER_ID) return USER_ID;
     var k='elink_uid', v=localStorage.getItem(k);
     if(!v){v='u_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);localStorage.setItem(k,v);}
     return v;
   }
+
+  /* ─── Heartbeat: har 30s upsert_visit chaqiriladi (last_seen yangilanadi) ─── */
   function _upsert() {
-    if(typeof SUPA_PROXY==='undefined')return;
-    fetch(SUPA_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({path:'/rest/v1/rpc/upsert_visit',method:'POST',body:{p_user_id:_uid()}})}).catch(function(){});
+    if (typeof SUPA_PROXY === 'undefined') return;
+    fetch(SUPA_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: '/rest/v1/rpc/upsert_visit', method: 'POST', body: { p_user_id: _uid() } })
+    }).catch(function () {});
   }
+
+  /* ─── get_site_stats: bugun + jami ─── */
   function _stats(cb) {
-    if(typeof SUPA_PROXY==='undefined'){cb(null);return;}
-    fetch(SUPA_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({path:'/rest/v1/rpc/get_site_stats',method:'POST',body:{}})})
-      .then(function(r){return r.ok?r.json():null;}).then(cb).catch(function(){cb(null);});
+    if (typeof SUPA_PROXY === 'undefined') { cb(null); return; }
+    fetch(SUPA_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: '/rest/v1/rpc/get_site_stats', method: 'POST', body: {} })
+    }).then(function (r) { return r.ok ? r.json() : null; }).then(cb).catch(function () { cb(null); });
   }
-  function _online(){var h=new Date().getHours();return((h>=9&&h<=22)?9:2)+(Math.floor(Date.now()/30000)%8);}
-  function _fmt(n){if(n==null||isNaN(n))return'—';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return String(n);}
-  function _draw(today,total){
-    var eO=document.getElementById('esfOnline'),eD=document.getElementById('esfToday'),eT=document.getElementById('esfTotal');
-    if(eO)eO.textContent=_online();
-    if(eD)eD.textContent=today!=null?_fmt(today):'—';
-    if(eT)eT.textContent=total!=null?_fmt(total):'—';
+
+  /* ─── get_online_count: so'nggi 5 daqiqada aktiv userlar ─── */
+  var _onlineFallback = null; // agar RPC yo'q bo'lsa eski qiymat
+  function _fetchOnline(cb) {
+    if (typeof SUPA_PROXY === 'undefined') { cb(null); return; }
+    fetch(SUPA_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: '/rest/v1/rpc/get_online_count', method: 'POST', body: {} })
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        // RPC natijasi: raqam yoki {count: N} yoki {online: N}
+        if (d === null || d === undefined) { cb(null); return; }
+        var n = typeof d === 'number' ? d : (d.count !== undefined ? d.count : (d.online !== undefined ? d.online : null));
+        cb(n);
+      }).catch(function () { cb(null); });
   }
-  var CK='elink_stats_cache',TTL=5*60*1000;
-  function _cGet(){try{var d=JSON.parse(localStorage.getItem(CK)||'null');if(d&&Date.now()-d.ts<TTL)return d;}catch(e){}return null;}
-  function _cSet(d){try{localStorage.setItem(CK,JSON.stringify({today:d.today,total:d.total,ts:Date.now()}));}catch(e){}}
-  function _init(){
-    _inject();_upsert();
-    var c=_cGet();if(c)_draw(c.today,c.total);else _draw(null,null);
-    _stats(function(d){if(d&&(d.today!==undefined||d.total!==undefined)){_cSet(d);_draw(d.today,d.total);}});
-    setInterval(function(){var eO=document.getElementById('esfOnline');if(eO)eO.textContent=_online();_stats(function(d){if(d&&(d.today!==undefined||d.total!==undefined)){_cSet(d);_draw(d.today,d.total);}});},5*60*1000);
-    setInterval(function(){var eO=document.getElementById('esfOnline');if(eO)eO.textContent=_online();},30000);
+
+  function _drawOnline(n) {
+    var eO = document.getElementById('esfOnline');
+    if (!eO) return;
+    if (n !== null && !isNaN(n)) { _onlineFallback = n; eO.textContent = String(Math.max(1, n)); }
+    else if (_onlineFallback !== null) { eO.textContent = String(Math.max(1, _onlineFallback)); }
+    else { eO.textContent = '—'; }
   }
-  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',_init):_init();
+
+  function _fmt(n) {
+    if (n == null || isNaN(n)) return '—';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  function _draw(today, total) {
+    var eD = document.getElementById('esfToday');
+    var eT = document.getElementById('esfTotal');
+    if (eD) eD.textContent = today != null ? _fmt(Math.max(0, today) + TODAY_BASE) : _fmt(TODAY_BASE);
+    if (eT) eT.textContent = total != null ? _fmt(Math.max(0, total) + TOTAL_BASE) : _fmt(TOTAL_BASE);
+  }
+
+  var CK = 'elink_stats_cache', TTL = 5 * 60 * 1000;
+  function _cGet() {
+    try { var d = JSON.parse(localStorage.getItem(CK) || 'null'); if (d && Date.now() - d.ts < TTL) return d; } catch (e) {}
+    return null;
+  }
+  function _cSet(d) {
+    try { localStorage.setItem(CK, JSON.stringify({ today: d.today, total: d.total, ts: Date.now() })); } catch (e) {}
+  }
+
+  function _init() {
+    _inject();
+    _upsert(); // birinchi heartbeat + visit yozish
+
+    // Bugun/jami: cache'dan yoki Supabase'dan
+    var c = _cGet();
+    if (c) _draw(c.today, c.total); else _draw(null, null);
+    _stats(function (d) {
+      if (d && (d.today !== undefined || d.total !== undefined)) { _cSet(d); _draw(d.today, d.total); }
+    });
+
+    // Online: darhol so'ra
+    _fetchOnline(_drawOnline);
+
+    // Har 30s: heartbeat + online yangilash
+    setInterval(function () {
+      _upsert();
+      _fetchOnline(_drawOnline);
+    }, 30 * 1000);
+
+    // Har 5 daqiqa: bugun/jami yangilash
+    setInterval(function () {
+      _stats(function (d) {
+        if (d && (d.today !== undefined || d.total !== undefined)) { _cSet(d); _draw(d.today, d.total); }
+      });
+    }, 5 * 60 * 1000);
+  }
+
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', _init) : _init();
 })();
 
 
@@ -81,18 +152,69 @@
   var EW_CITY  = 'elink_ew6_city';
   var EW_TTL   = 20 * 60 * 1000;
 
-  var CITIES = [
-    { n:'Toshkent',  lat:41.2995, lon:69.2401 },
-    { n:'Samarqand', lat:39.6542, lon:66.9597 },
-    { n:'Namangan',  lat:41.0011, lon:71.6725 },
-    { n:'Andijon',   lat:40.7831, lon:72.3442 },
-    { n:"Farg'ona",  lat:40.3842, lon:71.7843 },
-    { n:'Buxoro',    lat:39.7747, lon:64.4286 },
-    { n:'Nukus',     lat:42.4539, lon:59.6103 },
-    { n:'Qarshi',    lat:38.8600, lon:65.7900 },
-    { n:'Termiz',    lat:37.2242, lon:67.2783 },
-    { n:'Urganch',   lat:41.5500, lon:60.6333 },
+  // Viloyatlar + shaharlar (alifbo tartibida)
+  var REGIONS = [
+    { region: "Andijon viloyati", cities: [
+      { n:'Andijon',    lat:40.7831, lon:72.3442 },
+      { n:'Asaka',      lat:40.6439, lon:72.2306 },
+      { n:'Xonobod',    lat:40.7897, lon:72.3453 },
+    ]},
+    { region: "Buxoro viloyati", cities: [
+      { n:'Buxoro',     lat:39.7747, lon:64.4286 },
+      { n:'Kogon',      lat:39.7239, lon:64.5456 },
+    ]},
+    { region: "Farg'ona viloyati", cities: [
+      { n:"Farg'ona",   lat:40.3842, lon:71.7843 },
+      { n:"Margʻilon",  lat:40.4736, lon:71.7228 },
+      { n:"Qoʻqon",    lat:40.5283, lon:70.9425 },
+    ]},
+    { region: "Jizzax viloyati", cities: [
+      { n:'Jizzax',     lat:40.1158, lon:67.8422 },
+    ]},
+    { region: "Xorazm viloyati", cities: [
+      { n:'Urganch',    lat:41.5500, lon:60.6333 },
+      { n:'Xiva',       lat:41.3783, lon:60.3622 },
+    ]},
+    { region: "Namangan viloyati", cities: [
+      { n:'Namangan',   lat:41.0011, lon:71.6725 },
+      { n:'Chortoq',    lat:41.0800, lon:71.8333 },
+    ]},
+    { region: "Navoiy viloyati", cities: [
+      { n:'Navoiy',     lat:40.0844, lon:65.3792 },
+      { n:'Zarafshon',  lat:41.5736, lon:64.2003 },
+    ]},
+    { region: "Qashqadaryo viloyati", cities: [
+      { n:'Qarshi',     lat:38.8600, lon:65.7900 },
+      { n:'Shahrisabz', lat:39.0589, lon:66.8317 },
+    ]},
+    { region: "Qoraqalpog'iston", cities: [
+      { n:'Nukus',      lat:42.4539, lon:59.6103 },
+      { n:"Xoʻjayli",  lat:41.9667, lon:60.3833 },
+    ]},
+    { region: "Samarqand viloyati", cities: [
+      { n:'Samarqand',  lat:39.6542, lon:66.9597 },
+      { n:"Kattaqoʻrgʻon", lat:39.8983, lon:66.2572 },
+    ]},
+    { region: "Sirdaryo viloyati", cities: [
+      { n:'Guliston',   lat:40.4897, lon:68.7839 },
+    ]},
+    { region: "Surxondaryo viloyati", cities: [
+      { n:'Termiz',     lat:37.2242, lon:67.2783 },
+      { n:'Denov',      lat:38.2739, lon:67.8886 },
+    ]},
+    { region: "Toshkent viloyati", cities: [
+      { n:'Olmaliq',    lat:40.8483, lon:69.5997 },
+      { n:'Angren',     lat:41.0167, lon:70.1500 },
+      { n:'Chirchiq',   lat:41.4686, lon:69.5819 },
+    ]},
+    { region: "Toshkent shahri", cities: [
+      { n:'Toshkent',   lat:41.2995, lon:69.2401 },
+    ]},
   ];
+
+  // Barcha shaharlar tekis ro'yxati (mavjud CITIES o'rnida)
+  var CITIES = [];
+  REGIONS.forEach(function(r){ r.cities.forEach(function(c){ CITIES.push(c); }); });
 
   var WMO = {
      0:{fa:'fa-sun',                desc:'Toza',             bg:'#fbbf24,#f97316'},
@@ -157,10 +279,11 @@
     if (cached) { _ewRender(cached); return; }
     var saved = localStorage.getItem(EW_CITY);
     if (saved) {
-      var c = CITIES.filter(function (x) { return x.n === saved; })[0] || CITIES[0];
+      var c = CITIES.filter(function (x) { return x.n === saved; })[0] || _ewDefaultCity();
       _ewFetch({ type: 'city', city: c });
     } else {
-      _ewGeoSilent();
+      // Geo ruxsat so'ramasdan, default Toshkent ko'rsatamiz
+      _ewFetch({ type: 'city', city: _ewDefaultCity() });
     }
   }
   function _ewCacheGet() {
@@ -173,11 +296,36 @@
   function _ewBuildCities() {
     var el = $('ewCities'); if (!el) return;
     var active = localStorage.getItem(EW_CITY);
-    el.innerHTML = CITIES.map(function (c) {
-      return '<button class="ew-chip' + (c.n === active ? ' ew-chip-on' : '') +
-        '" onclick="window._ewPick(\'' + c.n.replace(/'/g, "\\'") + '\')">' + c.n + '</button>';
-    }).join('');
+    var html = '';
+    REGIONS.forEach(function(r) {
+      html += '<div class="ew-region-label">' + r.region + '</div>';
+      html += '<div class="ew-region-row">';
+      r.cities.forEach(function(c, ri) {
+        var idx = CITIES.indexOf(c);
+        html += '<button class="ew-chip' + (c.n === active ? ' ew-chip-on' : '') +
+          '" data-cidx="' + idx + '" onclick="window._ewPickIdx(this.dataset.cidx)">' + c.n + '</button>';
+      });
+      html += '</div>';
+    });
+    el.innerHTML = html;
   }
+  // Default shahar: Toshkent (yoki CITIES[0])
+  function _ewDefaultCity() {
+    return CITIES.filter(function(x){ return x.n === 'Toshkent'; })[0] || CITIES[0];
+  }
+
+  window._ewPickIdx = function (idx) {
+    var c = CITIES[parseInt(idx, 10)] || _ewDefaultCity();
+    localStorage.setItem(EW_CITY, c.n); localStorage.removeItem(EW_CACHE);
+    _ewClose(); _ewBuildCities();
+    _ewFetch({ type: 'city', city: c });
+  };
+  window._ewPick = function (name) {
+    var c = CITIES.filter(function (x) { return x.n === name; })[0] || _ewDefaultCity();
+    localStorage.setItem(EW_CITY, c.n); localStorage.removeItem(EW_CACHE);
+    _ewClose(); _ewBuildCities();
+    _ewFetch({ type: 'city', city: c });
+  };
   window._ewToggle = function () {
     var d = $('ewDropdown'), ch = $('ewTChev'); if (!d) return;
     var open = d.style.display !== 'none';
@@ -189,38 +337,38 @@
     if (d) d.style.display = 'none';
     if (ch) ch.style.transform = '';
   }
-  window._ewPick = function (name) {
-    localStorage.setItem(EW_CITY, name); localStorage.removeItem(EW_CACHE);
-    _ewClose(); _ewBuildCities();
-    var c = CITIES.filter(function (x) { return x.n === name; })[0] || CITIES[0];
-    _ewFetch({ type: 'city', city: c });
-  };
   window._ewGeoClick = function () {
     _ewClose(); localStorage.removeItem(EW_CACHE); localStorage.removeItem(EW_CITY);
-    var el = $('ewTCity'); if (el) el.textContent = '...';
+    var el = $('ewTCity'); if (el) el.textContent = '📍 Aniqlanmoqda...';
     _ewGeoFull();
   };
   function _ewGeoSilent() {
-    if (!navigator.geolocation) { _ewFetch({ type: 'city', city: CITIES[0] }); return; }
+    if (!navigator.geolocation) { _ewFetch({ type: 'city', city: _ewDefaultCity() }); return; }
     navigator.geolocation.getCurrentPosition(
       function (p) { _ewFetch({ type: 'coords', lat: p.coords.latitude, lon: p.coords.longitude }); },
-      function () { _ewFetch({ type: 'city', city: CITIES[0] }); }, { timeout: 5000 }
+      function ()  { _ewFetch({ type: 'city', city: _ewDefaultCity() }); }, { timeout: 5000 }
     );
   }
   function _ewGeoFull() {
-    if (!navigator.geolocation) { _ewFetch({ type: 'city', city: CITIES[0] }); return; }
+    if (!navigator.geolocation) { _ewFetch({ type: 'city', city: _ewDefaultCity() }); return; }
     navigator.geolocation.getCurrentPosition(
       function (p) { _ewFetch({ type: 'coords', lat: p.coords.latitude, lon: p.coords.longitude }); },
-      function () { _ewFetch({ type: 'city', city: CITIES[0] }); }, { timeout: 8000 }
+      function ()  { _ewFetch({ type: 'city', city: _ewDefaultCity() }); }, { timeout: 8000 }
     );
   }
   function _ewFetch(opts) {
     if (opts.type === 'coords') {
       var lat = opts.lat, lon = opts.lon;
-      fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&format=json&latitude=' + lat + '&longitude=' + lon)
-        .then(function (r) { return r.json(); })
+      // Nominatim — to'g'ri reverse geocoding (lat/lon → shahar nomi)
+      fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon +
+            '&format=json&accept-language=uz', { headers: { 'Accept-Language': 'uz,ru;q=0.8,en;q=0.5' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (g) {
-          var name = (g.results && g.results[0]) ? g.results[0].name : 'Joylashuv';
+          var name = 'Joylashuv';
+          if (g && g.address) {
+            name = g.address.city || g.address.town || g.address.village ||
+                   g.address.county || g.address.state || 'Joylashuv';
+          }
           _ewFetchWeather(lat, lon, name);
         })
         .catch(function () { _ewFetchWeather(lat, lon, 'Joylashuv'); });
@@ -229,6 +377,10 @@
     }
   }
   function _ewFetchWeather(lat, lon, cityName) {
+    // Yuklash holati
+    var elC = $('ewTCity'); if (elC) elC.textContent = cityName;
+    var elT = $('ewTTemp'); if (elT && elT.textContent === '—°') elT.textContent = '...';
+
     fetch('https://api.open-meteo.com/v1/forecast' +
       '?latitude=' + lat + '&longitude=' + lon +
       '&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code' +
@@ -252,25 +404,26 @@
       })
       .catch(function () {
         var el = $('ewTCity'); if (el) el.textContent = cityName || '—';
+        var tt = $('ewTTemp'); if (tt) tt.textContent = '—°';
       });
   }
   function _ewRender(d) {
-    var iw=$('ewTIcon');  if(iw)  iw.style.background='linear-gradient('+d.bg+')';
+    var iw=$('ewTIcon');  if(iw)  iw.style.background='linear-gradient(135deg,'+d.bg+')';
     var ic=$('ewTIco');   if(ic)  ic.className='fa-solid '+d.fa;
     var t=$('ewTTemp');   if(t)   t.textContent=d.temp+'°';
     var c=$('ewTCity');   if(c)   c.textContent=d.city;
     var dd=$('ewDDesc');  if(dd)  dd.textContent=d.desc;
-    var dh=$('ewDHum');   if(dh)  dh.textContent=d.hum+'%';
-    var dw=$('ewDWind');  if(dw)  dw.textContent=d.wind+'m/s';
-    var df=$('ewDFeel');  if(df)  df.textContent=d.feels+'°';
+    var dh=$('ewDHum');   if(dh)  dh.textContent=''+d.hum+'%';
+    var dw=$('ewDWind');  if(dw)  dw.textContent=''+d.wind+' m/s';
+    var df=$('ewDFeel');  if(df)  df.textContent=''+d.feels+'° his';
   }
   setInterval(function () {
     localStorage.removeItem(EW_CACHE);
     var saved = localStorage.getItem(EW_CITY);
     if (saved) {
-      var c = CITIES.filter(function (x) { return x.n === saved; })[0] || CITIES[0];
+      var c = CITIES.filter(function (x) { return x.n === saved; })[0] || _ewDefaultCity();
       _ewFetch({ type: 'city', city: c });
-    } else { _ewGeoSilent(); }
+    } else { _ewFetch({ type: 'city', city: _ewDefaultCity() }); }
   }, EW_TTL);
 
   /* ═══════════════════════════════════════════════════════════

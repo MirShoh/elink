@@ -99,7 +99,10 @@
 .ew-d-pill i { font-size:10px; color:#8b5cf6; }
 .ew-divider { height:1px; background:rgba(0,0,0,.06); margin-bottom:10px; }
 .dark .ew-divider { background:rgba(255,255,255,.07); }
-.ew-cities { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.ew-cities { display:flex; flex-direction:column; gap:4px; margin-bottom:8px; max-height:220px; overflow-y:auto; }
+.ew-region-label { font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; padding:2px 2px 0; }
+.dark .ew-region-label { color:#475569; }
+.ew-region-row { display:flex; flex-wrap:wrap; gap:4px; }
 .ew-chip {
   font-size:10px; font-weight:700; padding:4px 10px; border-radius:8px;
   border:1px solid rgba(0,0,0,.09); background:#fff; color:#475569; cursor:pointer;
