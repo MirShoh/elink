@@ -40,38 +40,97 @@
 (function(){var d=document.documentElement;if(localStorage.lh_theme==='dark'||(!('lh_theme' in localStorage)&&window.matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark');else d.classList.remove('dark');})();
 </script>
 
+<!-- LOADING SCREEN — inline CSS, JS siz ishlaydi, init() tugagach o'chadi -->
+<style>
+#elink-loader{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:#eff1fb;
+  transition:opacity .4s ease, visibility .4s ease;
+}
+.dark #elink-loader{background:#060a18}
+#elink-loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+
+.el-logo{
+  width:64px;height:64px;border-radius:20px;
+  background:linear-gradient(135deg,#7c3aed,#d946ef);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 12px 32px rgba(139,92,246,.35);
+  animation:el-pulse 1.8s ease-in-out infinite;
+}
+@keyframes el-pulse{
+  0%,100%{transform:scale(1);box-shadow:0 12px 32px rgba(139,92,246,.35)}
+  50%{transform:scale(1.06);box-shadow:0 16px 40px rgba(139,92,246,.55)}
+}
+.el-logo svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.el-name{font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:22px;font-weight:900;color:#1e293b;letter-spacing:-.5px}
+.dark .el-name{color:#f1f5f9}
+.el-name span{color:#8b5cf6}
+
+.el-dots{display:flex;gap:7px;align-items:center}
+.el-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#8b5cf6;opacity:.25;
+  animation:el-bounce 1.2s ease-in-out infinite;
+}
+.el-dot:nth-child(2){animation-delay:.15s}
+.el-dot:nth-child(3){animation-delay:.3s}
+@keyframes el-bounce{
+  0%,80%,100%{opacity:.25;transform:scale(1)}
+  40%{opacity:1;transform:scale(1.35)}
+}
+
+.el-hint{font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.02em;animation:el-fade 2.5s ease-in-out infinite}
+@keyframes el-fade{0%,100%{opacity:.5}50%{opacity:1}}
+</style>
+<div id="elink-loader" aria-label="Yuklanmoqda" role="status">
+  <div class="el-logo">
+    <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  </div>
+  <div class="el-name">e<span>Link</span></div>
+  <div class="el-dots">
+    <div class="el-dot"></div>
+    <div class="el-dot"></div>
+    <div class="el-dot"></div>
+  </div>
+  <div class="el-hint">Resurslar yuklanmoqda...</div>
+</div>
+
 <!-- 2. Kritik CSS: preload + darhol yuklash -->
 <link rel="preload" href="style.css" as="style">
 <link rel="preload" href="widgets-style.css" as="style">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="widgets-style.css">
 
-<!-- 3. JS skriptlar uchun preload (parsing oldin bog'liq fayllarni oldindan olib kelish) -->
+<!-- 3. JS skriptlar: modulepreload = fetch + parse parallel -->
 <link rel="preload" href="data.js" as="script">
-<link rel="preload" href="script.js" as="script">
+<link rel="modulepreload" href="core.js">
+<link rel="modulepreload" href="render.js">
+<link rel="modulepreload" href="builder.js">
 
 <!-- 4. Tashqi resurslar uchun preconnect -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
-<!-- 5. Font Awesome — non-blocking (print trick) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+<!-- 5. Font Awesome — faqat solid + brands subset (all.min.css emas) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" media="print" onload="this.media='all'">
+<noscript>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css">
+</noscript>
 
-<!-- 6. Google Fonts — non-blocking -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap&font-display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+<!-- 6. Google Fonts — faqat 3 ta og'irlik (400, 700, 900) -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet"></noscript>
 
-<!-- 7. Tailwind CDN + config -->
-<script src="https://cdn.tailwindcss.com" onerror=""></script>
-<script>
-(function(){var w=console.warn.bind(console);console.warn=function(){if(typeof arguments[0]==='string'&&arguments[0].includes('cdn.tailwindcss.com'))return;w.apply(console,arguments);};})();
-tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','sans-serif']},animation:{'fade-up':'fadeUp .28s ease-out forwards','pop':'pop .18s ease-out forwards'},keyframes:{fadeUp:{'0%':{opacity:'0',transform:'translateY(8px)'},'100%':{opacity:'1',transform:'translateY(0)'}},pop:{'0%':{transform:'scale(.9)'},'60%':{transform:'scale(1.08)'},'100%':{transform:'scale(1)'}}}}}}
-</script>
+<!-- 7. Tailwind CLI build (CDN o'rniga — 400KB → 66KB) -->
+<link rel="preload" href="tailwind.css" as="style">
+<link rel="stylesheet" href="tailwind.css">
 
-<!-- 8. LZ-String: share/import uchun -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<!-- 8. LZ-String: builder.js ichida lazy yuklanadi (faqat ulashish kerak bo'lganda) -->
 
 <!-- 9. Google Analytics — async, bloklamaydi -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2QYRFQMN3H"></script>
@@ -189,7 +248,7 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
       </div>
     </div>
 
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-2 pb-28 md:pb-14 pb-safe">
+    <div class="max-w-screen-2xl px-4 md:px-6 py-2 pb-28 md:pb-14 pb-safe">
 
       <!-- Desktop top bar -->
       <div class="hidden md:flex items-center justify-between gap-4 sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 mb-1 bg-white/92 dark:bg-slate-900/92 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/40 shadow-sm">
@@ -201,15 +260,11 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <!-- widgets.js ob-havo va dark/light ni shu yerga inject qiladi -->
           <button id="themeBtnTop" class="ew-theme-btn hidden">
             <i id="themeIcoTop" class="fa-solid fa-moon text-sm"></i>
             <span class="hidden sm:inline text-xs font-bold">Tungi rejim</span>
           </button>
-          <button id="shareBtnDesk" class="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/85 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 text-xs font-bold transition-all shadow-sm">
-            <i class="fa-solid fa-share-nodes text-[11px]"></i>
-            <span class="hidden lg:inline">Ulashish</span>
-          </button>
+          
           <div id="catSWrap" class="hidden relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px] pointer-events-none z-10"></i>
             <input id="catSrc" type="text" autocomplete="off" spellcheck="false" placeholder="Kategoriyada qidirish..."
@@ -492,10 +547,18 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakart
   </div>
 </div>
 
-<!-- Scripts: data → logic → sw → widgets -->
+<!-- Scripts: data → core → render/builder (defer) -->
 <script src="data.js"></script>
-<script src="script.js"></script>
+<script src="core.js"></script>
+<script src="render.js" defer></script>
+<script src="builder.js" defer></script>
 <script>
+/* Loader o'chirish — render.js init() tugagandan keyin chaqiriladi */
+window._hideLoader = function(){
+  var el = document.getElementById('elink-loader');
+  if(el){ el.classList.add('hidden'); setTimeout(function(){ el.remove(); }, 450); }
+};
+/* SW ro'yxatdan o'tkazish */
 if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('127.0.0.1') && !location.hostname.includes('claudeusercontent')){
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('/sw.js')
@@ -504,6 +567,6 @@ if('serviceWorker' in navigator && location.hostname !== 'localhost' && !locatio
   });
 }
 </script>
-<script src="widgets.js"></script>
+<script src="widgets.js" defer></script>
 </body>
 </html>

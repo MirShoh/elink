@@ -1,8 +1,9 @@
-const CACHE_NAME = 'elink-v5';
+const CACHE_NAME = 'elink-v6';
 
 const PRECACHE = [
   '/style.css',
   '/widgets-style.css',
+  '/tailwind.css',
   '/manifest.json',
 ];
 
@@ -13,9 +14,11 @@ const NO_CACHE = [
   'googletagmanager',
   'gtag',
   '/data.js',
-  '/script.js',
-  '/widgets.js',
   '/index.html',
+  '/core.js',
+  '/render.js',
+  '/builder.js',
+  '/widgets.js',
 ];
 
 self.addEventListener('install', e => {

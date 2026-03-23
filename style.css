@@ -36,19 +36,12 @@ body{font-family:"Plus Jakarta Sans",sans-serif}
 
 /* ── CARD ── */
 .card{
-  transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s;
+  transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s,border-color .22s;
   position:relative;overflow:hidden;
   will-change:transform;
-  isolation:isolate;
   transform:translateZ(0);
   -webkit-transform:translateZ(0);
 }
-.card::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(139,92,246,.04) 0%,transparent 60%);
-  opacity:0;transition:opacity .22s;pointer-events:none;border-radius:inherit;
-}
-.card:hover::before{opacity:1}
 .card:hover{transform:translateY(-3px) scale(1.012);box-shadow:0 16px 40px -10px rgba(139,92,246,.18)}
 .dark .card:hover{box-shadow:0 16px 40px -10px rgba(139,92,246,.32)}
 
@@ -147,10 +140,10 @@ mark{background:rgba(139,92,246,.22);color:inherit;border-radius:3px;padding:0 0
 
 /* ── SMOOTH BUTTON REVEAL ── */
 .card .btn-group{
-  opacity:0;transform:translateY(-2px);
-  transition:opacity .18s,transform .18s;
+  opacity:0;
+  transition:opacity .18s;
 }
-.card:hover .btn-group{opacity:1;transform:translateY(0)}
+.card:hover .btn-group{opacity:1}
 
 /* ── TRENDING SCROLL FADE ── */
 /* trending fade — removed */
