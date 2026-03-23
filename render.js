@@ -222,7 +222,7 @@ const favPinned = navBtn(`setCat('favorites')`, 'Saqlanganlar', 'fa-heart', 'Saq
 
 const collActive = activeCat==='collections';
 const collExtraCls = collActive ? 'bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50';
-const collBtn = navBtn(`setCat('collections')`, 'Kolleksiyalar', 'fa-rectangle-list', 'Kolleksiyalar',
+const collBtn = navBtn(`setCat('collections')`, 'Tavsiyalar', 'fa-star', 'Tavsiyalar',
   getCollections().length||'', collExtraCls, collActive?'bg-violet-200 dark:bg-violet-500/30 text-violet-600':'bg-slate-200 dark:bg-slate-700/80 text-slate-500');
 $('sidebarPinned').innerHTML = pinned + favPinned + collBtn +
   `<div class="h-px w-full bg-slate-100 dark:bg-slate-800/80 mt-1.5 mb-0.5"></div>`;
@@ -346,7 +346,7 @@ if(id==='all'){
 } else if(id==='my_apps'){
   $('pageTitle').textContent="Shaxsiy ro'yxat";
 } else if(id==='collections'){
-  $('pageTitle').textContent='Kolleksiyalar';
+  $('pageTitle').textContent='Tavsiyalar';
 } else {
   const catTitle=DATA.find(c=>c.id===id)?.title||'';
   $('pageTitle').textContent=catTitle;
@@ -503,7 +503,7 @@ function _renderCollections(container, token){
   $('appsContainer').classList.remove('hidden');
   $('noResults').classList.add('hidden');
   const collections=getCollections();
-  $('resultCount').textContent=collections.length+' ta kolleksiya';
+  $('resultCount').textContent=collections.length+' ta tavsiya to\'plami';
 
   const wrap=document.createElement('div');
   wrap.className='animate-fade-up';
@@ -512,12 +512,12 @@ function _renderCollections(container, token){
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
       <div class="relative flex-1 w-full">
         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"></i>
-        <input id="colSearch" placeholder="Kolleksiya qidirish..." oninput="filterCollections(this.value)"
+        <input id="colSearch" placeholder="Tavsiya to'plamini qidirish..." oninput="filterCollections(this.value)"
           class="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-violet-400 placeholder-slate-400">
       </div>
       <button onclick="openNewCollectionModal()"
         class="shrink-0 flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl px-4 py-2.5 text-[12px] transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98] whitespace-nowrap">
-        <i class="fa-solid fa-plus text-[10px]"></i> Yangi kolleksiya
+        <i class="fa-solid fa-plus text-[10px]"></i> Yangi tavsiya
       </button>
     </div>
     <div id="collectionsGrid"></div>`;
@@ -538,7 +538,7 @@ const GROUP_META = {
   'ijod':    { label:'Ijod & Dizayn',   icon:'fa-paintbrush',     color:'text-pink-600 dark:text-pink-400',       bg:'bg-pink-50 dark:bg-pink-500/10',       border:'border-pink-200 dark:border-pink-500/20' },
   'biznes':  { label:'Ish & Biznes',    icon:'fa-chart-line',     color:'text-orange-600 dark:text-orange-400',   bg:'bg-orange-50 dark:bg-orange-500/10',   border:'border-orange-200 dark:border-orange-500/20' },
   'kundalik':{ label:'Kundalik hayot',  icon:'fa-sun',            color:'text-sky-600 dark:text-sky-400',         bg:'bg-sky-50 dark:bg-sky-500/10',         border:'border-sky-200 dark:border-sky-500/20' },
-  'my':      { label:'Mening kolleksiyalarim', icon:'fa-folder-heart', color:'text-fuchsia-600 dark:text-fuchsia-400', bg:'bg-fuchsia-50 dark:bg-fuchsia-500/10', border:'border-fuchsia-200 dark:border-fuchsia-500/20' },
+  'my':      { label:'Mening tavsiyalarim', icon:'fa-folder-heart', color:'text-fuchsia-600 dark:text-fuchsia-400', bg:'bg-fuchsia-50 dark:bg-fuchsia-500/10', border:'border-fuchsia-200 dark:border-fuchsia-500/20' },
 };
 
 function _fillCollectionGrid(collections){
@@ -855,7 +855,7 @@ window.openAddToCollection=function(colId){
             </div>
             <div class="flex-1">
               <h3 class="text-[13px] font-black text-slate-800 dark:text-white" id="atcTitle">Resurs qo'shish</h3>
-              <p class="text-[10px] text-slate-400">Kolleksiyaga resurs qo'shing</p>
+              <p class="text-[10px] text-slate-400">Tavsiyaga resurs qo'shing</p>
             </div>
             <button onclick="document.getElementById('addToColModal').classList.add('hidden');document.getElementById('addToColModal').classList.remove('flex')"
               class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-colors">
@@ -975,7 +975,7 @@ window.openEditCollection=function(colId){
     // Change save button to update
     const btn=document.querySelector('#newCollectionModal button[onclick="saveNewCollection()"]');
     if(btn){ btn.onclick=()=>updateUserCollection(colId); btn.innerHTML='<i class="fa-solid fa-check mr-2"></i> Yangilash'; }
-    const h=document.querySelector('#newCollectionModal h3'); if(h) h.textContent='Kolleksiyani tahrirlash';
+    const h=document.querySelector('#newCollectionModal h3'); if(h) h.textContent='Tavsiyani tahrirlash';
   },50);
 };
 
@@ -992,7 +992,7 @@ window.updateUserCollection=function(colId){
   document.getElementById('newCollectionModal')?.classList.add('hidden');
   document.getElementById('newCollectionModal')?.classList.remove('flex');
   renderContent();
-  showToast('Kolleksiya yangilandi!','fa-circle-check text-emerald-400');
+  showToast('Tavsiya yangilandi!','fa-circle-check text-emerald-400');
 };
 
 /* ── NEW COLLECTION MODAL ── */
@@ -1020,7 +1020,7 @@ window.openNewCollectionModal=function(){
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
           <i class="fa-solid fa-folder-plus text-white text-sm"></i>
         </div>
-        <h3 class="text-[13px] font-black text-slate-800 dark:text-white flex-1">Yangi kolleksiya</h3>
+        <h3 class="text-[13px] font-black text-slate-800 dark:text-white flex-1">Yangi tavsiya</h3>
         <button onclick="document.getElementById('newCollectionModal').classList.add('hidden');document.getElementById('newCollectionModal').classList.remove('flex')"
           class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-colors">
           <i class="fa-solid fa-xmark text-sm"></i>
@@ -1073,11 +1073,11 @@ window.saveNewCollection=function(){
 };
 
 window.deleteUserCollection=function(id){
-  if(!confirm("Kolleksiyani o'chirmoqchimisiz?")) return;
+  if(!confirm("Tavsiyani o'chirmoqchimisiz?")) return;
   userCollections=userCollections.filter(c=>c.id!==id);
   saveUserCollections();
   renderContent();
-  showToast("Kolleksiya o'chirildi",'fa-circle-check text-emerald-400');
+  showToast("Tavsiya o'chirildi",'fa-circle-check text-emerald-400');
 };
 
 

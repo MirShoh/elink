@@ -1,4 +1,3 @@
-
 let _lzReady = typeof LZString !== 'undefined';
 function _ensureLZ(cb){
   if(_lzReady){ cb(); return; }
@@ -877,9 +876,9 @@ detectShareHash();
     {
       id:0, iconFA:'fa-link',
       title:"eLink UZ ga\nxush kelibsiz!",
-      subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 1700+ foydali sayt va ilova — bitta joyda.",
+      subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 3000+ foydali sayt va ilova — bitta joyda.",
       feats:[
-        {faIco:'fa-layer-group',     bg:'from-violet-500 to-fuchsia-500', title:'1700+ resurs katalogi',     desc:"Ta'lim, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},
+        {faIco:'fa-layer-group',     bg:'from-violet-500 to-fuchsia-500', title:'3000+ resurs katalogi',     desc:"Ta'lim, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},
         {faIco:'fa-magnifying-glass',bg:'from-violet-400 to-purple-600',  title:'Tez va aqlli qidiruv',      desc:"Kategoriya bo'yicha yoki barcha resurslardan bir zumda toping"},
         {faIco:'fa-moon',            bg:'from-slate-600 to-slate-900',    title:'Qulay interfeys',           desc:"Tungi rejim, mobil va kompyuter uchun optimallashtirilgan"}
       ]

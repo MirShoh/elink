@@ -84,3 +84,35 @@
   for = "/manifest.json"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── SEO fayllari ─────────────────────────────────────────────────
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type  = "text/plain; charset=utf-8"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type  = "application/xml; charset=utf-8"
+
+# ── HSTS — HTTPS majburiy qilish (SEO uchun muhim) ───────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# ── Redirects: www → non-www (SEO canonical) ─────────────────────
+[[redirects]]
+  from   = "https://www.elink.uz/*"
+  to     = "https://elink.uz/:splat"
+  status = 301
+  force  = true
+
+# ── SPA fallback (JS router uchun) ───────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

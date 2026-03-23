@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- ── Asosiy sahifa ─────────────────────────────────── -->
+  <url>
+    <loc>https://elink.uz/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <!-- Til alternativlari -->
+    <xhtml:link rel="alternate" hreflang="uz"    href="https://elink.uz/"/>
+    <xhtml:link rel="alternate" hreflang="ru"    href="https://elink.uz/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://elink.uz/"/>
+    <!-- OG tasvir -->
+    <image:image>
+      <image:loc>https://elink.uz/og-image.png</image:loc>
+      <image:title>eLink.uz — O'zbekistondagi barcha onlayn resurslar katalogi</image:title>
+      <image:caption>O'zbekiston uchun 3000+ onlayn resurs: davlat xizmatlari, AI, ta'lim, tibbiyot va ko'proq.</image:caption>
+    </image:image>
+  </url>
+
+</urlset>

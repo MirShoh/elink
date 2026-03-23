@@ -1,0 +1,69 @@
+# ============================================================
+#  eLink.uz — robots.txt
+#  https://elink.uz/robots.txt
+#  Yangilangan: 2025
+# ============================================================
+
+# ── Barcha qidiruv tizimlariga ruxsat ──────────────────────
+User-agent: *
+Allow: /
+
+# Netlify va xizmat fayllari (indekslash shart emas)
+Disallow: /.netlify/
+Disallow: /netlify/
+Disallow: /node_modules/
+
+# ── Google ──────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Allow: /index.html
+Crawl-delay: 1
+
+User-agent: Googlebot-Image
+Allow: /images/
+
+# ── Bing / Yahoo ────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 3
+
+# ── Yandex ──────────────────────────────────────────────────
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: YandexImages
+Allow: /images/
+
+# ── Social Media Crawlers ───────────────────────────────────
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# ── Zararli / keraksiz botlar ───────────────────────────────
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# ── Sitemap joylashuvi ──────────────────────────────────────
+Sitemap: https://elink.uz/sitemap.xml
