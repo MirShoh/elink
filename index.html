@@ -126,9 +126,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet"></noscript>
 
-<!-- 7. Tailwind CLI build (CDN o'rniga — 400KB → 66KB) -->
+<!-- 7. Tailwind CLI build — CDN fallback (config path xatosi bo'lsa) -->
 <link rel="preload" href="tailwind.css" as="style">
-<link rel="stylesheet" href="tailwind.css">
+<link rel="stylesheet" href="tailwind.css" id="tw-local">
+<script>
+(function(){
+  var el = document.getElementById('tw-local');
+  if (!el) return;
+  el.addEventListener('error', function() {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.tailwindcss.com';
+    s.onload = function() {
+      if (typeof tailwind !== 'undefined') {
+        tailwind.config = {
+          darkMode: 'class',
+          theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+            animation: { 'fade-up': 'fadeUp .28s ease-out forwards', 'pop': 'pop .18s ease-out forwards' },
+            keyframes: {
+              fadeUp: { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+              pop: { '0%': { transform: 'scale(.9)' }, '60%': { transform: 'scale(1.08)' }, '100%': { transform: 'scale(1)' } }
+            }
+          }}
+        };
+      }
+    };
+    document.head.appendChild(s);
+  });
+})();
+</script>
 
 <!-- 8. LZ-String: builder.js ichida lazy yuklanadi (faqat ulashish kerak bo'lganda) -->
 

@@ -2,11 +2,13 @@
 module.exports = {
   darkMode: 'class',
   content: [
-    '/mnt/user-data/uploads/index.html',
-    '/home/claude/render.js',
-    '/home/claude/builder.js',
-    '/home/claude/core.js',
-    '/mnt/user-data/uploads/widgets.js',
+    './index.html',
+    './core.js',
+    './render.js',
+    './builder.js',
+    './widgets.js',
+    './pentester.html',
+    './pentester.js',
   ],
   theme: {
     extend: {
