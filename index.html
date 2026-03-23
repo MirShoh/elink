@@ -126,32 +126,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet"></noscript>
 
-<!-- 7. Tailwind CLI build — CDN fallback (config path xatosi bo'lsa) -->
-<link rel="preload" href="tailwind.css" as="style">
-<link rel="stylesheet" href="tailwind.css" id="tw-local">
+<!-- 7. Tailwind CLI build — CDN fallback -->
+<link rel="preload" href="tailwind.css?v=2" as="style">
+<link rel="stylesheet" href="tailwind.css?v=2" id="tw-local">
 <script>
 (function(){
-  var el = document.getElementById('tw-local');
-  if (!el) return;
-  el.addEventListener('error', function() {
+  var tw = document.getElementById('tw-local');
+  if(!tw) return;
+  function loadCDN(){
+    if(document.getElementById('tw-cdn')) return;
     var s = document.createElement('script');
+    s.id = 'tw-cdn';
     s.src = 'https://cdn.tailwindcss.com';
-    s.onload = function() {
-      if (typeof tailwind !== 'undefined') {
-        tailwind.config = {
-          darkMode: 'class',
-          theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-            animation: { 'fade-up': 'fadeUp .28s ease-out forwards', 'pop': 'pop .18s ease-out forwards' },
-            keyframes: {
-              fadeUp: { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-              pop: { '0%': { transform: 'scale(.9)' }, '60%': { transform: 'scale(1.08)' }, '100%': { transform: 'scale(1)' } }
-            }
-          }}
-        };
+    s.onload = function(){
+      if(typeof tailwind !== 'undefined'){
+        tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','sans-serif']},animation:{'fade-up':'fadeUp .28s ease-out forwards',pop:'pop .18s ease-out forwards'},keyframes:{fadeUp:{'0%':{opacity:'0',transform:'translateY(8px)'},'100%':{opacity:'1',transform:'translateY(0)'}},pop:{'0%':{transform:'scale(.9)'},'60%':{transform:'scale(1.08)'},'100%':{transform:'scale(1)'}}}}}}
       }
     };
     document.head.appendChild(s);
-  });
+  }
+  // Yuklanmasa CDN
+  tw.onerror = loadCDN;
+  // Yuklanib lekin bo'sh bo'lsa (0 rules) — 1s dan keyin tekshir
+  tw.onload = function(){
+    setTimeout(function(){
+      var sheets = Array.from(document.styleSheets);
+      var twSheet = sheets.find(function(s){ try{ return s.href && s.href.includes('tailwind.css') && s.cssRules && s.cssRules.length > 100; }catch(e){ return false; } });
+      if(!twSheet) loadCDN();
+    }, 500);
+  };
 })();
 </script>
 

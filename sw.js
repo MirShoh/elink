@@ -1,9 +1,8 @@
-const CACHE_NAME = 'elink-v6';
+const CACHE_NAME = 'elink-v7';
 
 const PRECACHE = [
   '/style.css',
   '/widgets-style.css',
-  '/tailwind.css',
   '/manifest.json',
 ];
 
