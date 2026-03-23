@@ -131,30 +131,20 @@
 <link rel="stylesheet" href="tailwind.css?v=2" id="tw-local">
 <script>
 (function(){
-  var tw = document.getElementById('tw-local');
-  if(!tw) return;
+  var tw=document.getElementById('tw-local');
+  if(!tw)return;
   function loadCDN(){
-    if(document.getElementById('tw-cdn')) return;
-    var s = document.createElement('script');
-    s.id = 'tw-cdn';
-    s.src = 'https://cdn.tailwindcss.com';
-    s.onload = function(){
-      if(typeof tailwind !== 'undefined'){
-        tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','sans-serif']},animation:{'fade-up':'fadeUp .28s ease-out forwards',pop:'pop .18s ease-out forwards'},keyframes:{fadeUp:{'0%':{opacity:'0',transform:'translateY(8px)'},'100%':{opacity:'1',transform:'translateY(0)'}},pop:{'0%':{transform:'scale(.9)'},'60%':{transform:'scale(1.08)'},'100%':{transform:'scale(1)'}}}}}}
-      }
-    };
+    if(document.getElementById('tw-cdn'))return;
+    var s=document.createElement('script');s.id='tw-cdn';
+    s.src='https://cdn.tailwindcss.com';
+    s.onload=function(){if(typeof tailwind!=='undefined')tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','sans-serif']},animation:{'fade-up':'fadeUp .28s ease-out forwards',pop:'pop .18s ease-out forwards'},keyframes:{fadeUp:{'0%':{opacity:'0',transform:'translateY(8px)'},'100%':{opacity:'1',transform:'translateY(0)'}},pop:{'0%':{transform:'scale(.9)'},'60%':{transform:'scale(1.08)'},'100%':{transform:'scale(1)'}}}}}}};
     document.head.appendChild(s);
   }
-  // Yuklanmasa CDN
-  tw.onerror = loadCDN;
-  // Yuklanib lekin bo'sh bo'lsa (0 rules) — 1s dan keyin tekshir
-  tw.onload = function(){
-    setTimeout(function(){
-      var sheets = Array.from(document.styleSheets);
-      var twSheet = sheets.find(function(s){ try{ return s.href && s.href.includes('tailwind.css') && s.cssRules && s.cssRules.length > 100; }catch(e){ return false; } });
-      if(!twSheet) loadCDN();
-    }, 500);
-  };
+  tw.onerror=loadCDN;
+  tw.onload=function(){setTimeout(function(){
+    var ok=Array.from(document.styleSheets).some(function(s){try{return s.href&&s.href.includes('tailwind')&&s.cssRules&&s.cssRules.length>100;}catch(e){return false;}});
+    if(!ok)loadCDN();
+  },600);};
 })();
 </script>
 
@@ -288,7 +278,7 @@
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button id="themeBtnTop" class="ew-theme-btn hidden">
+          <button id="themeBtnTop" class="ew-theme-btn">
             <i id="themeIcoTop" class="fa-solid fa-moon text-sm"></i>
             <span class="hidden sm:inline text-xs font-bold">Tungi rejim</span>
           </button>

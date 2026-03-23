@@ -6,7 +6,6 @@ const PRECACHE = [
   '/manifest.json',
 ];
 
-// Hech qachon cache'lanmaydigan manzillar
 const NO_CACHE = [
   '/.netlify/',
   'supabase',
@@ -43,10 +42,8 @@ self.addEventListener('fetch', e => {
 
   const url = e.request.url;
 
-  // Network-only: har doim serverdan olinsin
   if (NO_CACHE.some(p => url.includes(p))) return;
 
-  // Tashqi CDN resurslar: cache-first
   const isExternal = (
     url.includes('fonts.googleapis') ||
     url.includes('fonts.gstatic') ||
@@ -70,7 +67,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Qolganlar: network-first, cache fallback
   e.respondWith(
     fetch(e.request)
       .then(res => {

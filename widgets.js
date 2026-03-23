@@ -1,12 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════════
-   eLink UZ — widgets.js  v11
-   1) Statistika pill — o'ng pastki burchak  [NEW]
-   2) Ob-havo  — top-bar inject              [OLD v6]
-   3) Dark/Light toggle                      [OLD v6]
-   4) Sticky Category Bar                    [NEW]
-   ═══════════════════════════════════════════════════════════════════ */
-
-
 /* ── BLOK 1: STATISTIKA PILL (o'ng pastki) ───────────────────────── */
 (function () {
   'use strict';
@@ -228,22 +219,19 @@
      DARK/LIGHT TOGGLE — tez, animatsiyasiz, sodda
      ═══════════════════════════════════════════════════════════ */
   waitFor('themeBtnTop', function (btn) {
-    btn.className = 'ew-theme-btn';
-    btn.title = 'Tungi / Kunduzgi rejim';
-    btn.innerHTML =
-      '<i class="fa-solid fa-moon" id="ewThemeIco"></i>' +
-      '<span id="ewThemeLbl">Tun</span>';
-
-    function _sync() {
+    btn.classList.remove('hidden');
+    // Agar render.js setupTheme() allaqachon ishlagan bo'lsa — ikki marta listener kerak emas
+    // Faqat boshlang'ich ikonani sinxronlaymiz
+    function _syncTop() {
       var dark = document.documentElement.classList.contains('dark');
-      var ico = $('ewThemeIco');
-      var lbl = $('ewThemeLbl');
-      if (ico) ico.className = 'fa-solid ' + (dark ? 'fa-sun' : 'fa-moon');
-      if (lbl) lbl.textContent = dark ? 'Kun' : 'Tun';
+      var ico = document.getElementById('themeIcoTop');
+      if (ico) ico.className = 'fa-solid ' + (dark ? 'fa-sun' : 'fa-moon') + ' text-sm';
       btn.classList.toggle('ew-theme-dark', dark);
     }
-    _sync();
-    btn.addEventListener('click', function () { setTimeout(_sync, 10); });
+    _syncTop();
+    // setupTheme() allaqachon click ni boshqaradi — bu faqat vizual sinxron
+    var ob = new MutationObserver(_syncTop);
+    ob.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   });
 
 })();

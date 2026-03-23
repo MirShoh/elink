@@ -1,8 +1,4 @@
-// ═══════════════════════════════════════════════════════════
-//  📤 RO'YXAT TUZISH VA ULASHISH TIZIMI
-// ═══════════════════════════════════════════════════════════
 
-// LZ-String lazy yuklanadi — faqat birinchi ishlatilganda
 let _lzReady = typeof LZString !== 'undefined';
 function _ensureLZ(cb){
   if(_lzReady){ cb(); return; }
