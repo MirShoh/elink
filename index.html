@@ -233,10 +233,10 @@
   position:fixed;inset:0;z-index:9999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
   background:#eff1fb;
-  transition:opacity .4s ease, visibility .4s ease;
+  transition:opacity .15s ease, visibility .15s ease;
 }
 .dark #elink-loader{background:#060a18}
-#elink-loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#elink-loader.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility 0s linear .15s}
 
 .el-logo{
   width:64px;height:64px;border-radius:20px;
@@ -290,11 +290,13 @@
 
 <!-- 3. JS skriptlar: modulepreload = fetch + parse parallel -->
 <link rel="preload" href="data.js" as="script">
-<link rel="modulepreload" href="core.js">
-<link rel="modulepreload" href="render.js">
-<link rel="modulepreload" href="builder.js">
+<link rel="preload" href="core.js" as="script">
+<link rel="preload" href="render.js" as="script">
+<link rel="preload" href="builder.js" as="script">
 
 <!-- 4. Tashqi resurslar uchun preconnect -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
 <!-- 5. Font Awesome — faqat solid + brands subset (all.min.css emas) -->
@@ -329,7 +331,7 @@
   tw.onload=function(){setTimeout(function(){
     var ok=Array.from(document.styleSheets).some(function(s){try{return s.href&&s.href.includes('tailwind')&&s.cssRules&&s.cssRules.length>100;}catch(e){return false;}});
     if(!ok)loadCDN();
-  },600);};
+  },150);};
 })();
 </script>
 
@@ -750,8 +752,8 @@
 </div>
 
 <!-- Scripts: data → core → render/builder (defer) -->
-<script src="data.js"></script>
-<script src="core.js"></script>
+<script src="data.js" defer></script>
+<script src="core.js" defer></script>
 <script src="render.js" defer></script>
 <script src="builder.js" defer></script>
 <script>

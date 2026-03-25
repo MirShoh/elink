@@ -3,26 +3,33 @@
   'use strict';
 
   // Cache kalitlari va muddatlari
-  var CK_STATS  = 'elink_stats_v2';   // today + total: 3 daqiqa
-  var CK_ONLINE = 'elink_online_v2';  // online: 30 soniya
+  var CK_STATS  = 'elink_stats_v2';
+  var CK_ONLINE = 'elink_online_v2';
   var TTL_STATS  = 3 * 60 * 1000;
-  var TTL_ONLINE = 2 * 60 * 1000;  // 2 daqiqa
+  var TTL_ONLINE = 2 * 60 * 1000;      // 2 daqiqa — sahifa ochilganda darhol ko'rsatish uchun
 
-  // Oxirgi muvaffaqiyatli qiymatlar (sahifa yashirilganda ham saqlanadi)
+  // Interval sozlamalari
+  var ONLINE_INTERVAL = 20 * 1000;      // online soni: har 20 soniyada
+  var STATS_INTERVAL  = 3 * 60 * 1000; // bugun/jami: har 3 daqiqada
+
+  // Oxirgi muvaffaqiyatli qiymatlar
   var _lastOnline = null;
   var _lastStats  = null;
 
-  // Joriy so'rov AbortController — eski so'rov bekor qilinadi
-  var _abortCtrl = null;
+  // AbortController-lar — alohida
+  var _abortOnline = null;
+  var _abortStats  = null;
 
   // BroadcastChannel: bir tab poll qiladi, qolganlar eshitadi
   var _bc = (typeof BroadcastChannel !== 'undefined')
     ? new BroadcastChannel('elink_stats')
     : null;
 
-  // Retry backoff holati
-  var _failCount = 0;
-  var _pollTimer = null;
+  // Timer-lar va fail hisoblagichlar
+  var _onlineTimer = null;
+  var _statsTimer  = null;
+  var _onlineFail  = 0;
+  var _statsFail   = 0;
 
   function _inject() {
     if (document.getElementById('elinkStatsFloat')) return;
@@ -72,87 +79,94 @@
     try { localStorage.setItem(key, JSON.stringify(Object.assign({}, data, { ts: Date.now() }))); } catch (e) {}
   }
 
-  // Barcha 3 so'rovni bitta async funksiyada parallel bajaring
-  function _fetchAll(signal) {
-    if (typeof SUPA_PROXY === 'undefined') return Promise.resolve(null);
-    var opts = function(body) {
-      return { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: signal };
-    };
-    // Upsert + stats + online — barchasi parallel, biri fail bo'lsa qolganlar ishlaydi
-    return Promise.allSettled([
-      fetch(SUPA_PROXY, opts({ path: '/rest/v1/rpc/upsert_visit',    method: 'POST', body: { p_user_id: _uid() } })),
-      fetch(SUPA_PROXY, opts({ path: '/rest/v1/rpc/get_site_stats',  method: 'POST', body: {} })),
-      fetch(SUPA_PROXY, opts({ path: '/rest/v1/rpc/get_online_count',method: 'POST', body: {} })),
-    ]).then(function(results) {
-      var statsRes  = results[1];
-      var onlineRes = results[2];
-      var out = { online: null, today: null, total: null };
+  function _req(body, signal) {
+    return fetch(SUPA_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: signal
+    });
+  }
 
-      if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
-        return statsRes.value.json().then(function(sd) {
-          if (sd) { out.today = sd.today; out.total = sd.total; }
-          if (onlineRes.status === 'fulfilled' && onlineRes.value.ok) {
-            return onlineRes.value.json().then(function(od) {
-              if (od != null) out.online = typeof od === 'number' ? od : (od.count != null ? od.count : (od.online != null ? od.online : null));
-              return out;
-            }).catch(function() { return out; });
-          }
-          return out;
-        }).catch(function() { return out; });
-      }
-      // Stats fail bo'ldi — faqat online ni olishga urinib ko'r
+  function _parseOnline(od) {
+    if (od == null) return null;
+    if (typeof od === 'number') return od;
+    if (od.count != null) return od.count;
+    if (od.online != null) return od.online;
+    return null;
+  }
+
+  // ── ONLINE POLL: har 20 soniyada (upsert_visit + get_online_count) ──
+  function _pollOnline() {
+    clearTimeout(_onlineTimer);
+    if (document.visibilityState === 'hidden') return;
+    if (typeof SUPA_PROXY === 'undefined') return;
+
+    if (_abortOnline) { _abortOnline.abort(); }
+    _abortOnline = new AbortController();
+    var sig = _abortOnline.signal;
+
+    Promise.allSettled([
+      _req({ path: '/rest/v1/rpc/upsert_visit',     method: 'POST', body: { p_user_id: _uid() } }, sig),
+      _req({ path: '/rest/v1/rpc/get_online_count', method: 'POST', body: {} }, sig),
+    ]).then(function(results) {
+      var onlineRes = results[1];
       if (onlineRes.status === 'fulfilled' && onlineRes.value.ok) {
         return onlineRes.value.json().then(function(od) {
-          if (od != null) out.online = typeof od === 'number' ? od : (od.count != null ? od.count : null);
-          return out;
-        }).catch(function() { return null; });
+          var n = _parseOnline(od);
+          if (n != null) {
+            _lastOnline = n;
+            _cacheSet(CK_ONLINE, { online: n });
+            _drawAll(_lastOnline, _lastStats ? _lastStats.today : null, _lastStats ? _lastStats.total : null);
+            if (_bc) { try { _bc.postMessage({ online: _lastOnline }); } catch(e) {} }
+          }
+          _onlineFail = 0;
+        }).catch(function() {});
       }
-      return null;
-    });
-  }
-
-  // Keyingi poll vaqtini hisoblash: muvaffaqiyatda 30s, har xatolikda 2x (max 5 daqiqa)
-  function _nextDelay() {
-    if (_failCount === 0) return 2 * 60 * 1000; // 2 daqiqa
-    return Math.min(2 * 60 * 1000 * Math.pow(2, _failCount), 10 * 60 * 1000); // max 10 daqiqa
-  }
-
-  function _poll() {
-    clearTimeout(_pollTimer);
-
-    // Tab yashirilgan bo'lsa poll qilma — ko'rinadigan bo'lganda qayta boshlaydi
-    if (document.visibilityState === 'hidden') return;
-
-    // Oldingi so'rovni bekor qil
-    if (_abortCtrl) { _abortCtrl.abort(); }
-    _abortCtrl = new AbortController();
-
-    _fetchAll(_abortCtrl.signal).then(function(data) {
-      if (!data) { _failCount++; _pollTimer = setTimeout(_poll, _nextDelay()); return; }
-      _failCount = 0;
-
-      // Qiymatlarni saqlash va ko'rsatish
-      if (data.online != null) { _lastOnline = data.online; _cacheSet(CK_ONLINE, { online: data.online }); }
-      if (data.today != null || data.total != null) {
-        _lastStats = { today: data.today, total: data.total };
-        _cacheSet(CK_STATS, _lastStats);
-      }
-
-      _drawAll(
-        _lastOnline,
-        _lastStats ? _lastStats.today : null,
-        _lastStats ? _lastStats.total : null
-      );
-
-      // Boshqa tablarga yetkazing
-      if (_bc) { try { _bc.postMessage({ online: _lastOnline, today: data.today, total: data.total }); } catch(e) {} }
-
-      _pollTimer = setTimeout(_poll, _nextDelay());
+      _onlineFail++;
     }).catch(function(e) {
-      if (e && e.name === 'AbortError') return; // biz o'chirganimiz — xato emas
-      _failCount++;
-      _pollTimer = setTimeout(_poll, _nextDelay());
+      if (e && e.name === 'AbortError') return;
+      _onlineFail++;
+    }).then(function() {
+      var delay = _onlineFail === 0
+        ? ONLINE_INTERVAL
+        : Math.min(ONLINE_INTERVAL * Math.pow(2, _onlineFail), 5 * 60 * 1000);
+      _onlineTimer = setTimeout(_pollOnline, delay);
     });
+  }
+
+  // ── STATS POLL: har 3 daqiqada (get_site_stats) ──
+  function _pollStats() {
+    clearTimeout(_statsTimer);
+    if (document.visibilityState === 'hidden') return;
+    if (typeof SUPA_PROXY === 'undefined') return;
+
+    if (_abortStats) { _abortStats.abort(); }
+    _abortStats = new AbortController();
+
+    _req({ path: '/rest/v1/rpc/get_site_stats', method: 'POST', body: {} }, _abortStats.signal)
+      .then(function(res) {
+        if (!res.ok) { _statsFail++; return; }
+        return res.json().then(function(sd) {
+          if (sd) {
+            _lastStats = { today: sd.today, total: sd.total };
+            _cacheSet(CK_STATS, _lastStats);
+            _drawAll(_lastOnline, _lastStats.today, _lastStats.total);
+            if (_bc) { try { _bc.postMessage({ today: _lastStats.today, total: _lastStats.total }); } catch(e) {} }
+          }
+          _statsFail = 0;
+        });
+      })
+      .catch(function(e) {
+        if (e && e.name === 'AbortError') return;
+        _statsFail++;
+      })
+      .then(function() {
+        var delay = _statsFail === 0
+          ? STATS_INTERVAL
+          : Math.min(STATS_INTERVAL * Math.pow(2, _statsFail), 15 * 60 * 1000);
+        _statsTimer = setTimeout(_pollStats, delay);
+      });
   }
 
   function _init() {
@@ -176,21 +190,26 @@
       };
     }
 
-    // 3) Network so'rovi — requestIdleCallback orqali (asosiy thread band bo'lmaganda)
-    var _go = function() { _poll(); };
+    // 3) Network so'rovlari — alohida sikllarda
+    var _go = function() {
+      _pollOnline(); // darhol, keyin har 20 soniyada
+      _pollStats();  // darhol, keyin har 3 daqiqada
+    };
     if (typeof requestIdleCallback !== 'undefined') requestIdleCallback(_go, { timeout: 2000 });
     else setTimeout(_go, 300);
 
     // 4) Tab ko'rinadigan bo'lganda pollni qayta boshlash
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') {
-        // Ko'rinadigan bo'ldi — cache yangilangan bo'lishi mumkin, darhol poll
-        _failCount = 0;
-        _poll();
+        _onlineFail = 0;
+        _statsFail  = 0;
+        _pollOnline();
+        _pollStats();
       } else {
-        // Yashirildi — pollni to'xtat
-        clearTimeout(_pollTimer);
-        if (_abortCtrl) { _abortCtrl.abort(); _abortCtrl = null; }
+        clearTimeout(_onlineTimer);
+        clearTimeout(_statsTimer);
+        if (_abortOnline) { _abortOnline.abort(); _abortOnline = null; }
+        if (_abortStats)  { _abortStats.abort();  _abortStats  = null; }
       }
     });
   }
