@@ -2330,7 +2330,9 @@ function init() {
   setupScroll();
   setupTrendingScroll();
 
-  Promise.all([_syncUserData(), _syncSiteResources(), applyDeletedResources()]).then(() => {
+  // _syncSiteResources() va applyDeletedResources() ketma-ket — avval sync, keyin delete
+  // (parallel bo'lsa deleted resurs qayta qo'shilishi mumkin edi)
+  Promise.all([_syncUserData(), _syncSiteResources()]).then(() => applyDeletedResources()).then(() => {
     renderNav();
     renderContent();
     if(typeof window._hideLoader === 'function') window._hideLoader();
