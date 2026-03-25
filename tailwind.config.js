@@ -56,6 +56,8 @@ module.exports = {
     'line-clamp-1','line-clamp-2','line-clamp-3',
     // font-awesome spin
     'fa-spin',
+    // Checkbox accent rangi
+    'accent-violet-500',
   ],
   plugins: [],
 }

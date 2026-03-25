@@ -179,7 +179,7 @@ window.openListBuilderModal = function(){
                 const hasWeb  = item.t?.includes('web');
                 const isBepul = item.t?.includes('bepul');
                 return `<label class="builder-item flex items-start gap-3 p-3 rounded-2xl border border-transparent hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50 dark:has-[:checked]:bg-violet-500/15 dark:has-[:checked]:border-violet-500/60" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
-                  <input type="checkbox" class="builder-chk mt-0.5 w-4 h-4 rounded accent-violet-500 shrink-0" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
+                  <input type="checkbox" class="builder-chk mt-0.5 w-4 h-4 rounded shrink-0" style="accent-color:#8b5cf6" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5 mb-0.5">
                       <div class="card-logo-wrap w-8 h-8 rounded-xl shrink-0">
@@ -607,7 +607,7 @@ function toggleBuilderQr(url){
 
 async function detectShareHash(){
 
-  const pathMatch = location.pathname.match(/\/share-([a-z0-9]{4,16})$/i);
+  const pathMatch = location.pathname.match(/\/share-([a-z0-9]{4,16})\/?$/i);
 
   const hashLMatch = !pathMatch && location.hash.match(/^#l=([a-z0-9]{4,16})$/);
 
@@ -618,7 +618,7 @@ async function detectShareHash(){
     else history.replaceState(null,'', location.pathname + location.search);
 
 
-    showListPage({title:'Yuklanmoqda...', items:[]}, code, 0);
+    try{ showListPage({title:'Yuklanmoqda...', items:[]}, code, 0); } catch(e){ console.error('[share] loading modal:', e.message); }
 
     try{
       const res = await fetch(SUPA_PROXY,{
@@ -628,7 +628,8 @@ async function detectShareHash(){
       if(res.ok){
         const rows = await res.json();
         if(Array.isArray(rows)&&rows[0]){
-          const data = JSON.parse(rows[0].data);
+          const _raw = rows[0].data;
+          const data = typeof _raw === 'string' ? JSON.parse(_raw) : _raw;
           if(data&&Array.isArray(data.items)&&data.items.length){
             fetch(SUPA_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
               body:JSON.stringify({path:'/rest/v1/rpc/increment_list_views',method:'POST',body:{p_id:code}})
@@ -641,7 +642,7 @@ async function detectShareHash(){
           }
         }
       }
-    }catch(e){console.warn('[share]',e.message);}
+    }catch(e){console.error('[share] fetch/render:', e.message, e.stack);}
 
     const existing = document.getElementById('importListModal');
     if(existing) existing.remove();
@@ -657,7 +658,7 @@ async function detectShareHash(){
   if(!fullMatch) return;
   const data = decodeShareList(fullMatch[1]);
   if(!data||!Array.isArray(data.items)||!data.items.length) return;
-  showListPage(data, null, 0);
+  try{ showListPage(data, null, 0); } catch(e){ console.error('[share] hash modal:', e.message); }
 }
 
 
@@ -670,8 +671,8 @@ function showListPage(data, shortCode, viewCount){
   const ts       = data.ts ? new Date(data.ts).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
   const shareUrl = shortCode ? `https://elink.uz/share-${shortCode}` : location.href;
   const existNames = new Set([
-    ...customApps.map(i=>i.n.toLowerCase()),
-    ...DATA.flatMap(c=>c.items.map(i=>i.n.toLowerCase()))
+    ...(Array.isArray(customApps) ? customApps.map(i=>(i.n||'').toLowerCase()) : []),
+    ...(Array.isArray(window.DATA) ? window.DATA.flatMap(c=>(c.items||[]).map(i=>(i.n||'').toLowerCase())) : [])
   ]);
 
   const modal = document.createElement('div');
@@ -738,8 +739,9 @@ function showListPage(data, shortCode, viewCount){
           const isMob  = (item.t||[]).includes('mobil');
           const isCustom = item.isCustom || item.c;
           const openUrl  = item.u || item.android || item.ios || '';
+          const domain   = getDomain(openUrl);
           return `<label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group ${exists?'bg-emerald-50/40 dark:bg-emerald-500/5':''}">
-            <input type="checkbox" class="import-chk w-4 h-4 rounded accent-violet-500 shrink-0" data-idx="${idx}" ${exists?'':'checked'}>
+            <input type="checkbox" class="import-chk w-4 h-4 rounded shrink-0" style="accent-color:#8b5cf6" data-idx="${idx}" ${exists?'':'checked'}>
             <div class="card-logo-wrap w-9 h-9 rounded-xl shrink-0 relative shadow-sm ${exists?'ring-2 ring-emerald-400/60':''}">
               ${iconHTML(item, 'w-full h-full object-contain')}
               ${exists?`<div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm z-10"><i class="fa-solid fa-check text-white text-[7px]"></i></div>`:''}
