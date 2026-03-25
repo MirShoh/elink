@@ -41,6 +41,39 @@ function escHtml(str){
 const SUPA_PROXY = '/.netlify/functions/supabase';
 
 
+// ─── Admin o'chirgan resurslarni DATA dan filtrlab chiqarish ──────────────────
+// Supabase `deleted_resources` jadvalidan nomlar ro'yxatini olib,
+// window.DATA massividan mos itemlarni olib tashlaydi.
+// render.js dagi init() da Promise.all ichida chaqiriladi.
+async function applyDeletedResources() {
+  try {
+    const res = await fetch(SUPA_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: '/rest/v1/deleted_resources?select=name',
+        method: 'GET'
+      })
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) return;
+    const deletedNames = new Set(rows.map(r => (r.name || '').toLowerCase()));
+    if (!deletedNames.size) return;
+    if (Array.isArray(window.DATA)) {
+      window.DATA.forEach(cat => {
+        cat.items = (cat.items || []).filter(
+          item => !deletedNames.has((item.n || '').toLowerCase())
+        );
+      });
+    }
+    console.log('[E-Link] deleted_resources applied:', deletedNames.size, 'ta');
+  } catch (e) {
+    console.warn('[E-Link] deleted_resources yuklanmadi:', e.message);
+  }
+}
+
+
 function getOrCreateUserId(){
   let uid = localStorage.getItem('lh_uid');
   if(!uid){
@@ -499,5 +532,3 @@ if(foundItem){
   renderRecent();
 }
 }
-
-

@@ -2,9 +2,6 @@
 (function () {
   'use strict';
 
-  var TODAY_BASE = 52;
-  var TOTAL_BASE = 3100;
-
   // Cache kalitlari va muddatlari
   var CK_STATS  = 'elink_stats_v2';   // today + total: 3 daqiqa
   var CK_ONLINE = 'elink_online_v2';  // online: 30 soniya
@@ -59,8 +56,8 @@
     var eD = document.getElementById('esfToday');
     var eT = document.getElementById('esfTotal');
     if (eO && online != null) eO.textContent = String(Math.max(1, online));
-    if (eD) eD.textContent = today != null ? _fmt(Math.max(0, today) + TODAY_BASE) : _fmt(TODAY_BASE);
-    if (eT) eT.textContent = total != null ? _fmt(Math.max(0, total) + TOTAL_BASE) : _fmt(TOTAL_BASE);
+    if (eD) eD.textContent = today != null ? _fmt(Math.max(0, today)) : '—';
+    if (eT) eT.textContent = total != null ? _fmt(Math.max(0, total)) : '—';
   }
 
   // localStorage cache yozish/o'qish

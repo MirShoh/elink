@@ -1,6 +1,6 @@
 {
-  "name": "eLink UZ — Onlayn resurslar katalogi",
-  "short_name": "eLink UZ",
+  "name": "eLink — Onlayn resurslar katalogi",
+  "short_name": "eLink",
   "description": "O'zbekiston uchun 3000+ onlayn resurs: davlat xizmatlari, AI, ta'lim, tibbiyot va ko'proq.",
   "start_url": "/",
   "scope": "/",

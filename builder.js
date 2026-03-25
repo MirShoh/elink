@@ -875,7 +875,7 @@ detectShareHash();
   const STEPS = [
     {
       id:0, iconFA:'fa-link',
-      title:"eLink UZ ga\nxush kelibsiz!",
+      title:"eLink ga\nxush kelibsiz!",
       subtitle:"O'zbekistonning eng katta onlayn resurslar katalogi. 3000+ foydali sayt va ilova — bitta joyda.",
       feats:[
         {faIco:'fa-layer-group',     bg:'from-violet-500 to-fuchsia-500', title:'3000+ resurs katalogi',     desc:"Ta'lim, davlat xizmatlari, AI vositalar va yana ko'plab sohalar"},

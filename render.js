@@ -2330,7 +2330,7 @@ function init() {
   setupScroll();
   setupTrendingScroll();
 
-  Promise.all([_syncUserData(), _syncSiteResources()]).then(() => {
+  Promise.all([_syncUserData(), _syncSiteResources(), applyDeletedResources()]).then(() => {
     renderNav();
     renderContent();
     if(typeof window._hideLoader === 'function') window._hideLoader();
