@@ -37,6 +37,37 @@ function getAllCatalogItems(){
   return all;
 }
 
+/* Katalogdan to'liq item ma'lumotini (logoUrl, android, ios) olish */
+function _enrichFromCatalog(item){
+  if(item._enriched) return item;
+  const all = getAllCatalogItems();
+  const found = all.find(ci => ci.n === item.n);
+  if(found){
+    return {
+      ...item,
+      logoUrl:    found.logoUrl    || found.logo_url || item.logoUrl || '',
+      androidUrl: found.androidUrl || item.androidUrl || '',
+      iosUrl:     found.iosUrl     || item.iosUrl     || '',
+      _enriched: true
+    };
+  }
+  return {...item, _enriched: true};
+}
+
+/* --- Share tarixi (localStorage) --- */
+const SHARE_HIST_KEY = 'lh_my_shares_v2';
+function _getShareHistory(){
+  try{ return JSON.parse(localStorage.getItem(SHARE_HIST_KEY)||'[]'); }catch(e){ return []; }
+}
+function _saveShareHistory(entries){
+  try{ localStorage.setItem(SHARE_HIST_KEY, JSON.stringify(entries.slice(0,30))); }catch(e){}
+}
+function _addShareToHistory(entry){
+  const hist = _getShareHistory().filter(h => h.url !== entry.url);
+  hist.unshift(entry);
+  _saveShareHistory(hist);
+}
+
 
 let _builderSelected = new Map(); 
 
@@ -485,13 +516,21 @@ window.openBuilderShareStep = function(){
       <!-- Preview favicons -->
       <div class="flex items-center gap-1 mb-4 flex-wrap">
         ${[..._builderSelected.values()].slice(0,7).map(i=>{
-          const domain = getDomain(i.u||'');
-          return `<div class="w-7 h-7 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
-            ${domain ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" class="w-6 h-6 object-contain" onerror="this.style.display='none'">` : `<i class="fa-solid fa-globe text-slate-300 text-xs"></i>`}
+          const enriched = _enrichFromCatalog(i);
+          // logoUrl mavjud bo'lsa to'g'ridan-to'g'ri ko'rsat, aks holda favicon
+          const domain = enriched.u ? (enriched.u.match(/^(?:https?:\/\/)?(?:www\.)?([^\/\?#]+)/)?.[1]||'') : '';
+          const imgSrc = enriched.logoUrl || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '');
+          return `<div class="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
+            ${imgSrc
+              ? `<img src="${imgSrc}" class="w-full h-full object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" loading="eager"><span class="hidden w-full h-full items-center justify-center text-slate-400 text-[10px] font-black">${(enriched.n||'?').slice(0,1).toUpperCase()}</span>`
+              : `<span class="w-full h-full flex items-center justify-center text-slate-400 text-[10px] font-black bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/20 dark:to-fuchsia-500/20">${(enriched.n||'?').slice(0,1).toUpperCase()}</span>`
+            }
           </div>`;
         }).join('')}
         ${_builderSelected.size > 7 ? `<span class="text-[11px] font-bold text-slate-400 ml-1">+${_builderSelected.size-7}</span>` : ''}
       </div>
+
+
 
       <!-- Form -->
       <div class="space-y-3 mb-4">
@@ -542,7 +581,7 @@ window.openBuilderShareStep = function(){
       </div>
 
       <!-- Buttons -->
-      <div class="flex gap-2">
+      <div class="flex gap-2" id="bsBtnRow">
         <button onclick="generateBuilderLink()" id="bsGenBtn"
           class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98]">
           <i class="fa-solid fa-wand-magic-sparkles"></i> Havola yaratish
@@ -557,6 +596,12 @@ window.openBuilderShareStep = function(){
   setTimeout(()=>{
     document.getElementById('builderShareBox').classList.remove('scale-95','opacity-0');
     document.getElementById('builderShareBox').classList.add('scale-100','opacity-100');
+    // History preview lz-img larni kuzatish
+    if(typeof _imgObserver !== 'undefined' && _imgObserver){
+      modal.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
+    } else {
+      modal.querySelectorAll('.lz-img').forEach(img => { if(img.dataset.src) img.src = img.dataset.src; });
+    }
   },10);
   if(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && navigator.share){
     const nb = document.getElementById('bsNativeBtn');
@@ -584,12 +629,18 @@ window.generateBuilderLink = async function(){
   const author = document.getElementById('bsAuthor')?.value.trim() || '';
   if(genBtn){ genBtn.disabled=true; genBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saqlanmoqda...'; }
 
-  const items = [..._builderSelected.values()].map(i=>({
-    n:i.n, u:i.u||'',
-    ...(i.d?{d:i.d}:{}),
-    ...(i.t&&i.t.length?{t:i.t}:{}),
-    ...(i.isCustom?{c:1}:{})
-  }));
+  const items = [..._builderSelected.values()].map(i=>{
+    const enriched = _enrichFromCatalog(i);
+    return {
+      n: enriched.n, u: enriched.u||'',
+      ...(enriched.d?{d:enriched.d}:{}),
+      ...(enriched.t&&enriched.t.length?{t:enriched.t}:{}),
+      ...(enriched.isCustom?{c:1}:{}),
+      ...(enriched.logoUrl?{logoUrl:enriched.logoUrl}:{}),
+      ...(enriched.androidUrl?{androidUrl:enriched.androidUrl}:{}),
+      ...(enriched.iosUrl?{iosUrl:enriched.iosUrl}:{})
+    };
+  });
   const data = {v:3, title, ...(author?{a:author}:{}), items, ts:Date.now()};
 
   let shortCode=null;
@@ -613,6 +664,9 @@ window.generateBuilderLink = async function(){
   }
   window._bsUrl=url; window._bsTitle=title;
 
+  // Tarixga saqlash
+  _addShareToHistory({url, title, code: shortCode||null, ts: Date.now(), count: items.length});
+
   const wrap=document.getElementById('bsLinkWrap');
   const txt=document.getElementById('bsLinkText');
   if(wrap) wrap.classList.remove('hidden');
@@ -620,6 +674,19 @@ window.generateBuilderLink = async function(){
   const badge=document.getElementById('bsLinkBadge');
   if(badge) badge.textContent = shortCode ? `✓ ${url.length} belgi` : '(offline)';
   if(genBtn){genBtn.disabled=false; genBtn.innerHTML='<i class="fa-solid fa-rotate-right mr-1"></i> Yangilash';}
+
+  // Yaratilgandan keyin pastki tugmani "Nusxalash" ga o'zgartirish
+  const btnRow = document.getElementById('bsBtnRow');
+  if(btnRow){
+    btnRow.innerHTML = `
+      <button onclick="copyBuilderLink()" id="bsCopyMainBtn"
+        class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3 text-sm transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98]">
+        <i class="fa-solid fa-copy"></i> Havolani nusxalash
+      </button>
+      <button id="bsNativeBtn2" onclick="nativeBuilderShare()" class="${/Mobi|Android|iPhone/i.test(navigator.userAgent)&&navigator.share?'flex':'hidden'} shrink-0 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-600 transition-all items-center justify-center">
+        <i class="fa-solid fa-share-nodes text-sm"></i>
+      </button>`;
+  }
 
 
   if(/Mobi|Android|iPhone/i.test(navigator.userAgent)&&navigator.share){
@@ -741,7 +808,7 @@ async function detectShareHash(){
 function showListPage(data, shortCode, viewCount){
   const existing = document.getElementById('importListModal');
   if(existing) existing.remove();
-  const items    = data.items||[];
+  const items    = (data.items||[]).map(_enrichFromCatalog);
   const title    = data.title||"Ulashilgan ro'yxat";
   const author   = data.a||data.author||'';
   const ts       = data.ts ? new Date(data.ts).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
@@ -781,10 +848,9 @@ function showListPage(data, shortCode, viewCount){
         <!-- Favicon strip -->
         <div class="flex items-center gap-1.5 mt-3 flex-wrap">
           ${items.slice(0,12).map(item=>{
-            const d=getDomain(item.u||'');
-            return d ? `<div class="w-7 h-7 rounded-lg bg-white/25 overflow-hidden flex items-center justify-center shrink-0 border border-white/20">
-              <img src="https://www.google.com/s2/favicons?domain=${d}&sz=32" class="w-5 h-5" loading="lazy" onerror="this.style.display='none'">
-            </div>` : '';
+            return `<div class="w-8 h-8 rounded-lg bg-white/25 overflow-hidden flex items-center justify-center shrink-0 border border-white/20">
+              ${iconHTML(item, 'w-full h-full object-contain')}
+            </div>`;
           }).join('')}
           ${items.length>12?`<span class="text-white/70 text-[11px] font-bold">+${items.length-12}</span>`:''}
         </div>
@@ -793,7 +859,7 @@ function showListPage(data, shortCode, viewCount){
       <!-- Share bar -->
       <div class="shrink-0 px-3 py-2 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center gap-2">
         <div class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate select-text">${shareUrl}</div>
-        <button onclick="copyImportUrl('${shareUrl.replace(/'/g,"\\'")}','this')" class="w-8 h-8 flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all active:scale-95 shrink-0" title="Nusxalash">
+        <button onclick="copyImportUrl('${shareUrl.replace(/'/g,"\\'")}',this)" class="w-8 h-8 flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all active:scale-95 shrink-0" title="Nusxalash">
           <i class="fa-solid fa-copy text-xs"></i>
         </button>
         <button onclick="window.open('https://t.me/share/url?url='+encodeURIComponent('${shareUrl}')+'&text='+encodeURIComponent('${title.replace(/'/g,"\\'")} — E-Link UZ'),'_blank')"
@@ -814,7 +880,7 @@ function showListPage(data, shortCode, viewCount){
           const hasWeb = (item.t||[]).includes('web');
           const isMob  = (item.t||[]).includes('mobil');
           const isCustom = item.isCustom || item.c;
-          const openUrl  = item.u || item.android || item.ios || '';
+          const openUrl  = item.u || item.androidUrl || item.iosUrl || '';
           const domain   = getDomain(openUrl);
           return `<label class="flex items-center gap-3 px-2.5 py-2.5 rounded-2xl hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group ${exists?'bg-emerald-50/40 dark:bg-emerald-500/5':''}">
             <input type="checkbox" class="import-chk w-4 h-4 rounded shrink-0" style="accent-color:#8b5cf6" data-idx="${idx}" ${exists?'':'checked'}>
@@ -859,10 +925,16 @@ function showListPage(data, shortCode, viewCount){
     </div>`;
 
   document.body.appendChild(modal);
-  window._importData = data;
+  window._importData = {...data, items}; // enrich qilingan items
   requestAnimationFrame(()=> requestAnimationFrame(()=>{
     const box = document.getElementById('importListBox');
     if(box){box.classList.remove('translate-y-4','opacity-0');box.classList.add('translate-y-0','opacity-100');}
+    // Lazy img observer — banner + list ichidagi barcha lz-img lar
+    if(typeof _imgObserver !== 'undefined' && _imgObserver){
+      modal.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
+    } else {
+      modal.querySelectorAll('.lz-img').forEach(img => { if(img.dataset.src) img.src = img.dataset.src; });
+    }
   }));
   updateImportSelCount();
   modal.querySelectorAll('.import-chk').forEach(c=>c.addEventListener('change',updateImportSelCount));
@@ -872,10 +944,29 @@ function showListPage(data, shortCode, viewCount){
 function showImportModal(data){ showListPage(data,null,0); }
 
 
-window.copyImportUrl = async function(url){
+window.copyImportUrl = async function(url, btn){
   try{ await navigator.clipboard.writeText(url); }
   catch(e){ const t=document.createElement('input');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
   showToast('Havola nusxalandi! 🎉','fa-link text-violet-400');
+  if(btn && btn instanceof Element){
+    const orig = btn.innerHTML;
+    btn.innerHTML='<i class="fa-solid fa-check text-xs"></i>';
+    btn.classList.add('bg-emerald-500');
+    setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove('bg-emerald-500'); }, 2200);
+  }
+};
+
+window.copyHistoryLink = async function(url, btn){
+  try{ await navigator.clipboard.writeText(url); }
+  catch(e){ const t=document.createElement('input');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
+  showToast('Havola nusxalandi! 🎉','fa-link text-violet-400');
+  if(btn){ btn.innerHTML='<i class="fa-solid fa-check text-[9px]"></i>'; setTimeout(()=>{ btn.innerHTML='<i class="fa-solid fa-copy text-[9px]"></i>'; },2000); }
+};
+
+window.reshareHistoryLink = function(url, title){
+  if(!url) return;
+  const tgUrl = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent((title||"E-Link ro'yxati")+' — E-Link UZ');
+  window.open(tgUrl,'_blank');
 };
 
 
@@ -916,12 +1007,17 @@ window.doImport = function(){
   selected.forEach(item=>{
     const already = customApps.some(a=>a.n.toLowerCase()===(item.n||'').toLowerCase());
     if(already){ skipped++; return; }
-    const newApp = { n:item.n, u:item.u||'', d:item.d||'', t:item.t||[], isCustom:true };
+    const newApp = {
+      n: item.n, u: item.u||'', d: item.d||'', t: item.t||[], isCustom: true,
+      ...(item.logoUrl    ? {logoUrl:    item.logoUrl}    : {}),
+      ...(item.androidUrl ? {androidUrl: item.androidUrl} : {}),
+      ...(item.iosUrl     ? {iosUrl:     item.iosUrl}     : {})
+    };
 
     const aUrl = item.androidUrl || item.android || '';
     const iUrl = item.iosUrl     || item.ios     || '';
-    if(aUrl) newApp.androidUrl = aUrl;
-    if(iUrl) newApp.iosUrl     = iUrl;
+    if(aUrl && !newApp.androidUrl) newApp.androidUrl = aUrl;
+    if(iUrl && !newApp.iosUrl)     newApp.iosUrl     = iUrl;
     customApps.push(newApp);
     added++;
   });

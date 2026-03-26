@@ -221,7 +221,7 @@
   }
 
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', _init) : _init();
-})()
+})();
 
 
 /* ── BLOK 2: DARK/LIGHT TOGGLE ───────────────────────────────────── */

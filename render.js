@@ -1289,24 +1289,33 @@ function _renderMyApps(container, token){
 
 
   const banner = document.createElement('div');
+  const _histCount = (()=>{ try{ return JSON.parse(localStorage.getItem('lh_my_shares_v2')||'[]').length; }catch(e){ return 0; } })();
+  const _histBtn = _histCount > 0
+    ? `<button onclick="openShareHistoryDrawer()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.7);border:1px solid rgba(139,92,246,0.35);border-radius:12px;padding:7px 12px;font-size:12px;font-weight:800;color:#7c3aed;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s" onmouseover="this.style.background='rgba(237,233,254,0.9)'" onmouseout="this.style.background='rgba(255,255,255,0.7)'"><i class="fa-solid fa-share-nodes" style="font-size:10px;"></i> Ulashganlar <span style="background:rgba(139,92,246,0.15);color:#7c3aed;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;">${_histCount}</span></button>`
+    : '';
   banner.innerHTML = `
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 dark:from-violet-500/20 dark:to-fuchsia-500/20 border-2 border-violet-300/50 dark:border-violet-600/50 shadow-sm">
-      <div class="flex items-center gap-3 flex-1 min-w-0">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/30 shrink-0">
-          <i class="fa-solid fa-list-check text-base"></i>
-        </div>
-        <div class="min-w-0">
-          <p class="text-sm font-black text-slate-800 dark:text-white leading-snug">Ro'yxat tuzish va ulashish</p>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Resurslarni qo'shing va qisqa havola orqali ulashing</p>
-        </div>
+    <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:16px;background:linear-gradient(to right,rgba(139,92,246,0.12),rgba(217,70,239,0.12));border:2px solid rgba(139,92,246,0.25);box-shadow:0 1px 4px rgba(139,92,246,0.08);">
+      <!-- Icon -->
+      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#d946ef);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 14px rgba(139,92,246,0.35);flex-shrink:0;">
+        <i class="fa-solid fa-list-check" style="font-size:16px;"></i>
       </div>
-      <button onclick="openListBuilderModal()" class="shrink-0 flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-black rounded-xl px-4 py-2.5 text-[12px] transition-all shadow-lg shadow-violet-500/30 active:scale-[0.98] whitespace-nowrap">
-        <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i> Ro'yxat tuzish
-      </button>
+      <!-- Text -->
+      <div style="flex:1;min-width:0;">
+        <p style="font-size:14px;font-weight:900;color:#1e1b4b;line-height:1.3;margin:0;">Ro\u2019yxat tuzish va ulashish</p>
+        <p style="font-size:11px;color:#64748b;margin:3px 0 0;line-height:1.4;">Resurslarni qo\u2019shing va qisqa havola orqali ulashing</p>
+      </div>
+      <!-- Buttons -->
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        ${_histBtn}
+        <button onclick="openListBuilderModal()" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#8b5cf6,#d946ef);color:#fff;font-size:12px;font-weight:800;border:none;border-radius:12px;padding:9px 18px;cursor:pointer;box-shadow:0 4px 14px rgba(139,92,246,0.35);white-space:nowrap;transition:opacity .15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+          <i class="fa-solid fa-wand-magic-sparkles" style="font-size:11px;"></i> Ro\u2019yxat tuzish
+        </button>
+      </div>
     </div>`;
   sec.appendChild(banner);
 
-
+  /* ── ULASHILGAN RO'YXATLAR — BANNER ICHIDA ─────────────────── */
+  const hist = (()=>{ try{ return JSON.parse(localStorage.getItem('lh_my_shares_v2')||'[]'); }catch(e){ return []; } })();
   if(customApps.length === 0){
     const emptyGuide = document.createElement('div');
     emptyGuide.innerHTML = `
@@ -2498,4 +2507,255 @@ window.setSortMode = function(val){
   const chev = document.getElementById('topSortChevron');
   if(menu) menu.classList.add('hidden');
   if(chev) chev.style.transform = '';
+};
+
+/* ── ULASHILGAN RO'YXATLAR — helper funksiyalar ──────────────────── */
+
+async function _loadShareViews(histSlice){
+  const codes = histSlice.map((h,idx)=>({code:h.code,idx})).filter(x=>x.code);
+  if(!codes.length) return;
+  try{
+    const ids = codes.map(x=>x.code).join(',');
+    const res = await fetch(typeof SUPA_PROXY!=='undefined'?SUPA_PROXY:'/.netlify/functions/supabase',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({path:'/rest/v1/shared_lists?id=in.('+ids+')&select=id,views',method:'GET'})
+    });
+    if(!res.ok) return;
+    const rows = await res.json();
+    if(!Array.isArray(rows)) return;
+    rows.forEach(row=>{
+      const entry = codes.find(x=>x.code===row.id);
+      if(!entry) return;
+      const el = document.getElementById('shViews_'+entry.idx);
+      if(!el) return;
+      const v = row.views||0;
+      el.innerHTML = `<i class="fa-solid fa-eye text-violet-400 text-[9px]"></i><span class="text-violet-500 dark:text-violet-400 font-black">${v.toLocaleString()}</span><span class="text-slate-400 font-normal"> ko'rildi</span>`;
+    });
+  }catch(e){ console.warn('[shareViews]',e.message); }
+}
+
+window.copyShareHistUrl = async function(url, btn){
+  try{ await navigator.clipboard.writeText(url); }
+  catch(e){ const t=document.createElement('input');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
+  showToast('Havola nusxalandi! 🎉','fa-link text-violet-400');
+  if(btn){
+    const orig=btn.innerHTML;
+    btn.innerHTML='<i class="fa-solid fa-check text-[10px]"></i> Nusxalandi';
+    btn.classList.add('bg-emerald-50','dark:bg-emerald-500/15','text-emerald-600','dark:text-emerald-400','border-emerald-200');
+    btn.classList.remove('bg-violet-50','dark:bg-violet-500/15','text-violet-600','dark:text-violet-400','border-violet-100');
+    setTimeout(()=>{
+      btn.innerHTML=orig;
+      btn.classList.remove('bg-emerald-50','dark:bg-emerald-500/15','text-emerald-600','dark:text-emerald-400','border-emerald-200');
+      btn.classList.add('bg-violet-50','dark:bg-violet-500/15','text-violet-600','dark:text-violet-400','border-violet-100');
+    },2200);
+  }
+};
+
+window.deleteShareHistory = function(url){
+  // Tasdiqlash dialogi
+  const existing = document.getElementById('_shareDelConfirm');
+  if(existing) existing.remove();
+  const dlg = document.createElement('div');
+  dlg.id = '_shareDelConfirm';
+  dlg.className = 'fixed inset-0 z-[700] flex items-center justify-center px-4';
+  dlg.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('_shareDelConfirm').remove()"></div>
+    <div class="relative glass rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-5 w-full max-w-xs text-center animate-fade-up">
+      <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-trash text-red-500 text-sm"></i>
+      </div>
+      <p class="text-sm font-black text-slate-800 dark:text-white mb-1">O'chirilsinmi?</p>
+      <p class="text-[11px] text-slate-400 mb-4">Bu ro'yxat tarixdan o'chiriladi</p>
+      <div class="flex gap-2">
+        <button onclick="document.getElementById('_shareDelConfirm').remove()"
+          class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+          Bekor
+        </button>
+        <button onclick="(function(){
+          document.getElementById('_shareDelConfirm').remove();
+          try{ const h=JSON.parse(localStorage.getItem('lh_my_shares_v2')||'[]'); localStorage.setItem('lh_my_shares_v2',JSON.stringify(h.filter(x=>x.url!=='${url.replace(/'/g,"\\'").replace(/\\/g,'\\\\')}')));  }catch(e){}
+          const d=document.getElementById('shareHistDrawer'); if(d) d.remove();
+          showToast('Ro\\'yxat o\\'chirildi','fa-trash text-slate-400');
+          renderContent();
+          setTimeout(openShareHistoryDrawer, 100);
+        })()"
+          class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-red-500 hover:bg-red-600 text-white transition-all active:scale-95">
+          O'chirish
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(dlg);
+};
+
+window.clearShareHistory = function(){
+  const existing = document.getElementById('_shareDelConfirm');
+  if(existing) existing.remove();
+  const dlg = document.createElement('div');
+  dlg.id = '_shareDelConfirm';
+  dlg.className = 'fixed inset-0 z-[700] flex items-center justify-center px-4';
+  dlg.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('_shareDelConfirm').remove()"></div>
+    <div class="relative glass rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-5 w-full max-w-xs text-center animate-fade-up">
+      <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-trash-can text-red-500 text-sm"></i>
+      </div>
+      <p class="text-sm font-black text-slate-800 dark:text-white mb-1">Barchasi o'chirilsinmi?</p>
+      <p class="text-[11px] text-slate-400 mb-4">Barcha ulashgan ro'yxatlar tarixdan o'chiriladi</p>
+      <div class="flex gap-2">
+        <button onclick="document.getElementById('_shareDelConfirm').remove()"
+          class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+          Bekor
+        </button>
+        <button onclick="(function(){
+          document.getElementById('_shareDelConfirm').remove();
+          localStorage.removeItem('lh_my_shares_v2');
+          const d=document.getElementById('shareHistDrawer'); if(d) d.remove();
+          showToast('Tarix tozalandi','fa-trash text-slate-400');
+          renderContent();
+        })()"
+          class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-red-500 hover:bg-red-600 text-white transition-all active:scale-95">
+          Tozalash
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(dlg);
+};
+
+/* ── ULASHILGAN RO'YXATLAR DRAWER ──────────────────────────────── */
+window.openShareHistoryDrawer = function(){
+  const existing = document.getElementById('shareHistDrawer');
+  if(existing) existing.remove();
+
+  const hist = (()=>{ try{ return JSON.parse(localStorage.getItem('lh_my_shares_v2')||'[]'); }catch(e){ return []; } })();
+  if(!hist.length) return;
+
+  const drawer = document.createElement('div');
+  drawer.id = 'shareHistDrawer';
+  drawer.className = 'fixed inset-0 z-[580] flex items-end sm:items-center justify-center';
+
+  const rows = hist.map((h,idx)=>{
+    const d = new Date(h.ts);
+    const dateStr = d.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const timeStr = d.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'});
+    const isShort = h.code && !h.url.includes('#s=');
+    const safeUrl = h.url.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeTitle = (h.title||'E-Link ro\'yxati').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const tgUrl = 'https://t.me/share/url?url='+encodeURIComponent(h.url)+'&text='+encodeURIComponent((h.title||'E-Link ro\'yxati')+' — E-Link UZ');
+    const waUrl = 'https://wa.me/?text='+encodeURIComponent((h.title||'E-Link ro\'yxati')+' — E-Link UZ\n'+h.url);
+    return `
+    <div class="flex items-center gap-3 px-4 py-3 hover:bg-violet-50/50 dark:hover:bg-violet-500/5 transition-colors group border-b border-slate-100 dark:border-slate-800/80 last:border-0">
+      <!-- Icon -->
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-share-nodes text-white text-[9px]"></i>
+      </div>
+      <!-- Info -->
+      <div class="flex-1 min-w-0 cursor-pointer" onclick="openSharedListPreview('${safeUrl}')">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[12px] font-black text-slate-800 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${escHtml(h.title||"Ro'yxat")}</p>
+          ${isShort
+            ? `<span class="shrink-0 text-[8px] font-black bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">qisqa</span>`
+            : `<span class="shrink-0 text-[8px] font-black bg-amber-50 dark:bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded-full">hash</span>`}
+        </div>
+        <p class="text-[10px] text-slate-400 leading-none mt-0.5 flex items-center gap-1">
+          <i class="fa-solid fa-layer-group text-[8px]"></i>${h.count||0} resurs
+          <span class="text-slate-200 dark:text-slate-700">·</span>${dateStr} ${timeStr}
+          ${isShort ? `<span class="text-slate-200 dark:text-slate-700">·</span><span id="shViews_${idx}"><i class="fa-solid fa-eye text-[8px] opacity-40"></i> —</span>` : ''}
+        </p>
+      </div>
+      <!-- Actions -->
+      <div class="flex items-center gap-0.5 shrink-0">
+        <button onclick="copyShareHistUrl('${safeUrl}',this)" title="Nusxalash"
+          class="h-7 px-2.5 flex items-center gap-1 rounded-lg bg-violet-500 hover:bg-violet-600 text-white text-[10px] font-bold transition-all active:scale-95 shadow-sm shadow-violet-500/20">
+          <i class="fa-solid fa-copy text-[9px]"></i> <span class="hidden sm:inline text-[10px]">Nusxalash</span>
+        </button>
+        <button onclick="window.open('${tgUrl}','_blank')" title="Telegram"
+          class="w-7 h-7 flex items-center justify-center rounded-lg text-[#2AABEE] hover:bg-[#2AABEE]/10 transition-all active:scale-95">
+          <i class="fa-brands fa-telegram text-sm"></i>
+        </button>
+        <button onclick="window.open('${waUrl}','_blank')" title="WhatsApp"
+          class="w-7 h-7 flex items-center justify-center rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+        </button>
+        <button onclick="deleteShareHistory('${safeUrl}')" title="O'chirish"
+          class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all active:scale-95">
+          <i class="fa-solid fa-trash text-[10px]"></i>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  drawer.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('shareHistDrawer').remove()"></div>
+    <div id="shareHistBox" class="relative glass w-full max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transform translate-y-4 opacity-0 transition-all duration-200 overflow-hidden" style="max-height:80dvh">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-share-nodes text-white text-[10px]"></i>
+          </div>
+          <span class="text-[13px] font-black text-slate-800 dark:text-white">Ulashgan ro'yxatlarim</span>
+          <span class="text-[10px] font-bold text-violet-500 bg-violet-50 dark:bg-violet-500/15 px-2 py-0.5 rounded-full">${hist.length}</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="clearShareHistory()" class="h-7 px-2.5 text-[10px] font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all flex items-center gap-1">
+            <i class="fa-solid fa-trash-can text-[9px]"></i> Hammasini o'chirish
+          </button>
+          <button onclick="document.getElementById('shareHistDrawer').remove()"
+            class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-all text-sm">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- List -->
+      <div class="flex-1 overflow-y-auto">
+        ${rows}
+      </div>
+    </div>`;
+
+  document.body.appendChild(drawer);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const box = document.getElementById('shareHistBox');
+    if(box){ box.style.transform='translateY(0)'; box.style.opacity='1'; }
+  }));
+
+  // Esc
+  const _esc = e=>{ if(e.key==='Escape'){ document.getElementById('shareHistDrawer')?.remove(); document.removeEventListener('keydown',_esc); } };
+  document.addEventListener('keydown', _esc);
+
+  // Views async yuklash
+  _loadShareViews(hist.slice(0,30));
+};
+
+window.openSharedListPreview = async function(url){
+  // URL dan code ni ajratib olish
+  const m = url.match(/\/share-([a-z0-9]{4,16})\/?$/i);
+  if(m){
+    const code = m[1];
+    showToast('Yuklanmoqda...','fa-spinner fa-spin text-violet-400');
+    try{
+      const res = await fetch(typeof SUPA_PROXY!=='undefined'?SUPA_PROXY:'/.netlify/functions/supabase',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({path:'/rest/v1/shared_lists?id=eq.'+code+'&select=data,views',method:'GET'})
+      });
+      if(res.ok){
+        const rows=await res.json();
+        if(Array.isArray(rows)&&rows[0]){
+          const raw=rows[0].data;
+          const data=typeof raw==='string'?JSON.parse(raw):raw;
+          if(data&&data.items) { showListPage(data,code,(rows[0].views||0)); return; }
+        }
+      }
+    }catch(e){}
+    showToast("Ro'yxat topilmadi",'fa-circle-xmark text-red-500');
+    return;
+  }
+  // Hash URL fallback
+  const hm = url.match(/#s=(.+)/);
+  if(hm){
+    const data=decodeShareList(hm[1]);
+    if(data&&data.items){ showListPage(data,null,0); return; }
+  }
+  window.open(url,'_blank');
 };

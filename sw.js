@@ -71,7 +71,8 @@ self.addEventListener('fetch', e => {
     fetch(e.request)
       .then(res => {
         if (res && res.status === 200 && e.request.url.startsWith(self.location.origin)) {
-          caches.open(CACHE_NAME).then(c => c.put(e.request, res.clone()));
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
         }
         return res;
       })
