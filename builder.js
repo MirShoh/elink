@@ -172,30 +172,8 @@ window.openListBuilderModal = function(){
         ${Object.entries(cats).map(([catId, cat])=>`
           <div class="builder-cat-group" data-cat="${catId}">
             <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1 py-2 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-slate-800/80 mb-1">${cat.title}</p>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              ${cat.items.map(item=>{
-                const key = item.n;
-                const hasMob  = item.t?.includes('mobil');
-                const hasWeb  = item.t?.includes('web');
-                const isBepul = item.t?.includes('bepul');
-                return `<label class="builder-item flex items-start gap-3 p-3 rounded-2xl border border-transparent hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50 dark:has-[:checked]:bg-violet-500/15 dark:has-[:checked]:border-violet-500/60" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
-                  <input type="checkbox" class="builder-chk mt-0.5 w-4 h-4 rounded shrink-0" style="accent-color:#8b5cf6" data-key="${key}" onchange="builderToggle(this,'${key.replace(/'/g,"\'")}')">
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-1.5 mb-0.5">
-                      <div class="card-logo-wrap w-8 h-8 rounded-xl shrink-0">
-                        ${iconHTML(item, 'w-full h-full object-contain')}
-                      </div>
-                      <p class="text-[13px] font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
-                    </div>
-                    ${item.d ? `<p class="text-[11px] text-slate-400 truncate leading-snug mt-0.5">${item.d}</p>` : ''}
-                    <div class="flex gap-1 mt-1 flex-wrap">
-                      ${isBepul ? `<span class="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full">Bepul</span>` : ''}
-                      ${hasWeb  ? `<span class="text-[9px] font-bold bg-blue-100 dark:bg-blue-500/15 text-blue-500 dark:text-blue-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-globe text-[8px] mr-0.5"></i>Web</span>` : ''}
-                      ${hasMob  ? `<span class="text-[9px] font-bold bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-mobile-screen-button text-[8px] mr-0.5"></i>Ilova</span>` : ''}
-                    </div>
-                  </div>
-                </label>`;
-              }).join('')}
+            <div class="builder-cat-items grid grid-cols-2 sm:grid-cols-3 gap-2" data-cat-id="${catId}">
+              <div class="col-span-2 sm:col-span-3 py-4 flex justify-center"><i class="fa-solid fa-spinner fa-spin text-slate-300"></i></div>
             </div>
           </div>`).join('')}
       </div>
@@ -210,6 +188,70 @@ window.openListBuilderModal = function(){
     </div>`;
 
   document.body.appendChild(modal);
+
+  // Kategoriyalarni lazy render — tezlik uchun
+  function _renderBuilderCat(catId, catItems){
+    const grid = modal.querySelector(`.builder-cat-items[data-cat-id="${catId}"]`);
+    if(!grid || grid.dataset.rendered) return;
+    grid.dataset.rendered = '1';
+    grid.innerHTML = catItems.map(item=>{
+      const key = item.n;
+      const hasMob  = item.t?.includes('mobil');
+      const hasWeb  = item.t?.includes('web');
+      const isBepul = item.t?.includes('bepul');
+      const isChecked = _builderSelected.has(key);
+      return `<label class="builder-item flex items-start gap-3 p-3 rounded-2xl border ${isChecked?'border-violet-400 bg-violet-50 dark:bg-violet-500/15 dark:border-violet-500/60':'border-transparent'} hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
+        <input type="checkbox" class="builder-chk sr-only" data-key="${key}" ${isChecked?'checked':''} onchange="builderToggle(this,'${key.replace(/'/g,"\\'")}')">
+        <div class="chk-box w-4 h-4 rounded border-2 ${isChecked?'bg-emerald-500 border-emerald-500':'border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800'} flex items-center justify-center shrink-0 mt-0.5 transition-all" onclick="this.previousElementSibling.click()">
+          <i class="fa-solid fa-check text-white text-[9px] ${isChecked?'':'hidden'}"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <div class="card-logo-wrap w-8 h-8 rounded-xl shrink-0 overflow-hidden">
+              ${iconHTML(item, 'w-8 h-8 rounded-xl object-contain')}
+            </div>
+            <p class="text-[13px] font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">${item.n}</p>
+          </div>
+          ${item.d ? `<p class="text-[11px] text-slate-400 truncate leading-snug mt-0.5">${item.d}</p>` : ''}
+          <div class="flex gap-1 mt-1 flex-wrap">
+            ${isBepul ? `<span class="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full">Bepul</span>` : ''}
+            ${hasWeb  ? `<span class="text-[9px] font-bold bg-blue-100 dark:bg-blue-500/15 text-blue-500 dark:text-blue-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-globe text-[8px] mr-0.5"></i>Web</span>` : ''}
+            ${hasMob  ? `<span class="text-[9px] font-bold bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-mobile-screen-button text-[8px] mr-0.5"></i>Ilova</span>` : ''}
+          </div>
+        </div>
+      </label>`;
+    }).join('');
+    // Lazy img
+    if(typeof _imgObserver !== 'undefined' && _imgObserver){
+      grid.querySelectorAll('.lz-img').forEach(img => _imgObserver.observe(img));
+    } else {
+      grid.querySelectorAll('.lz-img').forEach(img => { if(img.dataset.src) img.src = img.dataset.src; });
+    }
+  }
+
+  // Dastlab birinchi 3 kategoriyani darhol render qil, qolganlarni IntersectionObserver bilan
+  const catEntries = Object.entries(cats);
+  catEntries.slice(0, 3).forEach(([catId, cat]) => _renderBuilderCat(catId, cat.items));
+
+  const lazyObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(!e.isIntersecting) return;
+      const catId = e.target.dataset.cat;
+      if(catId && cats[catId]) _renderBuilderCat(catId, cats[catId].items);
+      lazyObs.unobserve(e.target);
+    });
+  }, { root: modal.querySelector('#builderList'), rootMargin: '200px' });
+
+  catEntries.slice(3).forEach(([catId]) => {
+    const group = modal.querySelector(`.builder-cat-group[data-cat="${catId}"]`);
+    if(group) lazyObs.observe(group);
+  });
+
+  // Qidiruv uchun barcha kategoriyalarni render qilish funksiyasi
+  modal._renderAllCats = function(){
+    catEntries.forEach(([catId, cat]) => _renderBuilderCat(catId, cat.items));
+  };
+
   requestAnimationFrame(()=> requestAnimationFrame(()=>{
     const box = document.getElementById('listBuilderBox');
     if(box){ box.classList.remove('translate-y-4','opacity-0'); box.classList.add('translate-y-0','opacity-100'); }
@@ -220,10 +262,27 @@ window.builderToggle = function(chk, key){
   const item = allItems.find(i => i.n === key);
   if(chk.checked && item) _builderSelected.set(key, item);
   else _builderSelected.delete(key);
+  // Vizual chk-box ni yangilash
+  const box = chk.nextElementSibling;
+  if(box && box.classList.contains('chk-box')){
+    const ico = box.querySelector('i');
+    if(chk.checked){
+      box.classList.remove('border-slate-300','dark:border-slate-500','bg-white','dark:bg-slate-800');
+      box.classList.add('bg-emerald-500','border-emerald-500');
+      if(ico) ico.classList.remove('hidden');
+    } else {
+      box.classList.add('border-slate-300','dark:border-slate-500','bg-white','dark:bg-slate-800');
+      box.classList.remove('bg-emerald-500','border-emerald-500');
+      if(ico) ico.classList.add('hidden');
+    }
+  }
   updateBuilderCount();
 };
 
 window.filterBuilderItems = function(q){
+  // Qidiruv boshlanishi bilan barcha kategoriyalarni render qil
+  const m = document.getElementById('listBuilderModal');
+  if(m && m._renderAllCats) { m._renderAllCats(); m._renderAllCats = null; }
   const term = q.trim().toLowerCase();
   document.querySelectorAll('.builder-item').forEach(el=>{
     const match = !term || el.dataset.name?.includes(term) || el.dataset.desc?.includes(term);
@@ -247,6 +306,9 @@ window.toggleBcMobile = function(){
 };
 
 window.builderSelectAll = function(val){
+  // Barcha kategoriyalarni render qil
+  const m = document.getElementById('listBuilderModal');
+  if(m && m._renderAllCats) { m._renderAllCats(); m._renderAllCats = null; }
   document.querySelectorAll('.builder-chk').forEach(chk=>{
     if(chk.closest('.builder-item')?.style.display === 'none') return;
     chk.checked = val;
@@ -256,6 +318,20 @@ window.builderSelectAll = function(val){
       const item = allItems.find(i=>i.n===key);
       if(item) _builderSelected.set(key, item);
     } else _builderSelected.delete(key);
+    // Vizual yangilash
+    const box = chk.nextElementSibling;
+    if(box && box.classList.contains('chk-box')){
+      const ico = box.querySelector('i');
+      if(val){
+        box.classList.remove('border-slate-300','dark:border-slate-500','bg-white','dark:bg-slate-800');
+        box.classList.add('bg-emerald-500','border-emerald-500');
+        if(ico) ico.classList.remove('hidden');
+      } else {
+        box.classList.add('border-slate-300','dark:border-slate-500','bg-white','dark:bg-slate-800');
+        box.classList.remove('bg-emerald-500','border-emerald-500');
+        if(ico) ico.classList.add('hidden');
+      }
+    }
   });
   updateBuilderCount();
 };

@@ -51,6 +51,9 @@
     return v;
   }
 
+  // Yangi Supabase bazasidan oldingi tarixiy foydalanuvchilar soni
+  var TOTAL_BASE = 3100;
+
   function _fmt(n) {
     if (n == null || isNaN(n)) return '—';
     if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
@@ -64,7 +67,8 @@
     var eT = document.getElementById('esfTotal');
     if (eO && online != null) eO.textContent = String(Math.max(1, online));
     if (eD) eD.textContent = today != null ? _fmt(Math.max(0, today)) : '—';
-    if (eT) eT.textContent = total != null ? _fmt(Math.max(0, total)) : '—';
+    // Jami: bazadagi son + tarixiy offset
+    if (eT) eT.textContent = total != null ? _fmt(Math.max(0, total) + TOTAL_BASE) : '—';
   }
 
   // localStorage cache yozish/o'qish
@@ -90,9 +94,11 @@
 
   function _parseOnline(od) {
     if (od == null) return null;
+    if (Array.isArray(od)) od = od[0];  // Supabase massiv qaytarsa
+    if (od == null) return null;
     if (typeof od === 'number') return od;
-    if (od.count != null) return od.count;
-    if (od.online != null) return od.online;
+    if (od.count != null) return Number(od.count);
+    if (od.online != null) return Number(od.online);
     return null;
   }
 

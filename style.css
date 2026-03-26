@@ -437,3 +437,48 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-r
 .col-card:active {
   transform: translateY(-1px) scale(.99);
 }
+
+/* ── CUSTOM CHECKBOX (builder & import modal) ──────────────── */
+.builder-chk,
+.import-chk {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px;
+  min-height: 16px;
+  border: 2px solid #cbd5e1;
+  border-radius: 5px;
+  background-color: #ffffff;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 10px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .15s, background-color .15s;
+  flex-shrink: 0;
+}
+.dark .builder-chk,
+.dark .import-chk {
+  border-color: #475569;
+  background-color: #1e293b;
+}
+.builder-chk:checked,
+.import-chk:checked {
+  background-color: #22c55e;
+  border-color: #22c55e;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='1.5,6 4.5,9 10.5,3' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+}
+.builder-chk:hover:not(:checked),
+.import-chk:hover:not(:checked) {
+  border-color: #8b5cf6;
+  background-color: #f5f3ff;
+}
+.dark .builder-chk:hover:not(:checked),
+.dark .import-chk:hover:not(:checked) {
+  border-color: #7c3aed;
+  background-color: rgba(139,92,246,.1);
+}
