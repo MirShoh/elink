@@ -1,0 +1,19 @@
+name: Deploy elink.uz
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VDS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          script: |
+            cd /var/www/elink.uz
+            git pull origin main
