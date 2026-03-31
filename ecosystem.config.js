@@ -1,24 +1,17 @@
-// PM2 konfiguratsiyasi
-// Ishga tushirish: pm2 start ecosystem.config.js
-// Reboot'dan keyin ham ishlasin: pm2 save && pm2 startup
-
 module.exports = {
   apps: [{
     name:    'elink-proxy',
     script:  'server.js',
-    cwd:     '/var/www/elink.uz',          // server.js qayerda bo'lsa shu yo'l
+    cwd:     '/var/www/elink.uz',
     instances: 1,
     autorestart: true,
     watch:   false,
     max_memory_restart: '256M',
+    env_file: '/var/www/elink.uz/.env',   // ← .env fayldan o'qiydi
     env: {
-      NODE_ENV:      'production',
-      PORT:          3001,
-      STATIC_DIR:    '/var/www/elink.uz',
-      SUPABASE_URL:  'https://XXXXXXXXXXXX.supabase.co',
-      SUPABASE_KEY:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXXXXX',
-      TG_BOT_TOKEN:  '1234567890:AAxxxxxxxx',
-      TG_CHAT_ID:    '-100xxxxxxxxxx',
+      NODE_ENV: 'production',
+      PORT:     3001,
+      STATIC_DIR: '/var/www/elink.uz',
     },
     log_date_format: 'YYYY-MM-DD HH:mm:ss',
   }]
