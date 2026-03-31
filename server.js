@@ -9,6 +9,7 @@
  *   node server.js   yoki   pm2 start server.js --name elink-proxy
  */
 
+
 const http  = require('http');
 const https = require('https');
 const fs    = require('fs');
@@ -149,6 +150,20 @@ async function handleTelegram(req, res) {
     res.writeHead(502);
     res.end(JSON.stringify({ error: e.message }));
   }
+
+  // ─── Handler: check-admin ──────────────────────────────────────
+async function handleCheckAdmin(req, res) {
+  if (req.method !== 'POST') {
+    res.writeHead(405); res.end('Method Not Allowed'); return;
+  }
+  const payload = await readBody(req);
+  const ok = payload.password === process.env.ADMIN_PASS;
+  res.writeHead(200, {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  });
+  res.end(JSON.stringify({ ok, error: ok ? null : 'Parol noto\'g\'ri' }));
+}
 }
 
 // ─── Handler: statik fayllar ──────────────────────────────────
@@ -216,11 +231,13 @@ const server = http.createServer(async (req, res) => {
 
   if (reqPath === '/api/supabase' || reqPath === '/.netlify/functions/supabase') {
     await handleSupabase(req, res);
-  } else if (reqPath === '/api/telegram' || reqPath === '/.netlify/functions/telegram') {
+} else if (reqPath === '/api/telegram' || reqPath === '/.netlify/functions/telegram') {
     await handleTelegram(req, res);
-  } else {
+} else if (reqPath === '/api/check-admin' || reqPath === '/.netlify/functions/check-admin') {
+    await handleCheckAdmin(req, res);
+} else {
     handleStatic(req, res);
-  }
+}
 });
 
 server.listen(CONFIG.PORT, () => {
