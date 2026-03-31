@@ -6,7 +6,7 @@ module.exports = {
   apps: [{
     name:    'elink-proxy',
     script:  'server.js',
-    cwd:     '/var/www/elink',          // server.js qayerda bo'lsa shu yo'l
+    cwd:     '/var/www/elink.uz',          // server.js qayerda bo'lsa shu yo'l
     instances: 1,
     autorestart: true,
     watch:   false,
@@ -14,7 +14,7 @@ module.exports = {
     env: {
       NODE_ENV:      'production',
       PORT:          3000,
-      STATIC_DIR:    '/var/www/elink',
+      STATIC_DIR:    '/var/www/elink.uz',
       SUPABASE_URL:  'https://XXXXXXXXXXXX.supabase.co',
       SUPABASE_KEY:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXXXXX',
       TG_BOT_TOKEN:  '1234567890:AAxxxxxxxx',

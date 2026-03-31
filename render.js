@@ -1087,9 +1087,9 @@ if(!window.DATA || !Array.isArray(window.DATA) || window.DATA.length === 0){
   setTimeout(()=>{ if(window.DATA?.length) renderContent(); }, 100);
   return;
 }
-// Qidiruv holatiga qarab trending ko'rsat/yashir
+// Qidiruv holatiga qarab trending ko'rsat/yashir (renderTrending faqat click/load da chaqiriladi)
 const _tSec=$('trendingSection');
-if(_tSec){ if(query&&query.trim()) _tSec.classList.add('hidden'); else renderTrending(); }
+if(_tSec){ if(query&&query.trim()) _tSec.classList.add('hidden'); else _tSec.classList.remove('hidden'); }
 const myToken = ++_renderToken;
 const container = $('appsContainer');
 container.innerHTML = '';
@@ -1674,6 +1674,9 @@ const upd=dark=>{
   if(iMob) { iMob.className = dark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm'; }
   if(iTop) { iTop.className = dark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm'; }
   if(tTxt) tTxt.textContent=dark?'Kunduzgi rejim':'Tungi rejim';
+  // themeBtnTop dagi ko'rinadigan matnni ham yangilaymiz
+  const tTxtTop = $('themeBtnTop')?.querySelector('span');
+  if(tTxtTop) tTxtTop.textContent = dark ? 'Kunduzgi rejim' : 'Tungi rejim';
 };
 upd(html.classList.contains('dark'));
 [$('themeBtn'),$('themeBtnMob'),$('themeBtnTop')].forEach(btn=>btn?.addEventListener('click',()=>{
