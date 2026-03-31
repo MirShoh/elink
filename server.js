@@ -150,20 +150,20 @@ async function handleTelegram(req, res) {
     res.writeHead(502);
     res.end(JSON.stringify({ error: e.message }));
   }
+}
 
-  // ─── Handler: check-admin ──────────────────────────────────────
+// ─── Handler: check-admin ──────────────────────────────────────
 async function handleCheckAdmin(req, res) {
   if (req.method !== 'POST') {
     res.writeHead(405); res.end('Method Not Allowed'); return;
   }
   const payload = await readBody(req);
   const ok = payload.password === process.env.ADMIN_PASS;
-  res.writeHead(200, {
+  res.writeHead(ok ? 200 : 401, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
   });
   res.end(JSON.stringify({ ok, error: ok ? null : 'Parol noto\'g\'ri' }));
-}
 }
 
 // ─── Handler: statik fayllar ──────────────────────────────────
