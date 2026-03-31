@@ -214,9 +214,9 @@ const server = http.createServer(async (req, res) => {
     res.end(); return;
   }
 
-  if (reqPath === '/.netlify/functions/supabase') {
+  if (reqPath === '/api/supabase' || reqPath === '/.netlify/functions/supabase') {
     await handleSupabase(req, res);
-  } else if (reqPath === '/.netlify/functions/telegram') {
+  } else if (reqPath === '/api/telegram' || reqPath === '/.netlify/functions/telegram') {
     await handleTelegram(req, res);
   } else {
     handleStatic(req, res);

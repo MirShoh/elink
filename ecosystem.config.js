@@ -13,7 +13,7 @@ module.exports = {
     max_memory_restart: '256M',
     env: {
       NODE_ENV:      'production',
-      PORT:          3000,
+      PORT:          3001,
       STATIC_DIR:    '/var/www/elink.uz',
       SUPABASE_URL:  'https://XXXXXXXXXXXX.supabase.co',
       SUPABASE_KEY:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXXXXX',

@@ -38,7 +38,7 @@ function escHtml(str){
     .replace(/'/g,'&#39;');
 }
 
-const SUPA_PROXY = '/.netlify/functions/supabase';
+const SUPA_PROXY = '/api/supabase';
 
 
 // ─── Admin o'chirgan resurslarni DATA dan filtrlab chiqarish ──────────────────
@@ -218,7 +218,7 @@ function saveUserDataToSupabase(){
 
 async function sendTelegram(text){
   try {
-    await fetch('/.netlify/functions/telegram', {
+    await fetch('/api/telegram', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ text })
