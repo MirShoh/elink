@@ -242,20 +242,50 @@ async function initGlobalClicks() {
     renderTrending();
     updateSidebarStats();
   }
-  // 2) Serverdan yangi ma'lumot olamiz va merge qilamiz
+
+  // 2) Serverdan BARCHA click ma'lumotlarini olamiz (limit yo'q)
+  // Muammo: get_top_clicks SQL da LIMIT bo'lsa, kam kliklanganlar
+  // (masalan Timely=5, CEOS=3) sahifada 0 ko'rinadi, kliklaganda birdan oshib ketadi.
+  // Yechim: to'g'ridan clicks jadvalini so'raymiz (LIMIT yo'q),
+  // agar jadval nomi boshqacha bo'lsa RPC ga fallback qilamiz.
   try {
-    const res = await fetch(SUPA_PROXY, {
+    let rows = [];
+
+    // A) To'g'ridan clicks jadvalidan olamiz — LIMIT YO'Q
+    const directRes = await fetch(SUPA_PROXY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: '/rest/v1/rpc/get_top_clicks', method: 'GET' })
+      body: JSON.stringify({
+        path: '/rest/v1/clicks?select=name,count&order=count.desc',
+        method: 'GET'
+      })
     });
-    if (!res.ok) return;
-    const rows = await res.json();
-    if (!Array.isArray(rows)) return;
+    if (directRes.ok) {
+      const directData = await directRes.json();
+      if (Array.isArray(directData) && directData.length) {
+        rows = directData;
+      }
+    }
+
+    // B) Jadval nomi boshqacha bo'lsa yoki bo'sh kelsa — RPC ga fallback
+    if (!rows.length) {
+      const rpcRes = await fetch(SUPA_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: '/rest/v1/rpc/get_top_clicks', method: 'GET' })
+      });
+      if (rpcRes.ok) {
+        const rpcData = await rpcRes.json();
+        if (Array.isArray(rpcData)) rows = rpcData;
+      }
+    }
+
+    if (!rows.length) return;
+
     // Server qiymati kattaroq bo'lsa — serverniki ustun
     rows.forEach(r => {
-      if(r.count > 0){
-        globalClicks[r.name] = Math.max(r.count, globalClicks[r.name]||0);
+      if (r.count > 0) {
+        globalClicks[r.name] = Math.max(r.count, globalClicks[r.name] || 0);
       }
     });
     _saveClicksCache();
