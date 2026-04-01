@@ -1,15 +1,5 @@
-/**
- * eLink VDS Proxy Server
- * Netlify Functions o'rnini bosadi:
- *   /.netlify/functions/supabase  → Supabase REST API proxy
- *   /.netlify/functions/telegram  → Telegram bot proxy
- *
- * O'rnatish:
- *   npm install
- *   node server.js   yoki   pm2 start server.js --name elink-proxy
- */
 
-
+require('dotenv').config();
 const http  = require('http');
 const https = require('https');
 const fs    = require('fs');
