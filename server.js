@@ -80,7 +80,7 @@ async function handleSupabase(req, res) {
   }
 
   const payload = await readBody(req);
-  const { path: supaPath, method = 'GET', body } = payload;
+  const { path: supaPath, method = 'GET', body, prefer } = payload;
 
   if (!supaPath) {
     res.writeHead(400); res.end(JSON.stringify({ error: 'path required' })); return;
@@ -91,7 +91,7 @@ async function handleSupabase(req, res) {
     'apikey':        CONFIG.SUPABASE_KEY,
     'Authorization': 'Bearer ' + CONFIG.SUPABASE_KEY,
     'Content-Type':  'application/json',
-    'Prefer':        'return=representation',
+    'Prefer':        prefer || 'return=representation',
   };
 
   try {
@@ -153,10 +153,12 @@ async function handleCheckAdmin(req, res) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
   });
-  res.end(JSON.stringify({ 
-    ok, 
-    token: ok ? 'admin-ok-' + Date.now() : null,
-    error: ok ? null : 'Parol noto\'g\'ri' 
+  res.end(JSON.stringify({
+    ok,
+    token:   ok ? 'admin-ok-' + Date.now() : null,
+    supaUrl: ok ? CONFIG.SUPABASE_URL : null,
+    supaKey: ok ? CONFIG.SUPABASE_KEY : null,
+    error:   ok ? null : "Parol noto'g'ri",
   }));
 }
 
