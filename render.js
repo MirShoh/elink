@@ -339,19 +339,20 @@ if(catWrap){
   }
 }
 
-if(id==='all'){
-  $('pageTitle').textContent='Barcha Resurslar';
-} else if(id==='favorites'){
-  $('pageTitle').textContent='Saqlanganlar';
-} else if(id==='my_apps'){
-  $('pageTitle').textContent="Shaxsiy ro'yxat";
-} else if(id==='collections'){
-  $('pageTitle').textContent='Tavsiyalar';
-} else {
-  const catTitle=DATA.find(c=>c.id===id)?.title||'';
-  $('pageTitle').textContent=catTitle;
-  if($('catSrc')) $('catSrc').placeholder=`${catTitle} ichida qidirish...`;
-}
+const _titles = {
+  all: 'Barcha resurslar',
+  favorites: 'Saqlanganlar',
+  my_apps: "Shaxsiy ro'yxat",
+  collections: 'Tavsiyalar',
+};
+const catTitle = _titles[id] || DATA.find(c=>c.id===id)?.title || '';
+$('pageTitle').textContent = catTitle;
+
+// Barcha qidiruv inputlari placeholder ni yangilash
+const ph = catTitle ? `${catTitle} ichida qidirish...` : 'Qidirish...';
+['deskSrc','mobSrc'].forEach(sid => { if($(sid)) $(sid).placeholder = ph; });
+if($('catSrc')) $('catSrc').placeholder = ph;
+
 renderNav(); renderContent();
 $('mainScroll').scrollTo({top:0,behavior:'smooth'});
 };
@@ -1326,7 +1327,7 @@ function _renderMyApps(container, token){
           </svg>
         </div>
         <h3 class="text-base font-black text-slate-800 dark:text-white mb-1.5">Shaxsiy resurslaringizni qo'shing</h3>
-        <p class="text-[12px] text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed mb-5">Istalgan sayt, ilova yoki havola — bitta joyda saqlang va 1 klik bilan kiring</p>
+        <p class=\"text-[12px] text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed mb-5\">Istalgan sayt, ilova yoki havola — bitta joyda saqlang<br>va 1 klik bilan kiring</p>
         <div class="flex flex-wrap justify-center gap-2 mb-6 text-[11px] font-bold">
           <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20"><i class="fa-solid fa-globe text-[10px]"></i> Veb-sayt</span>
           <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"><i class="fa-brands fa-android text-[10px]"></i> Android</span>
@@ -2346,30 +2347,29 @@ function init() {
   setupScroll();
   setupTrendingScroll();
 
-  // ── TEZKOR YUKLASH: darhol mahalliy data bilan render, Supabase orqa fonda ──
-  // 1. Birinchi render — network kutilmaydi, loader darhol yashiriladi
-  renderNav();
-  renderContent();
-  if(typeof window._hideLoader === 'function') window._hideLoader();
-
-  // 2. Idle vaqtida og'ir operatsiyalar
   const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 80);
-  idle(() => {
-    renderTrending();
-    renderRecent();
-    initGlobalClicks();
-    updateSidebarStats();
-  });
 
-  // 3. Supabase sinxronizatsiyasi — orqa fonda, render bloklashsiz
-  Promise.all([_syncUserData(), _syncSiteResources()])
-    .then(() => applyDeletedResources())
-    .then(() => {
-      // Faqat admin resurslari o'zgargan bo'lsa qayta render
-      renderContent();
-      idle(() => { updateSidebarStats(); });
-    })
-    .catch(() => {});
+  // Loader ko'rsatib turadi, Supabase kutiladi (max 2.5s)
+  const _timeout = new Promise(res => setTimeout(res, 2500));
+
+  Promise.race([
+    Promise.all([_syncUserData(), _syncSiteResources()])
+      .then(() => applyDeletedResources()),
+    _timeout
+  ])
+  .catch(() => {})
+  .finally(() => {
+    // Faqat 1 marta render — barcha ma'lumot tayyor
+    renderNav();
+    renderContent();
+    if (typeof window._hideLoader === 'function') window._hideLoader();
+    idle(() => {
+      renderTrending();
+      renderRecent();
+      initGlobalClicks();
+      updateSidebarStats();
+    });
+  });
 }
 init();
 
