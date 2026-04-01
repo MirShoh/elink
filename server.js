@@ -1,10 +1,10 @@
-
 require('dotenv').config();
 const http  = require('http');
 const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
 const url   = require('url');
+const zlib  = require('zlib');
 
 // ─── SOZLAMALAR — shu yerga to'ldiring ─────────────────────────
 const CONFIG = {
@@ -160,52 +160,97 @@ async function handleCheckAdmin(req, res) {
   }));
 }
 
+// ─── Yordamchi: gzip / deflate javob yuborish ─────────────────
+const GZIP_TYPES = new Set([
+  'text/html; charset=utf-8',
+  'application/javascript; charset=utf-8',
+  'text/css; charset=utf-8',
+  'application/json; charset=utf-8',
+  'image/svg+xml',
+  'text/plain; charset=utf-8',
+  'application/manifest+json',
+]);
+
+// In-memory gzip cache: { etag → gzipBuffer }
+const _gzCache = new Map();
+
+function sendCompressed(req, res, data, headers) {
+  const mime = headers['Content-Type'] || '';
+  const ae   = req.headers['accept-encoding'] || '';
+  if (!GZIP_TYPES.has(mime) || data.length < 512 || !ae.includes('gzip')) {
+    res.writeHead(200, headers);
+    res.end(data);
+    return;
+  }
+  const etag = headers['ETag'];
+  if (etag && _gzCache.has(etag)) {
+    res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', 'Vary': 'Accept-Encoding' });
+    res.end(_gzCache.get(etag));
+    return;
+  }
+  zlib.gzip(data, { level: 6 }, (err, gz) => {
+    if (err) { res.writeHead(200, headers); res.end(data); return; }
+    if (etag) _gzCache.set(etag, gz);
+    res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', 'Vary': 'Accept-Encoding' });
+    res.end(gz);
+  });
+}
+
 // ─── Handler: statik fayllar ──────────────────────────────────
 function handleStatic(req, res) {
-  // URL decode va ".." himoyasi
   let filePath;
   try {
     filePath = decodeURIComponent(url.parse(req.url).pathname || '/');
-  } catch(e) {
-    filePath = '/';
-  }
+  } catch(e) { filePath = '/'; }
+
   // SPA: "/" yoki ".html" bo'lmagan yo'llar → index.html
   if (filePath === '/' || (!path.extname(filePath) && !filePath.startsWith('/.'))) {
     filePath = '/index.html';
   }
 
   const absPath = path.join(CONFIG.STATIC_DIR, filePath);
-
-  // Xavfsizlik: STATIC_DIR dan tashqariga chiqmasin
   if (!absPath.startsWith(CONFIG.STATIC_DIR)) {
     res.writeHead(403); res.end('Forbidden'); return;
   }
 
   fs.readFile(absPath, (err, data) => {
     if (err) {
-      // Fayl topilmasa SPA fallback
       fs.readFile(path.join(CONFIG.STATIC_DIR, 'index.html'), (err2, indexData) => {
         if (err2) { res.writeHead(404); res.end('Not found'); return; }
-        res.writeHead(200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' });
-        res.end(indexData);
+        sendCompressed(req, res, indexData, {
+          'Content-Type': MIME['.html'],
+          'Cache-Control': 'no-cache',
+        });
       });
       return;
     }
+
     const ext  = path.extname(absPath).toLowerCase();
     const mime = MIME[ext] || 'application/octet-stream';
 
     // Cache strategiyasi
-    const isData    = ['/data.js','/core.js','/render.js','/builder.js','/index.html'].some(f => filePath === f);
-    const cache = isData
-      ? 'public, max-age=0, must-revalidate'
-      : 'public, max-age=31536000, immutable';
+    const noCacheFiles = new Set(['/data.js','/core.js','/render.js','/builder.js','/widgets.js','/index.html']);
+    const noCache  = noCacheFiles.has(filePath);
+    const cache    = noCache ? 'public, max-age=0, must-revalidate' : 'public, max-age=31536000, immutable';
 
-    res.writeHead(200, {
-      'Content-Type':  mime,
-      'Cache-Control': cache,
-      'X-Content-Type-Options': 'nosniff',
-    });
-    res.end(data);
+    // ETag: fayl hajmi + mtime (tez hisoblanadi)
+    const stat = fs.statSync(absPath, { throwIfNoEntry: false });
+    const etag  = stat ? `"${stat.size}-${stat.mtimeMs.toString(36)}"` : null;
+
+    // 304 Not Modified
+    if (etag && req.headers['if-none-match'] === etag) {
+      res.writeHead(304); res.end(); return;
+    }
+
+    const headers = {
+      'Content-Type':             mime,
+      'Cache-Control':            cache,
+      'X-Content-Type-Options':   'nosniff',
+      'Connection':               'keep-alive',
+    };
+    if (etag) headers['ETag'] = etag;
+
+    sendCompressed(req, res, data, headers);
   });
 }
 
@@ -234,10 +279,15 @@ const server = http.createServer(async (req, res) => {
 }
 });
 
+server.keepAliveTimeout = 65000;   // 65s — nginx/LB dan yuqori
+server.headersTimeout   = 70000;
+server.maxHeadersCount  = 100;
+
 server.listen(CONFIG.PORT, () => {
   console.log(`✅ eLink proxy server ishga tushdi → http://localhost:${CONFIG.PORT}`);
   console.log(`   Statik fayllar: ${CONFIG.STATIC_DIR}`);
   console.log(`   Supabase proxy: /.netlify/functions/supabase → ${CONFIG.SUPABASE_URL}`);
+  console.log(`   Gzip kompressiya: yoqilgan`);
 });
 
 server.on('error', err => {

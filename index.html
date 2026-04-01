@@ -244,8 +244,8 @@
   animation:el-pulse 1.8s ease-in-out infinite;
 }
 @keyframes el-pulse{
-  0%,100%{transform:scale(1);box-shadow:0 12px 32px rgba(139,92,246,.35)}
-  50%{transform:scale(1.06);box-shadow:0 16px 40px rgba(139,92,246,.55)}
+  0%,100%{opacity:.9}
+  50%{opacity:1}
 }
 
 .el-name{font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:22px;font-weight:900;color:#1e293b;letter-spacing:-.5px}
@@ -297,19 +297,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.google-analytics.com">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
-<!-- 5. Font Awesome — faqat solid + brands subset (all.min.css emas) -->
+<!-- 5. Font Awesome — preload + non-blocking load -->
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" as="style" crossorigin>
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" as="style" crossorigin>
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" media="print" onload="this.media='all'">
 <noscript>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css">
 </noscript>
 
-<!-- 6. Google Fonts — faqat 3 ta og'irlik (400, 700, 900) -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<!-- 6. Google Fonts — preload + non-blocking -->
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;900&display=swap" as="style" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet"></noscript>
 
 <!-- 7. Tailwind CLI build — CDN fallback -->

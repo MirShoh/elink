@@ -231,9 +231,9 @@ window.openListBuilderModal = function(){
       const hasWeb  = item.t?.includes('web');
       const isBepul = item.t?.includes('bepul');
       const isChecked = _builderSelected.has(key);
-      return `<label class="builder-item flex items-start gap-3 p-3 rounded-2xl border ${isChecked?'border-violet-400 bg-violet-50 dark:bg-violet-500/15 dark:border-violet-500/60':'border-transparent'} hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}">
-        <input type="checkbox" class="builder-chk sr-only" data-key="${key}" ${isChecked?'checked':''} onchange="builderToggle(this,'${key.replace(/'/g,"\\'")}')">
-        <div class="chk-box w-4 h-4 rounded border-2 ${isChecked?'bg-emerald-500 border-emerald-500':'border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800'} flex items-center justify-center shrink-0 mt-0.5 transition-all" onclick="this.previousElementSibling.click()">
+      return `<div class="builder-item flex items-start gap-3 p-3 rounded-2xl border ${isChecked?'border-violet-400 bg-violet-50 dark:bg-violet-500/15 dark:border-violet-500/60':'border-transparent'} hover:border-violet-200 dark:hover:border-violet-600/40 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 cursor-pointer transition-all group" data-name="${(item.n||'').toLowerCase()}" data-desc="${(item.d||'').toLowerCase()}" onclick="builderCardClick(this,'${key.replace(/'/g,"\\'")}')">
+        <input type="checkbox" class="builder-chk sr-only" data-key="${key}" ${isChecked?'checked':''}>
+        <div class="chk-box w-4 h-4 rounded border-2 ${isChecked?'bg-emerald-500 border-emerald-500':'border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800'} flex items-center justify-center shrink-0 mt-0.5 transition-all pointer-events-none">
           <i class="fa-solid fa-check text-white text-[9px] ${isChecked?'':'hidden'}"></i>
         </div>
         <div class="flex-1 min-w-0">
@@ -250,7 +250,7 @@ window.openListBuilderModal = function(){
             ${hasMob  ? `<span class="text-[9px] font-bold bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full"><i class="fa-solid fa-mobile-screen-button text-[8px] mr-0.5"></i>Ilova</span>` : ''}
           </div>
         </div>
-      </label>`;
+      </div>`;
     }).join('');
     // Lazy img
     if(typeof _imgObserver !== 'undefined' && _imgObserver){
@@ -288,6 +288,21 @@ window.openListBuilderModal = function(){
     if(box){ box.classList.remove('translate-y-4','opacity-0'); box.classList.add('translate-y-0','opacity-100'); }
   }));
 };
+window.builderCardClick = function(card, key){
+  const chk = card.querySelector('.builder-chk');
+  if(!chk) return;
+  chk.checked = !chk.checked;
+  builderToggle(chk, key);
+  // Kartochka rangini yangilash
+  if(chk.checked){
+    card.classList.remove('border-transparent');
+    card.classList.add('border-violet-400','bg-violet-50','dark:bg-violet-500/15','dark:border-violet-500/60');
+  } else {
+    card.classList.add('border-transparent');
+    card.classList.remove('border-violet-400','bg-violet-50','dark:bg-violet-500/15','dark:border-violet-500/60');
+  }
+};
+
 window.builderToggle = function(chk, key){
   const allItems = getAllCatalogItems();
   const item = allItems.find(i => i.n === key);

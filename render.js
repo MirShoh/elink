@@ -106,7 +106,7 @@ return `
     <div class="flex-1 min-w-0 pt-0.5">
       <div class="font-black text-[14px] text-slate-900 dark:text-white leading-snug flex items-center gap-1.5">
         <span class="truncate">${hl(safeName,q2)}</span>
-        ${isVerified ? `<span class="verified-icon" title="Rasmiy va ishonchli platforma"><i class="fa-solid fa-shield-halved"></i></span>` : ''}
+        ${isVerified ? `<span class="verified-icon" title="Rasmiy va ishonchli platforma"><svg width="16" height="16" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.477-1.044.507-1.68.135-.636.08-1.3-.144-1.9.587-.274 1.087-.705 1.443-1.245.356-.54.555-1.17.574-1.817z" fill="#1D9BF0"/><path d="M9.662 14.854l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246-5.683 6.206z" fill="white"/></svg></span>` : ''}
       </div>
       <div class="flex flex-wrap gap-1 mt-1.5 items-center">${badges}</div>
     </div>
@@ -1320,7 +1320,11 @@ function _renderMyApps(container, token){
     const emptyGuide = document.createElement('div');
     emptyGuide.innerHTML = `
       <div class="rounded-2xl border-2 border-dashed border-violet-200 dark:border-violet-800/50 p-8 flex flex-col items-center text-center">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/15 dark:to-fuchsia-500/15 flex items-center justify-center text-3xl mb-4 shadow-sm">📌</div>
+        <div class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center mb-4 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 dark:text-slate-500">
+            <path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
         <h3 class="text-base font-black text-slate-800 dark:text-white mb-1.5">Shaxsiy resurslaringizni qo'shing</h3>
         <p class="text-[12px] text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed mb-5">Istalgan sayt, ilova yoki havola — bitta joyda saqlang va 1 klik bilan kiring</p>
         <div class="flex flex-wrap justify-center gap-2 mb-6 text-[11px] font-bold">
@@ -1480,7 +1484,7 @@ function buildDropHTML(q){
           ${catLabel ? `<div class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">${catLabel}</div>` : ''}
           <div class="flex items-center gap-1.5 flex-wrap">
             <p class="text-[13px] font-bold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">${hl(i.n, q)}</p>
-            ${i.v ? `<span class="verified-icon" title="Rasmiy platforma"><i class="fa-solid fa-shield-halved"></i></span>` : ''}
+            ${i.v ? `<span class="verified-icon" title="Rasmiy platforma"><svg width="16" height="16" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.477-1.044.507-1.68.135-.636.08-1.3-.144-1.9.587-.274 1.087-.705 1.443-1.245.356-.54.555-1.17.574-1.817z" fill="#1D9BF0"/><path d="M9.662 14.854l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246-5.683 6.206z" fill="white"/></svg></span>` : ''}
           </div>
           ${i.d ? `<p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-snug">${hl(i.d, q)}</p>` : ''}
           <div class="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -2342,20 +2346,30 @@ function init() {
   setupScroll();
   setupTrendingScroll();
 
-  // _syncSiteResources() va applyDeletedResources() ketma-ket — avval sync, keyin delete
-  // (parallel bo'lsa deleted resurs qayta qo'shilishi mumkin edi)
-  Promise.all([_syncUserData(), _syncSiteResources()]).then(() => applyDeletedResources()).then(() => {
-    renderNav();
-    renderContent();
-    if(typeof window._hideLoader === 'function') window._hideLoader();
-    const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 100);
-    idle(() => {
-      renderTrending();
-      renderRecent();
-      initGlobalClicks();
-      updateSidebarStats();
-    });
+  // ── TEZKOR YUKLASH: darhol mahalliy data bilan render, Supabase orqa fonda ──
+  // 1. Birinchi render — network kutilmaydi, loader darhol yashiriladi
+  renderNav();
+  renderContent();
+  if(typeof window._hideLoader === 'function') window._hideLoader();
+
+  // 2. Idle vaqtida og'ir operatsiyalar
+  const idle = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : cb => setTimeout(cb, 80);
+  idle(() => {
+    renderTrending();
+    renderRecent();
+    initGlobalClicks();
+    updateSidebarStats();
   });
+
+  // 3. Supabase sinxronizatsiyasi — orqa fonda, render bloklashsiz
+  Promise.all([_syncUserData(), _syncSiteResources()])
+    .then(() => applyDeletedResources())
+    .then(() => {
+      // Faqat admin resurslari o'zgargan bo'lsa qayta render
+      renderContent();
+      idle(() => { updateSidebarStats(); });
+    })
+    .catch(() => {});
 }
 init();
 
