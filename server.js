@@ -153,7 +153,11 @@ async function handleCheckAdmin(req, res) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
   });
-  res.end(JSON.stringify({ ok, error: ok ? null : 'Parol noto\'g\'ri' }));
+  res.end(JSON.stringify({ 
+    ok, 
+    token: ok ? 'admin-ok-' + Date.now() : null,
+    error: ok ? null : 'Parol noto\'g\'ri' 
+  }));
 }
 
 // ─── Handler: statik fayllar ──────────────────────────────────
