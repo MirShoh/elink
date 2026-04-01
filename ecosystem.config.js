@@ -7,7 +7,7 @@ module.exports = {
     autorestart: true,
     watch:   false,
     max_memory_restart: '256M',
-    env_file: '/var/www/elink.uz/.env',   // ← .env fayldan o'qiydi
+    env_file: '/var/www/elink.uz/.env', 
     env: {
       NODE_ENV: 'production',
       PORT:     3001,

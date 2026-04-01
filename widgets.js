@@ -6,11 +6,11 @@
   var CK_STATS  = 'elink_stats_v2';
   var CK_ONLINE = 'elink_online_v2';
   var TTL_STATS  = 3 * 60 * 1000;
-  var TTL_ONLINE = 2 * 60 * 1000;      // 2 daqiqa — sahifa ochilganda darhol ko'rsatish uchun
+  var TTL_ONLINE = 2 * 60 * 1000;      
 
   // Interval sozlamalari
-  var ONLINE_INTERVAL = 20 * 1000;      // online soni: har 20 soniyada
-  var STATS_INTERVAL  = 3 * 60 * 1000; // bugun/jami: har 3 daqiqada
+  var ONLINE_INTERVAL = 20 * 1000;      
+  var STATS_INTERVAL  = 3 * 60 * 1000; 
 
   // Oxirgi muvaffaqiyatli qiymatlar
   var _lastOnline = null;
@@ -20,7 +20,6 @@
   var _abortOnline = null;
   var _abortStats  = null;
 
-  // BroadcastChannel: bir tab poll qiladi, qolganlar eshitadi
   var _bc = (typeof BroadcastChannel !== 'undefined')
     ? new BroadcastChannel('elink_stats')
     : null;
@@ -51,7 +50,6 @@
     return v;
   }
 
-  // Yangi Supabase bazasidan oldingi tarixiy foydalanuvchilar soni
   var TOTAL_BASE = 3100;
 
   function _fmt(n) {
@@ -67,11 +65,9 @@
     var eT = document.getElementById('esfTotal');
     if (eO && online != null) eO.textContent = String(Math.max(1, online));
     if (eD) eD.textContent = today != null ? _fmt(Math.max(0, today)) : '—';
-    // Jami: bazadagi son + tarixiy offset
     if (eT) eT.textContent = total != null ? _fmt(Math.max(0, total) + TOTAL_BASE) : '—';
   }
 
-  // localStorage cache yozish/o'qish
   function _cacheGet(key, ttl) {
     try {
       var d = JSON.parse(localStorage.getItem(key) || 'null');
@@ -94,7 +90,7 @@
 
   function _parseOnline(od) {
     if (od == null) return null;
-    if (Array.isArray(od)) od = od[0];  // Supabase massiv qaytarsa
+    if (Array.isArray(od)) od = od[0];  
     if (od == null) return null;
     if (typeof od === 'number') return od;
     if (od.count != null) return Number(od.count);
@@ -102,7 +98,6 @@
     return null;
   }
 
-  // ── ONLINE POLL: har 20 soniyada (upsert_visit + get_online_count) ──
   function _pollOnline() {
     clearTimeout(_onlineTimer);
     if (document.visibilityState === 'hidden') return;
@@ -141,7 +136,6 @@
     });
   }
 
-  // ── STATS POLL: har 3 daqiqada (get_site_stats) ──
   function _pollStats() {
     clearTimeout(_statsTimer);
     if (document.visibilityState === 'hidden') return;
@@ -237,13 +231,9 @@
     setTimeout(function () { waitFor(id, cb, n + 1); }, 120);
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     DARK/LIGHT TOGGLE — tez, animatsiyasiz, sodda
-     ═══════════════════════════════════════════════════════════ */
+
   waitFor('themeBtnTop', function (btn) {
     btn.classList.remove('hidden');
-    // Agar render.js setupTheme() allaqachon ishlagan bo'lsa — ikki marta listener kerak emas
-    // Faqat boshlang'ich ikonani sinxronlaymiz
     function _syncTop() {
       var dark = document.documentElement.classList.contains('dark');
       var ico = document.getElementById('themeIcoTop');

@@ -6,19 +6,15 @@ const path  = require('path');
 const url   = require('url');
 const zlib  = require('zlib');
 
-// ─── SOZLAMALAR — shu yerga to'ldiring ─────────────────────────
 const CONFIG = {
   PORT: process.env.PORT || 3000,
 
-  // Supabase → Dashboard > Settings > API
   SUPABASE_URL:  process.env.SUPABASE_URL  || 'https://XXXX.supabase.co',
   SUPABASE_KEY:  process.env.SUPABASE_KEY  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXX',
 
-  // Telegram → @BotFather bot tokeni + kanal/guruh chat ID
   TG_BOT_TOKEN:  process.env.TG_BOT_TOKEN  || '1234567890:AAXXXX',
   TG_CHAT_ID:    process.env.TG_CHAT_ID    || '-100XXXXXXXX',
 
-  // Statik fayllar katalogi (index.html, core.js, data.js ...)
   STATIC_DIR:    process.env.STATIC_DIR    || path.join(__dirname, 'public'),
 };
 // ───────────────────────────────────────────────────────────────

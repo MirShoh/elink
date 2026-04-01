@@ -4,7 +4,7 @@ function _ensureLZ(cb){
   const s = document.createElement('script');
   s.src = 'https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js';
   s.onload = () => { _lzReady = true; cb(); };
-  s.onerror = () => cb(); // fallback: btoa ishlaydi
+  s.onerror = () => cb(); 
   document.head.appendChild(s);
 }
 
@@ -37,7 +37,6 @@ function getAllCatalogItems(){
   return all;
 }
 
-/* Katalogdan to'liq item ma'lumotini (logoUrl, android, ios) olish */
 function _enrichFromCatalog(item){
   if(item._enriched) return item;
   const all = getAllCatalogItems();
@@ -54,7 +53,6 @@ function _enrichFromCatalog(item){
   return {...item, _enriched: true};
 }
 
-/* --- Share tarixi (localStorage) --- */
 const SHARE_HIST_KEY = 'lh_my_shares_v2';
 function _getShareHistory(){
   try{ return JSON.parse(localStorage.getItem(SHARE_HIST_KEY)||'[]'); }catch(e){ return []; }

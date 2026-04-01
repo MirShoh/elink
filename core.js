@@ -40,11 +40,6 @@ function escHtml(str){
 
 const SUPA_PROXY = '/api/supabase';
 
-
-// ─── Admin o'chirgan resurslarni DATA dan filtrlab chiqarish ──────────────────
-// Supabase `deleted_resources` jadvalidan nomlar ro'yxatini olib,
-// window.DATA massividan mos itemlarni olib tashlaydi.
-// render.js dagi init() da Promise.all ichida chaqiriladi.
 async function applyDeletedResources() {
   try {
     const res = await fetch(SUPA_PROXY, {
@@ -106,7 +101,6 @@ async function loadUserDataFromSupabase(){
 
 let _syncTimer = null;
 
-
 // ─── Drag-and-drop: shaxsiy ro'yxat tartibini o'zgartirish ───────────────────
 function _initMyAppsDnD(grid){
   let dragSrc = null;
@@ -146,7 +140,6 @@ function _initMyAppsDnD(grid){
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if(!dragSrc || dragSrc === el) return;
-      // Karta markaziga nisbatan chap yoki o'ng tomonini aniqla
       const rect = el.getBoundingClientRect();
       const midX = rect.left + rect.width / 2;
       const insertBefore = e.clientX < midX;
@@ -175,7 +168,6 @@ function _initMyAppsDnD(grid){
       delete el.dataset.insertBefore;
       if(insertBefore) el.before(dragSrc);
       else el.after(dragSrc);
-      // customApps massivini yangi tartibga keltirish
       const newOrder = [...grid.querySelectorAll('[data-appname]')].map(c => c.dataset.appname);
       customApps.sort((a,b) => newOrder.indexOf(a.n) - newOrder.indexOf(b.n));
       localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
@@ -226,9 +218,6 @@ async function sendTelegram(text){
   } catch(e){ console.warn('[TG]', e.message); }
 }
 
-
-// globalClicks — localStorage cache bilan ishlanadi
-// Sahifa yangilanganda eski qiymatlar darhol yuklanadi, Supabase kelganda merge bo'ladi
 let globalClicks = safeParse('lh_clicks_cache', {});
 
 function _saveClicksCache(){
@@ -236,22 +225,15 @@ function _saveClicksCache(){
 }
 
 async function initGlobalClicks() {
-  // 1) Avval localStorage cache ni ko'rsatamiz — sahifa darhol to'g'ri ko'rinadi
   if(Object.keys(globalClicks).length){
     Object.entries(globalClicks).forEach(([n, c]) => _updateCountEl(n, c));
     renderTrending();
     updateSidebarStats();
   }
 
-  // 2) Serverdan BARCHA click ma'lumotlarini olamiz (limit yo'q)
-  // Muammo: get_top_clicks SQL da LIMIT bo'lsa, kam kliklanganlar
-  // (masalan Timely=5, CEOS=3) sahifada 0 ko'rinadi, kliklaganda birdan oshib ketadi.
-  // Yechim: to'g'ridan clicks jadvalini so'raymiz (LIMIT yo'q),
-  // agar jadval nomi boshqacha bo'lsa RPC ga fallback qilamiz.
   try {
     let rows = [];
 
-    // A) To'g'ridan clicks jadvalidan olamiz — LIMIT YO'Q
     const directRes = await fetch(SUPA_PROXY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -267,7 +249,6 @@ async function initGlobalClicks() {
       }
     }
 
-    // B) Jadval nomi boshqacha bo'lsa yoki bo'sh kelsa — RPC ga fallback
     if (!rows.length) {
       const rpcRes = await fetch(SUPA_PROXY, {
         method: 'POST',
@@ -282,7 +263,6 @@ async function initGlobalClicks() {
 
     if (!rows.length) return;
 
-    // Server qiymati kattaroq bo'lsa — serverniki ustun
     rows.forEach(r => {
       if (r.count > 0) {
         globalClicks[r.name] = Math.max(r.count, globalClicks[r.name] || 0);
@@ -314,7 +294,6 @@ const el = document.getElementById(id);
 if(!el) return;
 el.querySelector('span').textContent = count;
 if(count > 0){
-  // opacity-0 va group-hover klasslarini ham olib tashlaymiz — aks holda ko'rinmaydi
   el.classList.remove(
     'text-slate-300','dark:text-slate-600','bg-slate-50','dark:bg-slate-800/40',
     'opacity-0','group-hover:opacity-100','transition-opacity'
@@ -345,8 +324,6 @@ async function _syncUserData(){
   return changed;
 }
 
-
-
 function initCustomApps() {
   if(typeof DATA === 'undefined' || !Array.isArray(DATA)) {
     console.warn('[E-Link] DATA yuklanmagan, initCustomApps kechiktirildi');
@@ -356,15 +333,13 @@ function initCustomApps() {
   if (myAppsCategory) myAppsCategory.items = customApps;
 }
 
-
-
 let activeCat  = 'all';
 let query      = '';
 let filters    = [];
 let sortMode   = 'def';
 let favorites      = safeParse('lh_favs', []);
 let srchHist       = safeParse('lh_hist', []);
-let recentlyVisited = safeParse('lh_recent', []); // So'nggi ko'rilgan resurslar
+let recentlyVisited = safeParse('lh_recent', []); 
 
 const MAX_HIST = 5;
 const FILTERS  = [
@@ -390,7 +365,6 @@ window._logoFail = function(img) {
   const wrap = img.closest('.card-logo-wrap') || img.parentElement;
   if(wrap && !wrap.dataset.avatarSet){
     wrap.dataset.avatarSet = '1';
-    // img ning haqiqiy o'lchamini olish — 0 bo'lsa Tailwind classdan topamiz
     let sz = img.offsetWidth;
     if(!sz){
       const m = (img.className||'').match(/\bw-(\d+)\b/);
@@ -434,13 +408,8 @@ window._logoFail = function(img) {
   }
 };
 
-/* Google S2 favicon xizmati mavjud bo'lmagan domenlar uchun
-   16×16 px xira globus qaytaradi (onerror o'rniga 200 OK).
-   onload orqali o'lchamni tekshirib, kichik bo'lsa fallbackga o'tamiz. */
 window._logoLoaded = function(img) {
-  if (img.src.startsWith('data:')) return; // boshlang'ich SVG placeholder — o'tkazib yubor
-  /* Google S2 servisi favicon yo'q domenlar uchun 16×16 px xira globus qaytaradi.
-     Faqat Google URL, step=1 va kichik rasm bo'lsa fallbackga o'tamiz. */
+  if (img.src.startsWith('data:')) return; 
   if (parseInt(img.dataset.step) === 1 &&
       img.src.includes('google.com/s2/favicons') &&
       img.naturalWidth > 0 && img.naturalWidth <= 16) {
@@ -449,8 +418,6 @@ window._logoLoaded = function(img) {
 };
 
 function _globeSVG(c1, c2) {
-  /* MUHIM: url(#id) gradient referansi <img src> da ishlamaydi,
-     shuning uchun to'g'ridan-to'g'ri c1 solid fill ishlatamiz. */
   return `data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
     `<rect width="64" height="64" rx="14" fill="${c1}"/>` +
@@ -464,8 +431,6 @@ function _globeSVG(c1, c2) {
 }
 
 function _gradientGlobeDiv(c1, c2, cls) {
-  // cls dan o'lcham klaslarini saqlaymiz (w-*, h-*, rounded-*)
-  // object-contain olib tashlangan, lekin size klaslari qoladi
   return `<div class="${cls} transition-transform group-hover:scale-110 flex items-center justify-center flex-shrink-0"
     style="background:linear-gradient(135deg,${c1},${c2});border-radius:inherit;overflow:hidden;">
     <svg viewBox="0 0 64 64" style="width:72%;height:72%;min-width:0;min-height:0;" xmlns="http://www.w3.org/2000/svg">
@@ -497,8 +462,6 @@ const [c1,c2] = palettes[Math.abs(hash) % palettes.length];
 
 const customLogo = item.logoUrl || item.logo_url || '';
 
-/* Real domain: kamida bitta nuqta bo'lishi kerak (masalan google.com, uzb.uz).
-   'sad', 'as', 'localhost' kabi TLD'siz domenlar uchun ham gradient globe. */
 const hasRealDomain = domain && domain.includes('.');
 if (!hasRealDomain && !customLogo) {
   return _gradientGlobeDiv(c1, c2, cls.replace('object-contain',''));
@@ -516,14 +479,11 @@ return `<img src="${svgData}" data-src="${faviconSrc}" alt="${item.n}" loading="
   onerror="window._logoFail(this)">`;
 }
 
-
-
 function getClicks(name){
 return globalClicks[name] || 0;
 }
 
-/* Klik qayd qilish — 2 soatda 1 marta (har foydalanuvchi, har resurs uchun) */
-const CLICK_THROTTLE_MS = 2 * 60 * 60 * 1000; // 2 soat
+const CLICK_THROTTLE_MS = 2 * 60 * 60 * 1000; 
 function _canClick(name){
   const key = 'lh_ct_' + name.replace(/[^a-zA-Z0-9]/g,'_');
   const last = parseInt(localStorage.getItem(key)||'0',10);
@@ -535,19 +495,18 @@ function _markClicked(name){
 }
 
 function addClick(name){
-/* 2 soat o'tmagan bo'lsa faqat recentlyVisited ga qo'shamiz, click hisoblamaymiz */
 const doCount = _canClick(name);
 if(doCount){
   _markClicked(name);
   globalClicks[name] = (globalClicks[name]||0) + 1;
-  _saveClicksCache(); // darhol localStorage ga saqlaymiz
+  _saveClicksCache(); 
   _updateCountEl(name, globalClicks[name]);
   renderTrending();
   updateSidebarStats();
   _supaIncrement(name).then(serverVal => {
     if(serverVal !== null && serverVal !== globalClicks[name]){
       globalClicks[name] = serverVal;
-      _saveClicksCache(); // server qiymati kelganda ham saqlaymiz
+      _saveClicksCache(); 
       _updateCountEl(name, serverVal);
       updateSidebarStats();
     }
