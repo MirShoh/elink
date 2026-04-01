@@ -2297,45 +2297,71 @@ function init() {
       const res = await fetch(SUPA_PROXY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: '/rest/v1/site_resources?select=*&is_active=eq.true', method: 'GET' })
+        body: JSON.stringify({ path: '/rest/v1/site_resources?select=*', method: 'GET' })
       });
       if (!res.ok) return false;
       const rows = await res.json();
       if (!Array.isArray(rows) || !rows.length) return false;
+
       rows.forEach(sr => {
         if (!sr.name || !sr.url) return;
-        let found = false;
+
+        // is_active=false bo'lsa — resursni DATA dan olib tashlaymiz
+        if (sr.is_active === false) {
+          DATA.forEach(cat => {
+            cat.items = cat.items.filter(i => i.n?.toLowerCase() !== sr.name?.toLowerCase());
+          });
+          return;
+        }
+
+        // Hozir qaysi kategoriyada turishini topamiz
+        let foundCat = null;
+        let foundIdx = -1;
         DATA.forEach(cat => {
           const idx = cat.items.findIndex(i => i.n?.toLowerCase() === sr.name?.toLowerCase());
-          if (idx !== -1) {
-            found = true;
-            cat.items[idx] = {
-              ...cat.items[idx],
-              u: sr.url || cat.items[idx].u,
-              d: sr.description || cat.items[idx].d,
-              t: sr.tags?.length ? sr.tags : cat.items[idx].t,
-              v: sr.verified ?? cat.items[idx].v,
-              ...(sr.logo_url ? { logoUrl: sr.logo_url } : {}),
-              ...(sr.android  ? { androidUrl: sr.android } : {}),
-              ...(sr.ios      ? { iosUrl: sr.ios } : {}),
-            };
+          if (idx !== -1 && foundCat === null) {
+            foundCat = cat;
+            foundIdx = idx;
           }
         });
-        if (!found) {
-          const newItem = {
-            n: sr.name, u: sr.url, d: sr.description || '',
-            t: sr.tags?.length ? sr.tags : ['web'],
-            v: sr.verified ?? true, _fromAdmin: true,
-            ...(sr.logo_url ? { logoUrl: sr.logo_url } : {}),
-            ...(sr.android  ? { androidUrl: sr.android } : {}),
-            ...(sr.ios      ? { iosUrl: sr.ios } : {}),
-          };
-          const targetCat  = sr.category_id ? DATA.find(c => c.id === sr.category_id) : null;
+
+        // Yangilangan item obyekti
+        const base = foundCat ? foundCat.items[foundIdx] : {};
+        const updatedItem = {
+          ...base,
+          n: sr.name,
+          u: sr.url || base.u || '',
+          d: sr.description || base.d || '',
+          t: sr.tags?.length ? sr.tags : (base.t || ['web']),
+          v: sr.verified ?? base.v ?? true,
+          _fromAdmin: true,
+          ...(sr.logo_url ? { logoUrl: sr.logo_url } : {}),
+          ...(sr.android  ? { androidUrl: sr.android } : {}),
+          ...(sr.ios      ? { iosUrl:     sr.ios     } : {}),
+        };
+
+        // Admin belgilagan maqsad kategoriya
+        const targetCat = sr.category_id
+          ? DATA.find(c => c.id === sr.category_id)
+          : null;
+
+        if (foundCat) {
+          // Kategoriya o'zgarganmi? — item ni ko'chiramiz
+          if (targetCat && targetCat.id !== foundCat.id) {
+            foundCat.items.splice(foundIdx, 1);          // eski kategoriyadan olib tashla
+            targetCat.items.unshift(updatedItem);        // yangi kategoriyaga qo'sh
+          } else {
+            // Xuddi shu kategoriya — faqat yangilaymiz
+            foundCat.items[foundIdx] = updatedItem;
+          }
+        } else {
+          // DATA da yo'q — yangi resurs sifatida qo'shamiz
           const fallbackCat = DATA.find(c => c.id === 'uzbekistan') || DATA[1];
           const cat = targetCat || fallbackCat;
-          if (cat) cat.items.unshift(newItem);
+          if (cat) cat.items.unshift(updatedItem);
         }
       });
+
       return true;
     } catch (e) { console.warn('[sync] site_resources:', e.message); return false; }
   }
