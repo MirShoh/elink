@@ -16,4 +16,7 @@ jobs:
           key: ${{ secrets.VDS_SSH_KEY }}
           script: |
             cd /var/www/elink.uz
+            git reset --hard HEAD
             git pull origin main
+            npm install
+            pm2 restart elink-proxy
