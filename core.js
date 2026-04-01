@@ -247,7 +247,7 @@ async function initGlobalClicks() {
     const res = await fetch(SUPA_PROXY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: '/rest/v1/clicks?select=name,count&limit=1000', method: 'GET' })
+      body: JSON.stringify({ path: '/rest/v1/rpc/get_top_clicks', method: 'GET' })
     });
     if (!res.ok) return;
     const rows = await res.json();
