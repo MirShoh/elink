@@ -61,7 +61,7 @@
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/images/android-chrome-192x192.png">
+<!-- android-chrome-192x192.png: /images/ papkasida mavjud bo'lsa qoldiring, aks holda olib tashlang -->
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 <link rel="manifest" href="/images/site.webmanifest">
 <meta name="msapplication-TileColor" content="#8b5cf6">
@@ -284,16 +284,16 @@
 </div>
 
 <!-- 2. Kritik CSS: preload + darhol yuklash -->
-<link rel="preload" href="style.css" as="style">
-<link rel="preload" href="widgets-style.css" as="style">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="widgets-style.css">
+<link rel="preload" href="style.min.css" as="style">
+<link rel="preload" href="widgets-style.min.css" as="style">
+<link rel="stylesheet" href="style.min.css">
+<link rel="stylesheet" href="widgets-style.min.css">
 
-<!-- 3. JS skriptlar: modulepreload = fetch + parse parallel -->
+
 <link rel="preload" href="data.js" as="script">
 <link rel="preload" href="core.js" as="script">
-<link rel="preload" href="render.js" as="script">
-<link rel="preload" href="builder.js" as="script">
+
+
 
 <!-- 4. Tashqi resurslar uchun preconnect -->
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -302,7 +302,12 @@
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
-<!-- 5. Font Awesome — preload + non-blocking load -->
+<!-- 5. Font Awesome — font-display:swap override (450ms tejash) -->
+<style>
+@font-face{font-family:"Font Awesome 6 Free";font-display:swap;src:url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2") format("woff2");font-weight:900}
+@font-face{font-family:"Font Awesome 6 Brands";font-display:swap;src:url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-brands-400.woff2") format("woff2");font-weight:400}
+</style>
+<!-- 5. Font Awesome — non-blocking load -->
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" as="style" crossorigin>
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" as="style" crossorigin>
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style" crossorigin>
@@ -322,7 +327,7 @@
 
 <!-- 7. Tailwind CLI build — CDN fallback -->
 <link rel="preload" href="tailwind.css?v=2" as="style">
-<link rel="stylesheet" href="tailwind.css?v=2" id="tw-local">
+<link rel="stylesheet" href="tailwind.css?v=2" id="tw-local" fetchpriority="high">
 <script>
 (function(){
   var tw=document.getElementById('tw-local');
@@ -343,9 +348,18 @@
 </script>
 
 
-<!-- 9. Google Analytics — async, bloklamaydi -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2QYRFQMN3H"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2QYRFQMN3H');</script>
+<!-- 9. Google Analytics — load eventdan keyin yuklanadi (TBT kamaytiradi) -->
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());gtag('config','G-2QYRFQMN3H',{send_page_view:false});
+window.addEventListener('load',function(){
+  var s=document.createElement('script');
+  s.async=true;
+  s.src='https://www.googletagmanager.com/gtag/js?id=G-2QYRFQMN3H';
+  s.onload=function(){gtag('event','page_view');};
+  document.head.appendChild(s);
+},{ once: true });
+</script>
 
 </head>
 
@@ -758,11 +772,38 @@
   </div>
 </div>
 
-<!-- Scripts: data → core → render/builder (defer) -->
+<!-- Scripts: data + core (kritik, defer) → render/builder/widgets (lazy) -->
 <script src="data.js" defer></script>
 <script src="core.js" defer></script>
-<script src="render.js" defer></script>
-<script src="builder.js" defer></script>
+<script>
+/* render.js va builder.js: DOMContentLoaded keyin requestIdleCallback orqali yuklanadi */
+(function() {
+  function lazyLoadScripts() {
+    var scripts = ['render.js', 'builder.js'];
+    scripts.forEach(function(src) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      document.body.appendChild(s);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.requestIdleCallback) {
+        requestIdleCallback(lazyLoadScripts, { timeout: 1500 });
+      } else {
+        setTimeout(lazyLoadScripts, 0);
+      }
+    });
+  } else {
+    if (window.requestIdleCallback) {
+      requestIdleCallback(lazyLoadScripts, { timeout: 1500 });
+    } else {
+      setTimeout(lazyLoadScripts, 0);
+    }
+  }
+})();
+</script>
 <script>
 /* Loader o'chirish — render.js init() tugagandan keyin chaqiriladi */
 window._hideLoader = function(){
@@ -778,6 +819,23 @@ if('serviceWorker' in navigator && location.hostname !== 'localhost' && !locatio
   });
 }
 </script>
-<script src="widgets.js" defer></script>
+<script>
+/* widgets.js: load event keyin yuklanadi */
+window.addEventListener('load', function() {
+  if (window.requestIdleCallback) {
+    requestIdleCallback(function() {
+      var s = document.createElement('script');
+      s.src = 'widgets.min.js';
+      document.body.appendChild(s);
+    }, { timeout: 2000 });
+  } else {
+    setTimeout(function() {
+      var s = document.createElement('script');
+      s.src = 'widgets.min.js';
+      document.body.appendChild(s);
+    }, 200);
+  }
+});
+</script>
 </body>
 </html>

@@ -211,6 +211,38 @@ function handleStatic(req, res) {
     res.writeHead(403); res.end('Forbidden'); return;
   }
 
+  // WebP auto-serving: PNG/JPG so'rovida browser WebP qabul qilsa, .webp faylini yuboradi
+  const imageExts = new Set(['.png', '.jpg', '.jpeg']);
+  const acceptsWebP = (req.headers['accept'] || '').includes('image/webp');
+  if (imageExts.has(ext) && acceptsWebP) {
+    const webpPath = absPath.replace(/\.(png|jpe?g)$/i, '.webp');
+    if (require('fs').existsSync(webpPath)) {
+      fs.readFile(webpPath, (werr, wdata) => {
+        if (!werr) {
+          const wstat = fs.statSync(webpPath, { throwIfNoEntry: false });
+          const wetag = wstat ? `"${wstat.size}-${wstat.mtimeMs.toString(36)}"` : null;
+          if (wetag && req.headers['if-none-match'] === wetag) {
+            res.writeHead(304); res.end(); return;
+          }
+          const wheaders = {
+            'Content-Type': 'image/webp',
+            'Cache-Control': 'public, max-age=2592000, stale-while-revalidate=604800',
+            'X-Content-Type-Options': 'nosniff',
+            'Vary': 'Accept',
+          };
+          if (wetag) wheaders['ETag'] = wetag;
+          sendCompressed(req, res, wdata, wheaders);
+          return;
+        }
+        // WebP yo'q, davom etadi
+        serveOriginal();
+      });
+      return;
+    }
+  }
+  serveOriginal();
+  function serveOriginal() {
+
   fs.readFile(absPath, (err, data) => {
     if (err) {
       fs.readFile(path.join(CONFIG.STATIC_DIR, 'index.html'), (err2, indexData) => {
@@ -226,10 +258,22 @@ function handleStatic(req, res) {
     const ext  = path.extname(absPath).toLowerCase();
     const mime = MIME[ext] || 'application/octet-stream';
 
-    // Cache strategiyasi
-    const noCacheFiles = new Set(['/data.js','/core.js','/render.js','/builder.js','/widgets.js','/index.html']);
-    const noCache  = noCacheFiles.has(filePath);
-    const cache    = noCache ? 'public, max-age=0, must-revalidate' : 'public, max-age=31536000, immutable';
+    let cache;
+    if (filePath === '/index.html') {
+      cache = 'public, no-cache';
+    } else if (filePath === '/data.js') {
+      cache = 'public, max-age=3600, stale-while-revalidate=86400';
+    } else if (['/core.js','/render.js','/builder.js','/widgets.js'].includes(filePath)) {
+      cache = 'public, max-age=86400, stale-while-revalidate=604800';
+    } else if (ext === '.css') {
+      cache = 'public, max-age=2592000, stale-while-revalidate=604800';
+    } else if (['.png','.jpg','.jpeg','.webp','.svg','.ico'].includes(ext)) {
+      cache = 'public, max-age=2592000, stale-while-revalidate=604800';
+    } else if (['.woff2','.woff'].includes(ext)) {
+      cache = 'public, max-age=31536000, immutable';
+    } else {
+      cache = 'public, max-age=86400, stale-while-revalidate=604800';
+    }
 
     // ETag: fayl hajmi + mtime (tez hisoblanadi)
     const stat = fs.statSync(absPath, { throwIfNoEntry: false });
@@ -247,9 +291,12 @@ function handleStatic(req, res) {
       'Connection':               'keep-alive',
     };
     if (etag) headers['ETag'] = etag;
+    // WebP/font fayllar uchun Vary headeri
+    if (['.png','.jpg','.jpeg'].includes(ext)) headers['Vary'] = 'Accept';
 
     sendCompressed(req, res, data, headers);
   });
+  } // end serveOriginal
 }
 
 // ─── Asosiy server ─────────────────────────────────────────────
