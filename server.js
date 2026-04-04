@@ -212,6 +212,7 @@ function handleStatic(req, res) {
   }
 
   // WebP auto-serving: PNG/JPG so'rovida browser WebP qabul qilsa, .webp faylini yuboradi
+  const ext = path.extname(absPath).toLowerCase();   // ← oldin e'lon qilish (serveOriginal ichida ham ishlatiladi)
   const imageExts = new Set(['.png', '.jpg', '.jpeg']);
   const acceptsWebP = (req.headers['accept'] || '').includes('image/webp');
   if (imageExts.has(ext) && acceptsWebP) {
@@ -255,7 +256,6 @@ function handleStatic(req, res) {
       return;
     }
 
-    const ext  = path.extname(absPath).toLowerCase();
     const mime = MIME[ext] || 'application/octet-stream';
 
     let cache;
@@ -319,6 +319,17 @@ const server = http.createServer(async (req, res) => {
     await handleTelegram(req, res);
 } else if (reqPath === '/api/check-admin' || reqPath === '/.netlify/functions/check-admin') {
     await handleCheckAdmin(req, res);
+} else if (/^\/share-[a-zA-Z0-9_-]+$/.test(reqPath)) {
+    // Share URL-lar → index.html (SPA routing)
+    fs.readFile(path.join(CONFIG.STATIC_DIR, 'index.html'), (err, data) => {
+      if (err) { res.writeHead(404); res.end('Not found'); return; }
+      res.writeHead(200, {
+        'Content-Type':           'text/html; charset=utf-8',
+        'Cache-Control':          'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      res.end(data);
+    });
 } else {
     handleStatic(req, res);
 }

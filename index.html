@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uz" prefix="og: https://ogp.me/ns#">
+<html lang="uz" xml:lang="uz" prefix="og: https://ogp.me/ns#">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -238,6 +238,8 @@
 }
 .dark #elink-loader{background:#060a18}
 #elink-loader.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility 0s linear .15s}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+.skip-link{transition:none}
 
 .el-logo{
   width:64px;height:64px;border-radius:20px;
@@ -364,10 +366,12 @@ window.addEventListener('load',function(){
 </head>
 
 <body class="text-slate-800 dark:text-slate-200 antialiased overflow-hidden h-screen flex relative">
-<div class="bg-app"></div>
+<!-- Skip navigation link for keyboard users -->
+<a href="#mainContent" class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:bg-violet-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-xl focus:font-bold focus:text-sm">Asosiy mazmunga o'tish</a>
+<div class="bg-app" role="presentation"></div>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
-<aside id="mainSidebar" class="w-[17rem] hidden md:flex flex-col border-r border-slate-200/60 dark:border-slate-800/60 glass z-20 shrink-0 h-screen">
+<aside id="mainSidebar" role="navigation" aria-label="Asosiy menyu" class="w-[17rem] hidden md:flex flex-col border-r border-slate-200/60 dark:border-slate-800/60 glass z-20 shrink-0 h-screen">
   <div class="p-4 pb-1.5 shrink-0">
     <div class="sb-brand flex items-center gap-3 mb-4">
       <a href="https://elink.uz" title="Bosh sahifa" class="w-9 h-9 rounded-xl shrink-0 hover:scale-105 transition-transform active:scale-95 overflow-hidden">
@@ -381,8 +385,9 @@ window.addEventListener('load',function(){
     <div class="sb-search search-wrapper mb-3" id="deskSWrap">
       <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs pointer-events-none"></i>
       <input id="deskSrc" type="text" autocomplete="off" spellcheck="false" placeholder="Qidirish... (Ctrl+K)"
+        aria-label="Resurslarni qidirish"
         class="w-full text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-xl pl-8 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 placeholder-slate-400 transition-all"/>
-      <button id="deskClr" class="absolute right-2 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-all z-10 opacity-0 pointer-events-none">
+      <button id="deskClr" aria-label="Qidiruvni tozalash" class="absolute right-2 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-all z-10 opacity-0 pointer-events-none">
         <i class="fa-solid fa-circle-xmark text-[13px]"></i>
       </button>
       <div id="deskDrop" class="hidden absolute top-full mt-1.5 left-0 right-0 glass rounded-xl z-[60] s-drop">
@@ -390,13 +395,13 @@ window.addEventListener('load',function(){
       </div>
     </div>
     <div class="sb-chips flex flex-wrap gap-1.5 mb-1" id="deskChips"></div>
-    <select id="sSort" class="hidden">
+    <select id="sSort" aria-label="Saralash tartibi" class="hidden">
       <option value="def">Standart tartib</option>
       <option value="popular">🔥 Eng mashhur</option>
       <option value="az">A → Z</option>
       <option value="za">Z → A</option>
     </select>
-    <button id="clrFilters" class="hidden"></button>
+    <button id="clrFilters" aria-label="Filtrlarni tozalash" class="hidden"></button>
   </div>
 
   <div id="sidebarPinned" class="shrink-0 px-3 pt-1 pb-1 space-y-0"></div>
@@ -409,43 +414,45 @@ window.addEventListener('load',function(){
 
   <div class="shrink-0 p-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
     <div class="sb-bottom-btns flex flex-col gap-2">
-      <button onclick="openSuggestModal()" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
-        <i class="fa-solid fa-lightbulb"></i> <span class="sb-bottom-text">Resurs taklif qilish</span>
+      <button onclick="openSuggestModal()" aria-label="Yangi resurs taklif qilish" class="sb-bottom-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition-all text-white text-xs font-bold shadow-md shadow-emerald-500/20">
+        <i class="fa-solid fa-lightbulb" aria-hidden="true"></i> <span class="sb-bottom-text">Resurs taklif qilish</span>
       </button>
     </div>
-    <button id="themeBtn" class="hidden"><i id="themeIco"></i><span id="themeTxt"></span></button>
+    <button id="themeBtn" aria-label="Mavzuni almashtirish" class="hidden"><i id="themeIco" aria-hidden="true"></i><span id="themeTxt"></span></button>
   </div>
   <!-- shareBtn hidden — faqat setupShare() uchun kerak, ko'rinmaydi -->
-  <button id="shareBtn" class="hidden"></button>
+  <button id="shareBtn" aria-label="Ulashish" class="hidden"></button>
 </aside>
 
 <!-- ═══════════════════════ MAIN ═══════════════════════ -->
 <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
   <!-- Mobile header -->
-  <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe">
+  <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe" role="banner">
     <div class="flex items-center justify-between px-4 pt-3 pb-2">
       <div class="flex items-center gap-2.5">
-        <a href="https://elink.uz" class="w-8 h-8 rounded-xl shrink-0 overflow-hidden shadow-md">
-          <img src="images/eLink_Logo.png" alt="eLink" class="w-full h-full object-cover">
+        <a href="https://elink.uz" aria-label="eLink - Bosh sahifa" class="w-8 h-8 rounded-xl shrink-0 overflow-hidden shadow-md">
+          <img src="images/eLink_Logo.png" alt="eLink logotipi" class="w-full h-full object-cover">
         </a>
         <div>
-          <span onclick="location.reload()" class="font-black text-slate-900 dark:text-white text-[15px] cursor-pointer hover:text-violet-600 dark:hover:text-violet-400 transition-colors select-none">eLink <span class="text-violet-500">UZ</span></span>
-          <p id="mobResCount" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none"></p>
+          <span onclick="location.reload()" role="button" tabindex="0" aria-label="Sahifani yangilash" class="font-black text-slate-900 dark:text-white text-[15px] cursor-pointer hover:text-violet-600 dark:hover:text-violet-400 transition-colors select-none">eLink <span class="text-violet-500">UZ</span></span>
+          <p id="mobResCount" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none" aria-live="polite"></p>
         </div>
       </div>
       <div class="flex gap-2 items-center">
-        <button id="themeBtnMob" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
-          <i id="themeIcoMob" class="fa-solid fa-moon text-sm"></i>
+        <button id="themeBtnMob" aria-label="Tungi/Kunduzgi rejim" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
+          <i id="themeIcoMob" class="fa-solid fa-moon text-sm" aria-hidden="true"></i>
         </button>
       </div>
     </div>
     <div class="px-4 pb-2 search-wrapper relative" id="mobSWrap">
-      <i class="fa-solid fa-magnifying-glass absolute left-7 text-slate-400 text-xs z-10 pointer-events-none"></i>
+      <i class="fa-solid fa-magnifying-glass absolute left-7 text-slate-400 text-xs z-10 pointer-events-none" aria-hidden="true"></i>
+      <label for="mobSrc" class="sr-only">Resurslarni qidirish</label>
       <input id="mobSrc" type="text" autocomplete="off" placeholder="Qidirish..."
+        aria-label="Resurslarni qidirish"
         class="w-full text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl pl-8 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 placeholder-slate-400"/>
-      <button id="mobClr" class="absolute right-6 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 z-10 opacity-0 pointer-events-none">
-        <i class="fa-solid fa-circle-xmark text-[13px]"></i>
+      <button id="mobClr" aria-label="Qidiruvni tozalash" class="absolute right-6 flex items-center justify-center w-6 h-6 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 z-10 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-circle-xmark text-[13px]" aria-hidden="true"></i>
       </button>
       <div id="mobDrop" class="hidden absolute top-full mt-1 left-4 right-4 glass rounded-xl z-[60] s-drop">
         <div id="mobDropIn" class="p-2"></div>
@@ -456,7 +463,7 @@ window.addEventListener('load',function(){
   </header>
 
   <!-- Content area -->
-  <main class="flex-1 overflow-y-auto scroll-smooth" id="mainScroll">
+  <main class="flex-1 overflow-y-auto scroll-smooth" id="mainContent" tabindex="-1" aria-label="Asosiy kontent">
 
     <!-- Sticky trending -->
     <div id="trendingSection" class="hidden sticky top-0 z-40 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/40 shadow-sm">
@@ -485,44 +492,46 @@ window.addEventListener('load',function(){
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button id="themeBtnTop" class="ew-theme-btn">
-            <i id="themeIcoTop" class="fa-solid fa-moon text-sm"></i>
+          <button id="themeBtnTop" aria-label="Tungi/Kunduzgi rejim" class="ew-theme-btn">
+            <i id="themeIcoTop" class="fa-solid fa-moon text-sm" aria-hidden="true"></i>
             <span class="hidden sm:inline text-xs font-bold">Tungi rejim</span>
           </button>
           
           <div id="catSWrap" class="hidden relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px] pointer-events-none z-10"></i>
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px] pointer-events-none z-10" aria-hidden="true"></i>
+            <label for="catSrc" class="sr-only">Kategoriyada qidirish</label>
             <input id="catSrc" type="text" autocomplete="off" spellcheck="false" placeholder="Kategoriyada qidirish..."
+              aria-label="Kategoriyada qidirish"
               class="w-52 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 placeholder-slate-400 transition-all shadow-sm"/>
-            <button id="catClr" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all opacity-0 pointer-events-none z-10">
-              <i class="fa-solid fa-xmark text-[10px]"></i>
+            <button id="catClr" aria-label="Qidiruvni tozalash" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all opacity-0 pointer-events-none z-10">
+              <i class="fa-solid fa-xmark text-[10px]" aria-hidden="true"></i>
             </button>
           </div>
           <div class="relative" id="topSortDropWrap">
-            <button id="topSortDropBtn" onclick="toggleTopSortDrop()" class="flex items-center justify-between gap-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:border-violet-400 dark:hover:border-violet-500 transition-all shadow-sm cursor-pointer min-w-[130px]">
+            <button id="topSortDropBtn" onclick="toggleTopSortDrop()" aria-label="Saralash tartibini tanlash" aria-haspopup="listbox" aria-expanded="false" class="flex items-center justify-between gap-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:border-violet-400 dark:hover:border-violet-500 transition-all shadow-sm cursor-pointer min-w-[130px]">
               <span class="flex items-center gap-1.5">
-                <i id="topSortDropIcon" class="fa-solid fa-arrow-up-wide-short text-violet-400 text-[10px]"></i>
+                <i id="topSortDropIcon" class="fa-solid fa-arrow-up-wide-short text-violet-400 text-[10px]" aria-hidden="true"></i>
                 <span id="topSortDropLabel">Standart</span>
               </span>
-              <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" id="topSortChevron"></i>
+              <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" id="topSortChevron" aria-hidden="true"></i>
             </button>
-            <div id="topSortDropMenu" class="hidden absolute top-full right-0 mt-1.5 glass rounded-xl shadow-xl z-[80] overflow-hidden border border-slate-200/80 dark:border-slate-700/60 min-w-[145px]">
+            <div id="topSortDropMenu" role="listbox" aria-label="Saralash variantlari" class="hidden absolute top-full right-0 mt-1.5 glass rounded-xl shadow-xl z-[80] overflow-hidden border border-slate-200/80 dark:border-slate-700/60 min-w-[145px]">
               <div class="p-1.5 space-y-0.5">
-                <button onclick="setSortMode('def')" data-top="def" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-                  <i class="fa-solid fa-bars-staggered text-slate-400 text-[10px] w-3"></i> Standart
+                <button onclick="setSortMode('def')" role="option" aria-selected="true" data-top="def" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <i class="fa-solid fa-bars-staggered text-slate-400 text-[10px] w-3" aria-hidden="true"></i> Standart
                 </button>
-                <button onclick="setSortMode('popular')" data-top="popular" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-                  <span class="text-[12px] w-3 flex justify-center">🔥</span> Mashhur
+                <button onclick="setSortMode('popular')" role="option" aria-selected="false" data-top="popular" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <span class="text-[12px] w-3 flex justify-center" aria-hidden="true">🔥</span> Mashhur
                 </button>
-                <button onclick="setSortMode('az')" data-top="az" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-                  <i class="fa-solid fa-arrow-down-a-z text-slate-400 text-[10px] w-3"></i> A → Z
+                <button onclick="setSortMode('az')" role="option" aria-selected="false" data-top="az" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <i class="fa-solid fa-arrow-down-a-z text-slate-400 text-[10px] w-3" aria-hidden="true"></i> A → Z
                 </button>
-                <button onclick="setSortMode('za')" data-top="za" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
-                  <i class="fa-solid fa-arrow-up-a-z text-slate-400 text-[10px] w-3"></i> Z → A
+                <button onclick="setSortMode('za')" role="option" aria-selected="false" data-top="za" class="top-sort-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all text-left">
+                  <i class="fa-solid fa-arrow-up-a-z text-slate-400 text-[10px] w-3" aria-hidden="true"></i> Z → A
                 </button>
               </div>
             </div>
-            <select id="topSort" class="hidden">
+            <select id="topSort" aria-label="Saralash tartibi" class="hidden">
               <option value="def">Standart</option>
               <option value="popular">🔥 Mashhur</option>
               <option value="az">A → Z</option>
@@ -550,20 +559,20 @@ window.addEventListener('load',function(){
         <h3 class="text-xl font-black text-slate-800 dark:text-white mb-2">Hech narsa topilmadi</h3>
         <p class="text-sm text-slate-400 mb-4 max-w-xs leading-relaxed">Qidiruv so'zini o'zgartiring yoki barcha resurslarni ko'ring</p>
         <button onclick="setCat('all');query='';$('deskSrc').value='';$('mobSrc').value='';renderContent()" class="flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold rounded-xl px-5 py-2.5 text-sm hover:opacity-90 transition-opacity shadow-lg shadow-violet-500/25">
-          <i class="fa-solid fa-border-all text-sm"></i> Barcha resurslar
+          <i class="fa-solid fa-border-all text-sm" aria-hidden="true"></i> Barcha resurslar
         </button>
       </div>
     </div>
   </main>
 
   <!-- Scroll to top FAB -->
-  <button id="scrollTop" class="fixed bottom-6 right-5 w-11 h-11 rounded-2xl bg-slate-900/90 dark:bg-violet-600 text-white shadow-xl flex items-center justify-center z-50 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none backdrop-blur-md hover:scale-110 active:scale-95 group">
-    <i class="fa-solid fa-chevron-up text-sm transition-transform group-hover:-translate-y-0.5"></i>
+  <button id="scrollTop" aria-label="Sahifa tepasiga qaytish" class="fixed bottom-6 right-5 w-11 h-11 rounded-2xl bg-slate-900/90 dark:bg-violet-600 text-white shadow-xl flex items-center justify-center z-50 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none backdrop-blur-md hover:scale-110 active:scale-95 group">
+    <i class="fa-solid fa-chevron-up text-sm transition-transform group-hover:-translate-y-0.5" aria-hidden="true"></i>
   </button>
 </div>
 
 <!-- ═══════════════════════ ONBOARDING MODAL ═══════════════════════ -->
-<div id="onboardModal" class="fixed inset-0 z-[1000] hidden items-end sm:items-center justify-center p-0 sm:p-4">
+<div id="onboardModal" role="dialog" aria-modal="true" aria-labelledby="obTitle" class="fixed inset-0 z-[1000] hidden items-end sm:items-center justify-center p-0 sm:p-4">
   <div class="absolute inset-0 ob-backdrop bg-slate-900/75 backdrop-blur-md"></div>
   <div id="onboardBox" class="ob-box relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
     style="transform:translateY(20px) scale(0.98);opacity:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .3s ease-out">
@@ -571,153 +580,153 @@ window.addEventListener('load',function(){
       <div class="ob-header-bg"></div>
       <div class="relative z-10 flex items-start justify-between">
         <div class="flex-1 min-w-0">
-          <div id="obIcon" class="ob-icon w-12 h-12 rounded-2xl flex items-center justify-center mb-3"></div>
+          <div id="obIcon" class="ob-icon w-12 h-12 rounded-2xl flex items-center justify-center mb-3" aria-hidden="true"></div>
           <h2 id="obTitle" class="text-xl font-black text-white leading-snug mb-1"></h2>
           <p id="obSubtitle" class="text-[13px] text-white/75 leading-relaxed"></p>
         </div>
-        <button onclick="closeOnboard()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center ml-3 shrink-0 transition-colors">
-          <i class="fa-solid fa-xmark text-sm"></i>
+        <button onclick="closeOnboard()" aria-label="Yopish" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center ml-3 shrink-0 transition-colors">
+          <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
         </button>
       </div>
-      <div id="obDots" class="flex gap-1.5 mt-4"></div>
+      <div id="obDots" class="flex gap-1.5 mt-4" role="tablist" aria-label="Onboarding qadamlari"></div>
     </div>
     <div id="obBody" class="p-4 space-y-2 overflow-y-auto flex-1"></div>
     <div class="px-4 pb-4 pt-2 flex gap-2 shrink-0">
-      <button id="obBack" onclick="obStep(-1)" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 flex items-center justify-center transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 opacity-0 pointer-events-none">
-        <i class="fa-solid fa-arrow-left text-sm"></i>
+      <button id="obBack" onclick="obStep(-1)" aria-label="Orqaga" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 flex items-center justify-center transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-arrow-left text-sm" aria-hidden="true"></i>
       </button>
       <button onclick="obStep(1)" class="flex-1 ob-btn-next rounded-xl py-3 flex items-center justify-center gap-2 font-bold text-sm">
         <span id="obNextTxt">Davom etish</span>
-        <i id="obNextIco" class="fa-solid fa-arrow-right text-sm"></i>
+        <i id="obNextIco" class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
       </button>
     </div>
   </div>
 </div>
 
 <!-- ═══════════════════════ PLATFORM MODAL ═══════════════════════ -->
-<div id="platModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+<div id="platModal" role="dialog" aria-modal="true" aria-label="Platform tanlash" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
   <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closePlatformModal()"></div>
   <div class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700" id="platModalContent">
-    <button onclick="closePlatformModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center z-10">
-      <i class="fa-solid fa-xmark text-sm"></i>
+    <button onclick="closePlatformModal()" aria-label="Modalni yopish" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center z-10">
+      <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
     </button>
     <div id="platModalBody"></div>
   </div>
 </div>
 
 <!-- ═══════════════════════ REPORT MODAL ═══════════════════════ -->
-<div id="reportModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+<div id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
   <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReportModal()"></div>
   <div id="reportModalContent" class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700">
-    <button onclick="closeReportModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
-      <i class="fa-solid fa-xmark text-sm"></i>
+    <button onclick="closeReportModal()" aria-label="Modalni yopish" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center">
+      <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
     </button>
     <div class="flex items-center gap-3 mb-5">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-400/30 shrink-0">
-        <i class="fa-solid fa-triangle-exclamation text-base"></i>
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-400/30 shrink-0" aria-hidden="true">
+        <i class="fa-solid fa-triangle-exclamation text-base" aria-hidden="true"></i>
       </div>
       <div>
-        <h3 class="text-base font-black text-slate-900 dark:text-white">Muammo bildirish</h3>
+        <h3 id="reportModalTitle" class="text-base font-black text-slate-900 dark:text-white">Muammo bildirish</h3>
         <p class="text-[11px] text-slate-400 mt-0.5">Sayt ishlamayotganini xabar bering</p>
       </div>
     </div>
     <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3.5 py-2.5 mb-4 flex items-center gap-2">
-      <i class="fa-solid fa-globe text-violet-400 text-xs shrink-0"></i>
+      <i class="fa-solid fa-globe text-violet-400 text-xs shrink-0" aria-hidden="true"></i>
       <span id="reportSiteName" class="font-bold text-sm text-slate-800 dark:text-white truncate"></span>
     </div>
     <input type="hidden" id="reportSiteUrl">
     <input type="hidden" id="reportSiteNameHidden">
     <div class="space-y-3">
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Muammo turi</label>
-        <div class="grid grid-cols-2 gap-2" id="reportReasonBtns">
-          <button type="button" onclick="selectReason(this,'Sayt ochilmayapti')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔴 Sayt ochilmayapti</button>
-          <button type="button" onclick="selectReason(this,'Sekin ishlayapti')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🐢 Sekin ishlayapti</button>
-          <button type="button" onclick="selectReason(this,'Xato URL')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔗 Xato URL</button>
-          <button type="button" onclick="selectReason(this,'Boshqa muammo')" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">❓ Boshqa muammo</button>
+        <p class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5" id="reportReasonLabel">Muammo turi</p>
+        <div class="grid grid-cols-2 gap-2" id="reportReasonBtns" role="group" aria-labelledby="reportReasonLabel">
+          <button type="button" onclick="selectReason(this,'Sayt ochilmayapti')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔴 Sayt ochilmayapti</button>
+          <button type="button" onclick="selectReason(this,'Sekin ishlayapti')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🐢 Sekin ishlayapti</button>
+          <button type="button" onclick="selectReason(this,'Xato URL')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔗 Xato URL</button>
+          <button type="button" onclick="selectReason(this,'Boshqa muammo')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">❓ Boshqa muammo</button>
         </div>
         <input type="hidden" id="reportReason">
       </div>
       <div id="otherReasonWrap" class="hidden overflow-hidden" style="max-height:0;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s">
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Izoh <span class="text-amber-500">*</span></label>
-        <textarea id="otherReasonText" rows="3" placeholder="Muammoni batafsilroq tushuntiring..." class="w-full text-xs font-medium bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:border-amber-400 dark:focus:border-amber-500 resize-none transition-all"></textarea>
+        <label for="otherReasonText" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Izoh <span class="text-amber-500" aria-label="majburiy">*</span></label>
+        <textarea id="otherReasonText" rows="3" placeholder="Muammoni batafsilroq tushuntiring..." aria-required="true" class="w-full text-xs font-medium bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:border-amber-400 dark:focus:border-amber-500 resize-none transition-all"></textarea>
       </div>
     </div>
     <button id="reportSubmitBtn" onclick="submitReport()" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 md:py-3 transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98] text-sm">
-      <i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish
+      <i class="fa-solid fa-paper-plane mr-1.5" aria-hidden="true"></i> Yuborish
     </button>
   </div>
 </div>
 
 <!-- ═══════════════════════ TOAST ═══════════════════════ -->
-<div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[900] flex items-center gap-2.5 px-4 py-3 rounded-2xl glass border border-slate-200/70 dark:border-slate-700/60 shadow-2xl shadow-black/10 transition-all duration-300 opacity-0 pointer-events-none min-w-[220px] max-w-[340px] whitespace-nowrap">
-  <i id="toastIco" class="fa-solid fa-circle-check text-emerald-400 text-base shrink-0"></i>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[900] flex items-center gap-2.5 px-4 py-3 rounded-2xl glass border border-slate-200/70 dark:border-slate-700/60 shadow-2xl shadow-black/10 transition-all duration-300 opacity-0 pointer-events-none min-w-[220px] max-w-[340px] whitespace-nowrap">
+  <i id="toastIco" class="fa-solid fa-circle-check text-emerald-400 text-base shrink-0" aria-hidden="true"></i>
   <span id="toastMsg" class="text-sm font-bold text-slate-800 dark:text-white truncate"></span>
 </div>
 
 <!-- ═══════════════════════ CUSTOM APP MODAL ═══════════════════════ -->
-<div id="caModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+<div id="caModal" role="dialog" aria-modal="true" aria-labelledby="caModalTitle" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
   <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCustomModal()"></div>
   <div id="caModalContent" class="relative glass rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700">
     <!-- Header -->
     <div class="flex items-center justify-between mb-5">
       <h3 id="caModalTitle" class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-        <i class="fa-solid fa-circle-plus text-violet-500"></i> Yangi resurs
+        <i class="fa-solid fa-circle-plus text-violet-500" aria-hidden="true"></i> Yangi resurs
       </h3>
-      <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
-        <i class="fa-solid fa-xmark text-sm"></i>
+      <button onclick="closeCustomModal()" aria-label="Modalni yopish" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
       </button>
     </div>
 
     <div class="space-y-3.5">
       <!-- Nomi -->
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nomi <span class="text-red-400">*</span></label>
-        <input type="text" id="caName" maxlength="50" placeholder="Masalan: Mening blogim"
+        <label for="caName" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nomi <span class="text-red-400" aria-label="majburiy">*</span></label>
+        <input type="text" id="caName" maxlength="50" placeholder="Masalan: Mening blogim" aria-required="true"
           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
       </div>
       <!-- Tavsif -->
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
+        <label for="caDesc" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
         <input type="text" id="caDesc" maxlength="80" placeholder="Bu resurs haqida..."
           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
       </div>
       <!-- Platform toggles -->
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Platform</label>
-        <div class="flex gap-2">
-          <button id="caToggleWeb" onclick="caToggle('web')"
+        <p id="caPlatformLabel" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Platform</p>
+        <div class="flex gap-2" role="group" aria-labelledby="caPlatformLabel">
+          <button id="caToggleWeb" onclick="caToggle('web')" aria-pressed="true"
             class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-violet-400 bg-violet-50 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
-            <i class="fa-solid fa-globe text-[11px]"></i> Veb
+            <i class="fa-solid fa-globe text-[11px]" aria-hidden="true"></i> Veb
           </button>
-          <button id="caToggleAndroid" onclick="caToggle('android')"
+          <button id="caToggleAndroid" onclick="caToggle('android')" aria-pressed="false"
             class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
-            <i class="fa-brands fa-android text-[11px]"></i> Android
+            <i class="fa-brands fa-android text-[11px]" aria-hidden="true"></i> Android
           </button>
-          <button id="caToggleIos" onclick="caToggle('ios')"
+          <button id="caToggleIos" onclick="caToggle('ios')" aria-pressed="false"
             class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500">
-            <i class="fa-brands fa-apple text-[11px]"></i> iOS
+            <i class="fa-brands fa-apple text-[11px]" aria-hidden="true"></i> iOS
           </button>
         </div>
       </div>
       <!-- URL fields -->
       <div id="caWebField">
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-          <i class="fa-solid fa-globe text-blue-400 mr-1 text-[10px]"></i> Veb-sayt URL <span class="text-red-400">*</span>
+        <label for="caUrl" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <i class="fa-solid fa-globe text-blue-400 mr-1 text-[10px]" aria-hidden="true"></i> Veb-sayt URL <span class="text-red-400" aria-label="majburiy">*</span>
         </label>
-        <input type="url" id="caUrl" placeholder="https://sayt.uz"
+        <input type="url" id="caUrl" placeholder="https://sayt.uz" aria-required="true"
           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-800 dark:text-slate-200 transition-all">
       </div>
       <div id="caAndroidField" class="hidden">
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-          <i class="fa-brands fa-android text-emerald-500 mr-1 text-[10px]"></i> Google Play URL
+        <label for="caAndroidUrl" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <i class="fa-brands fa-android text-emerald-500 mr-1 text-[10px]" aria-hidden="true"></i> Google Play URL
         </label>
         <input type="url" id="caAndroidUrl" placeholder="https://play.google.com/store/apps/details?id=..."
           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all">
       </div>
       <div id="caIosField" class="hidden">
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-          <i class="fa-brands fa-apple text-slate-600 mr-1 text-[10px]"></i> App Store URL
+        <label for="caIosUrl" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <i class="fa-brands fa-apple text-slate-600 mr-1 text-[10px]" aria-hidden="true"></i> App Store URL
         </label>
         <input type="url" id="caIosUrl" placeholder="https://apps.apple.com/app/..."
           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/30 text-slate-800 dark:text-slate-200 transition-all">
@@ -726,46 +735,46 @@ window.addEventListener('load',function(){
 
     <input type="hidden" id="caEditName">
     <button onclick="saveCustomApp()" class="w-full mt-5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold rounded-xl py-3.5 transition-all shadow-lg shadow-violet-500/25 active:scale-[0.98] text-sm">
-      <i class="fa-solid fa-floppy-disk mr-1.5 text-[12px]"></i> <span id="caSaveTxt">Saqlash</span>
+      <i class="fa-solid fa-floppy-disk mr-1.5 text-[12px]" aria-hidden="true"></i> <span id="caSaveTxt">Saqlash</span>
     </button>
   </div>
 </div>
 
 <!-- ═══════════════════════ SUGGEST MODAL ═══════════════════════ -->
-<div id="suggestModal" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
+<div id="suggestModal" role="dialog" aria-modal="true" aria-labelledby="suggestModalTitle" class="fixed inset-0 z-[500] hidden items-center justify-center px-4">
   <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeSuggestModal()"></div>
   <div id="suggestModalContent" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-200 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
-    <button onclick="closeSuggestModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
-      <i class="fa-solid fa-xmark text-sm"></i>
+    <button onclick="closeSuggestModal()" aria-label="Modalni yopish" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors flex items-center justify-center shrink-0">
+      <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
     </button>
     <div class="flex items-center gap-3 mb-5">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-400/30 shrink-0">
-        <i class="fa-solid fa-lightbulb text-base"></i>
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-400/30 shrink-0" aria-hidden="true">
+        <i class="fa-solid fa-lightbulb text-base" aria-hidden="true"></i>
       </div>
       <div>
-        <h3 class="text-base font-black text-slate-900 dark:text-white">Resurs taklif qilish</h3>
+        <h3 id="suggestModalTitle" class="text-base font-black text-slate-900 dark:text-white">Resurs taklif qilish</h3>
         <p class="text-[11px] text-slate-400 mt-0.5">Foydali saytni hamjamiyatga qo'shing</p>
       </div>
     </div>
     <div class="space-y-3.5">
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sayt / Ilova nomi <span class="text-red-400">*</span></label>
-        <input type="text" id="suggestName" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Zoodpay">
+        <label for="suggestName" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sayt / Ilova nomi <span class="text-red-400" aria-label="majburiy">*</span></label>
+        <input type="text" id="suggestName" aria-required="true" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Masalan: Zoodpay">
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">URL manzil <span class="text-red-400">*</span></label>
-        <input type="url" id="suggestUrl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
+        <label for="suggestUrl" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">URL manzil <span class="text-red-400" aria-label="majburiy">*</span></label>
+        <input type="url" id="suggestUrl" aria-required="true" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="https://...">
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
+        <label for="suggestDesc" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Qisqacha tavsif</label>
         <input type="text" id="suggestDesc" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="Bu sayt nima uchun foydali?">
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Telegram / Telefon (ixtiyoriy)</label>
+        <label for="suggestContact" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Telegram / Telefon (ixtiyoriy)</label>
         <input type="text" id="suggestContact" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-slate-800 dark:text-slate-200 transition-all" placeholder="@username yoki +998...">
       </div>
       <button id="suggestSubmitBtn" onclick="submitSuggest()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold rounded-xl py-4 md:py-3.5 transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] text-sm">
-        <i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish
+        <i class="fa-solid fa-paper-plane mr-1.5" aria-hidden="true"></i> Taklif qilish
       </button>
       <p class="text-[10px] text-slate-400 text-center leading-relaxed">Taklifingiz ko'rib chiqilgach, ma'qullansa katalogga qo'shiladi</p>
     </div>

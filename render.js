@@ -81,8 +81,8 @@ const badges = [
 ].filter(Boolean).join('');
 
 return `
-<div onclick="${mainClick}" class="card glass rounded-2xl p-4 flex flex-col h-full group relative cursor-pointer">
-  ${isHot ? `<div class="ribbon-top" aria-label="Top"><i class="fa-solid fa-fire text-[8px] mr-0.5"></i>Top</div>` : ''}
+<article onclick="${mainClick}" aria-label="${safeName}" class="card glass rounded-2xl p-4 flex flex-col h-full group relative cursor-pointer">
+  ${isHot ? `<div class="ribbon-top" aria-label="Top resurs"><i class="fa-solid fa-fire text-[8px] mr-0.5" aria-hidden="true"></i>Top</div>` : ''}
 
   <!-- TOP RIGHT: fav + drag handle for custom -->
   <div class="absolute top-3 right-3 flex items-center gap-1.5 z-20">
@@ -91,8 +91,10 @@ return `
       <i class="fa-solid fa-grip-dots-vertical text-[9px]"></i>
     </div>` : ''}
     <button onclick="event.stopPropagation();toggleFav('${esc}',this)"
+        aria-label="${isFav ? `${safeName}ni sevimlilardan olib tashlash` : `${safeName}ni sevimlilarga qo'shish`}"
+        aria-pressed="${isFav}"
         class="fav-btn w-7 h-7 rounded-full flex items-center justify-center text-[11px] shadow-sm backdrop-blur-sm transition-colors ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':isCustom?'bg-transparent text-slate-300 opacity-0 group-hover:opacity-100 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10':'bg-white/80 dark:bg-slate-800/80 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'}">
-        <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
+        <i class="fa-${isFav?'solid':'regular'} fa-heart" aria-hidden="true"></i>
     </button>
   </div>
 
@@ -121,39 +123,39 @@ return `
     <!-- Shaxsiy: o'ng pastda hover ikonkalar -->
     <div class="flex-1"></div>
     <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-      <button onclick="event.stopPropagation();openEditModal('${esc}')" title="Tahrirlash"
+      <button onclick="event.stopPropagation();openEditModal('${esc}')" aria-label="${safeName}ni tahrirlash"
           class="card-action-btn text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10">
-          <i class="fa-solid fa-pen text-[11px]"></i>
+          <i class="fa-solid fa-pen text-[11px]" aria-hidden="true"></i>
       </button>
-      <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" title="O'chirish"
+      <button onclick="event.stopPropagation();deleteCustomApp('${esc}')" aria-label="${safeName}ni o'chirish"
           class="card-action-btn text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
-          <i class="fa-solid fa-trash text-[11px]"></i>
+          <i class="fa-solid fa-trash text-[11px]" aria-hidden="true"></i>
       </button>
     </div>
     ` : `
     <!-- Oddiy: Ko'rishlar + Report + Share -->
     <div class="flex items-center gap-1 text-[10px] font-bold rounded-full px-1.5 py-0.5
       ${c ? 'text-violet-500 dark:text-violet-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity'}"
-      id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}">
-      <i class="fa-regular fa-eye text-[9px]"></i>
+      id="cb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}" aria-label="${safeName} ko'rishlar soni: ${c||0}">
+      <i class="fa-regular fa-eye text-[9px]" aria-hidden="true"></i>
       <span>${c||0}</span>
     </div>
     <div class="flex items-center gap-1.5">
       <button onclick="event.stopPropagation();openReportModal('${esc}','${escUrl}')"
-          title="Muammo bildirish"
+          aria-label="${safeName} uchun muammo bildirish"
           class="card-action-btn text-slate-400 dark:text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10">
-          <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+          <i class="fa-solid fa-triangle-exclamation text-sm" aria-hidden="true"></i>
       </button>
       <button onclick="event.stopPropagation();shareCard('${esc}','${escUrl}')"
-          title="Ulashish"
+          aria-label="${safeName}ni ulashish"
           class="card-action-btn text-slate-400 dark:text-slate-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10">
-          <i class="fa-solid fa-share-nodes text-sm"></i>
+          <i class="fa-solid fa-share-nodes text-sm" aria-hidden="true"></i>
       </button>
     </div>
     `}
   </div>
 
-</div>`;
+</article>`;
 }
 
 window.rerenderClickFor = function(name){
@@ -196,13 +198,14 @@ if(mobCnt) mobCnt.textContent = total + ' ta resurs';
 
 
 const navBtn = (onclick, title, icon, label, count, extraClass='', countClass='') => {
-  return `<button onclick="${onclick}" title="${title}"
+  const isActive = extraClass.includes('nav-active') || extraClass.includes('bg-violet-100') || extraClass.includes('bg-rose-50') || extraClass.includes('bg-violet-50');
+  return `<button onclick="${onclick}" aria-label="${label}${count ? ` (${count} ta)` : ''}" ${isActive ? 'aria-current="page"' : ''}
     class="sb-nav-item ${extraClass} w-full flex items-center justify-between px-3 py-1 rounded-xl transition-all text-sm group">
     <div class="flex items-center gap-2.5 min-w-0 overflow-hidden">
-      <i class="fa-solid ${icon} w-4 text-center text-xs opacity-55 group-hover:opacity-100 transition-opacity shrink-0"></i>
+      <i class="fa-solid ${icon} w-4 text-center text-xs opacity-55 group-hover:opacity-100 transition-opacity shrink-0" aria-hidden="true"></i>
       <span class="truncate text-left">${label}</span>
     </div>
-    ${count ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full ${countClass} shrink-0 font-bold">${count}</span>` : ''}
+    ${count ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full ${countClass} shrink-0 font-bold" aria-hidden="true">${count}</span>` : ''}
   </button>`;
 };
 
@@ -247,17 +250,17 @@ $('sidebarNav').innerHTML = s;
 
 
 let m=`
-  <button onclick="openCustomModal()" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/20 transition-all active:scale-95"><i class="fa-solid fa-plus"></i></button>
-  <button onclick="setCat('my_apps')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${activeCat==='my_apps'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">🛠️ Shaxsiy${customApps.length?` <span class="text-[9px] bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 px-1 rounded-full font-black">${customApps.length}</span>`:''}</button>
-  <button onclick="setCat('favorites')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${favActive?'bg-rose-500 text-white border-transparent shadow-lg shadow-rose-500/30':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">
-    <i class="fa-solid fa-heart"></i>${favorites.length?` <span class="text-[9px] ${favActive?'bg-white/25':'bg-rose-100 text-rose-500'} px-1 rounded-full font-black">${favorites.length}</span>`:''}
+  <button onclick="openCustomModal()" aria-label="Yangi resurs qo'shish" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/20 transition-all active:scale-95"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+  <button onclick="setCat('my_apps')" aria-label="Shaxsiy ro'yxat${customApps.length ? ` (${customApps.length} ta)` : ''}" ${activeCat==='my_apps'?'aria-current="page"':''} class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${activeCat==='my_apps'?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">🛠️ Shaxsiy${customApps.length?` <span class="text-[9px] bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 px-1 rounded-full font-black" aria-hidden="true">${customApps.length}</span>`:''}</button>
+  <button onclick="setCat('favorites')" aria-label="Saqlanganlar${favorites.length ? ` (${favorites.length} ta)` : ''}" ${favActive?'aria-current="page"':''} class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${favActive?'bg-rose-500 text-white border-transparent shadow-lg shadow-rose-500/30':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">
+    <i class="fa-solid fa-heart" aria-hidden="true"></i>${favorites.length?` <span class="text-[9px] ${favActive?'bg-white/25':'bg-rose-100 text-rose-500'} px-1 rounded-full font-black" aria-hidden="true">${favorites.length}</span>`:''}
   </button>
-  <button onclick="setCat('all')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${allActive?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">Barchasi <span class="text-[9px] ${allActive?'bg-white/25 text-white':'bg-slate-100 dark:bg-slate-700 text-slate-400'} px-1.5 rounded-full font-black">${total}</span></button>`;
+  <button onclick="setCat('all')" aria-label="Barcha resurslar (${total} ta)" ${allActive?'aria-current="page"':''} class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all ${allActive?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">Barchasi <span class="text-[9px] ${allActive?'bg-white/25 text-white':'bg-slate-100 dark:bg-slate-700 text-slate-400'} px-1.5 rounded-full font-black" aria-hidden="true">${total}</span></button>`;
 DATA.forEach(c=>{
   if (c.id === 'my_apps') return;
   const cnt = c.items.filter(i=>matchItem(i,c)).length;
   const isAct = activeCat===c.id;
-  m+=`<button onclick="setCat('${c.id}')" class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${isAct?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${c.title} <span class="text-[9px] ${isAct?'bg-white/25 text-white':'bg-slate-100 dark:bg-slate-700 text-slate-400'} px-1.5 rounded-full font-black">${cnt}</span></button>`;
+  m+=`<button onclick="setCat('${c.id}')" aria-label="${c.title} (${cnt} ta)" ${isAct?'aria-current="page"':''} class="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${isAct?'pill-active':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${c.title} <span class="text-[9px] ${isAct?'bg-white/25 text-white':'bg-slate-100 dark:bg-slate-700 text-slate-400'} px-1.5 rounded-full font-black" aria-hidden="true">${cnt}</span></button>`;
 });
 
 $('mobNav').innerHTML=m;
@@ -283,10 +286,10 @@ const h=FILTERS.map(f=>{
   const on = filters.includes(f.id);
   const [offCls, onCls] = colorMap[f.color] || colorMap.violet;
   return `
-  <button onclick="toggleFilter('${f.id}')" class="filter-chip inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all ${on ? onCls+' shadow-md' : offCls}">
-    <i class="${f.icon} text-[10px]"></i>
+  <button onclick="toggleFilter('${f.id}')" aria-pressed="${on}" aria-label="${f.label} filtri${on ? ' (faol, olib tashlash uchun bosing)' : ''}" class="filter-chip inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all ${on ? onCls+' shadow-md' : offCls}">
+    <i class="${f.icon} text-[10px]" aria-hidden="true"></i>
     <span>${f.label}</span>
-    ${on ? '<i class="fa-solid fa-xmark text-[9px] opacity-80 ml-0.5"></i>' : ''}
+    ${on ? '<i class="fa-solid fa-xmark text-[9px] opacity-80 ml-0.5" aria-hidden="true"></i>' : ''}
   </button>`;
 }).join('');
 $('deskChips').innerHTML=h; $('mobChips').innerHTML=h;
@@ -299,7 +302,7 @@ function renderActiveBadges(){
 const b=filters.map(f=>{
   const fo=FILTERS.find(x=>x.id===f);
   return `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400">
-    ${fo?.label||f} <button onclick="toggleFilter('${f}')" class="hover:text-red-500 ml-0.5 leading-none">×</button>
+    ${fo?.label||f} <button onclick="toggleFilter('${f}')" aria-label="${fo?.label||f} filtrini olib tashlash" class="hover:text-red-500 ml-0.5 leading-none" aria-hidden="false">×</button>
   </span>`;
 }).join('');
 $('activeBadges').innerHTML=b;
@@ -354,7 +357,7 @@ const ph = catTitle ? `${catTitle} ichida qidirish...` : 'Qidirish...';
 if($('catSrc')) $('catSrc').placeholder = ph;
 
 renderNav(); renderContent();
-$('mainScroll').scrollTo({top:0,behavior:'smooth'});
+$('mainContent').scrollTo({top:0,behavior:'smooth'});
 };
 
 
@@ -599,7 +602,7 @@ function _fillCollectionGrid(collections){
         const palettes=['#6366f1,#8b5cf6','#ec4899,#f97316','#06b6d4,#6366f1','#10b981,#06b6d4','#f59e0b,#ef4444','#8b5cf6,#ec4899'];
         let hash=0; for(let i=0;i<it.n.length;i++) hash=it.n.charCodeAt(i)+((hash<<5)-hash);
         const [c1,c2]=palettes[Math.abs(hash)%palettes.length].split(',');
-        if(hasRealDomain) return `<img src="https://www.google.com/s2/favicons?domain=${dm}&sz=32" class="w-7 h-7 rounded-lg object-contain bg-white dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm" onerror="this.outerHTML='<div style=\\'background:linear-gradient(135deg,${c1},${c2})\\' class=\\'w-7 h-7 rounded-lg flex items-center justify-center text-white text-[9px] font-bold border-2 border-white dark:border-slate-800\\'>${it.n[0]}</div>'" loading="lazy">`;
+        if(hasRealDomain) return `<img src="https://www.google.com/s2/favicons?domain=${dm}&sz=32" alt="${it.n}" class="w-7 h-7 rounded-lg object-contain bg-white dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm" onerror="this.outerHTML='<div style=\\'background:linear-gradient(135deg,${c1},${c2})\\' class=\\'w-7 h-7 rounded-lg flex items-center justify-center text-white text-[9px] font-bold border-2 border-white dark:border-slate-800\\' aria-label=\\'${it.n}\\'>${it.n[0]}</div>'" loading="lazy">`;
         return `<div style="background:linear-gradient(135deg,${c1},${c2})" class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[9px] font-bold border-2 border-white dark:border-slate-800">${it.n[0]}</div>`;
       }).join('');
 
@@ -616,13 +619,13 @@ function _fillCollectionGrid(collections){
             </div>
             <div class="flex gap-1 shrink-0">
               ${isUser?`
-                <button onclick="event.stopPropagation();openEditCollection('${col.id}')" title="Tahrirlash"
+                <button onclick="event.stopPropagation();openEditCollection('${col.id}')" aria-label="${col.title} to'plamini tahrirlash"
                   class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-                  <i class="fa-solid fa-pen text-[9px]"></i>
+                  <i class="fa-solid fa-pen text-[9px]" aria-hidden="true"></i>
                 </button>
-                <button onclick="event.stopPropagation();deleteUserCollection('${col.id}')" title="O'chirish"
+                <button onclick="event.stopPropagation();deleteUserCollection('${col.id}')" aria-label="${col.title} to'plamini o'chirish"
                   class="w-7 h-7 rounded-full bg-white/20 hover:bg-red-400/80 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-                  <i class="fa-solid fa-trash text-[9px]"></i>
+                  <i class="fa-solid fa-trash text-[9px]" aria-hidden="true"></i>
                 </button>`
               :`<span class="text-[9px] font-bold bg-white/25 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">✦ Tavsiya</span>`}
             </div>
@@ -685,17 +688,17 @@ window.openCollectionView=function(colId){
             <span class="flex items-center gap-1.5 text-[11px] font-bold text-white/90 bg-white/20 px-2.5 py-1 rounded-full">
               <i class="fa-solid fa-layer-group text-[9px]"></i> ${items.length} ta resurs
             </span>
-            ${isUser?`<button onclick="openAddToCollection('${col.id}')" class="flex items-center gap-1.5 text-[11px] font-bold text-white bg-white/20 hover:bg-white/35 px-2.5 py-1 rounded-full transition-all">
-              <i class="fa-solid fa-plus text-[9px]"></i> Resurs qo'shish
+            ${isUser?`<button onclick="openAddToCollection('${col.id}')" aria-label="${col.title} to'plamiga resurs qo'shish" class="flex items-center gap-1.5 text-[11px] font-bold text-white bg-white/20 hover:bg-white/35 px-2.5 py-1 rounded-full transition-all">
+              <i class="fa-solid fa-plus text-[9px]" aria-hidden="true"></i> Resurs qo'shish
             </button>`:''}
-            <button onclick="shareCollection('${col.id}')" class="flex items-center gap-1.5 text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 px-2.5 py-1 rounded-full transition-all">
-              <i class="fa-solid fa-share-nodes text-[9px]"></i> Ulashish
+            <button onclick="shareCollection('${col.id}')" aria-label="${col.title} to'plamini ulashish" class="flex items-center gap-1.5 text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 px-2.5 py-1 rounded-full transition-all">
+              <i class="fa-solid fa-share-nodes text-[9px]" aria-hidden="true"></i> Ulashish
             </button>
           </div>
         </div>
       </div>
-      <button onclick="closeCollectionView()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all shrink-0 mt-0.5">
-        <i class="fa-solid fa-xmark text-sm"></i>
+      <button onclick="closeCollectionView()" aria-label="To'plamni yopish" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all shrink-0 mt-0.5">
+        <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
       </button>
     </div>`;
 
@@ -720,8 +723,8 @@ window.openCollectionView=function(colId){
       let hash=0; for(let i=0;i<item.n.length;i++) hash=item.n.charCodeAt(i)+((hash<<5)-hash);
       const [c1,c2]=palettes[Math.abs(hash)%palettes.length].split(',');
       const logoHtml = hasRealDomain
-        ? `<img src="https://www.google.com/s2/favicons?domain=${dm}&sz=64" class="w-full h-full object-contain p-1" onerror="this.parentElement.innerHTML='<span class=\\'text-white font-black text-lg\\'>${item.n[0]}</span>';this.parentElement.style='background:linear-gradient(135deg,${c1},${c2})'" loading="lazy">`
-        : `<span class="text-white font-black text-lg">${item.n[0]}</span>`;
+        ? `<img src="https://www.google.com/s2/favicons?domain=${dm}&sz=64" alt="${item.n}" class="w-full h-full object-contain p-1" onerror="this.parentElement.innerHTML='<span class=\\'text-white font-black text-lg\\' aria-hidden=\\'true\\'>${item.n[0]}</span>';this.parentElement.style='background:linear-gradient(135deg,${c1},${c2})'" loading="lazy">`
+        : `<span class="text-white font-black text-lg" aria-hidden="true">${item.n[0]}</span>`;
       const logoWrap = hasRealDomain
         ? `<div class="w-12 h-12 rounded-xl bg-white dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">`
         : `<div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background:linear-gradient(135deg,${c1},${c2})">`;
@@ -752,22 +755,25 @@ window.openCollectionView=function(colId){
             <h4 class="cv-item-title text-[13px] font-black text-slate-800 dark:text-white leading-snug line-clamp-1 group-hover/cvitem:text-violet-600 dark:group-hover/cvitem:text-violet-400 transition-colors">${item.n}</h4>
             <button onclick="event.stopPropagation();toggleFav(this.dataset.favname,this)"
               data-favname="${item.n.replace(/"/g,'&quot;')}"
+              aria-label="${item.n}ni ${isFav ? 'sevimlilardan olib tashlash' : 'sevimlilarga qo\'shish'}"
+              aria-pressed="${isFav}"
               class="cv-fav-btn fav-btn shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-[11px] transition-colors ${isFav?'bg-rose-100 text-rose-500 dark:bg-rose-500/20':'text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'}">
-              <i class="fa-${isFav?'solid':'regular'} fa-heart"></i>
+              <i class="fa-${isFav?'solid':'regular'} fa-heart" aria-hidden="true"></i>
             </button>
           </div>
           <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2 mb-2">${item.d||''}</p>
           <div class="flex items-center justify-between">
             <div class="flex flex-wrap gap-1">${cvBadges}</div>
             <span id="cvcb-${item.n.replace(/[^a-zA-Z0-9]/g,'_')}"
+              aria-label="${item.n} ko'rishlar soni: ${clicks||0}"
               class="flex items-center gap-1 text-[10px] font-bold rounded-full px-1.5 py-0.5 transition-all ${clicks ? 'text-violet-500 dark:text-violet-400' : 'text-slate-300 dark:text-slate-600 opacity-0'}">
-              <i class="fa-regular fa-eye text-[9px]"></i>
+              <i class="fa-regular fa-eye text-[9px]" aria-hidden="true"></i>
               <span>${clicks||0}</span>
             </span>
           </div>
         </div>
-        ${item.u?`<a data-href="${item.u}" class="cv-open-btn shrink-0 w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400 hover:bg-violet-500 hover:text-white transition-all mt-0.5" title="Ochish">
-          <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+        ${item.u?`<a data-href="${item.u}" aria-label="${item.n} saytini ochish" class="cv-open-btn shrink-0 w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400 hover:bg-violet-500 hover:text-white transition-all mt-0.5">
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px]" aria-hidden="true"></i>
         </a>`:''}`;
 
       // ── Yurakcha va link: delegated listener global darajada ishlaydi ──
@@ -1743,7 +1749,7 @@ const fn=async()=>{
 }
 
 function setupScroll(){
-const btn=$('scrollTop'), ms=$('mainScroll'), prog=$('scrollProgress');
+const btn=$('scrollTop'), ms=$('mainContent'), prog=$('scrollProgress');
 if(!btn||!ms) return;
 
 ms.addEventListener('scroll',()=>{
@@ -1932,8 +1938,8 @@ window.deleteCustomApp = function(name) {
     <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="deleteModalBg"></div>
     <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xs p-6 border border-slate-200 dark:border-slate-700 transform scale-95 opacity-0 transition-all duration-200" id="deleteModalBox">
       <div class="flex flex-col items-center text-center">
-        <div class="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mb-4">
-          <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
+        <div class="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mb-4" aria-hidden="true">
+          <i class="fa-solid fa-trash-can text-red-500 text-2xl" aria-hidden="true"></i>
         </div>
         <h3 class="text-base font-black text-slate-900 dark:text-white mb-1">O'chirib tashlaysizmi?</h3>
         <p class="text-[12px] text-slate-400 leading-relaxed mb-5">
@@ -1944,7 +1950,7 @@ window.deleteCustomApp = function(name) {
             Bekor qilish
           </button>
           <button id="deleteConfirmBtn" class="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors shadow-lg shadow-red-500/25 active:scale-[0.97]">
-            <i class="fa-solid fa-trash-can mr-1.5 text-xs"></i> O'chirish
+            <i class="fa-solid fa-trash-can mr-1.5 text-xs" aria-hidden="true"></i> O'chirish
           </button>
         </div>
       </div>
@@ -2085,38 +2091,41 @@ window.openPlatformModal = function(name, url, hasWeb, hasMobil){
     <div class="space-y-2">
       ${showWeb ? `
       <button onclick="addClick('${escN}');setTimeout(()=>rerenderClickFor('${escN}'),50);window.open('${webEsc}','_blank','noopener,noreferrer');closePlatformModal()"
+        aria-label="${escN} — Veb-sayt orqali ochish"
         class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
-        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 shrink-0">
-          <i class="fa-solid fa-globe text-[15px]"></i>
+        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 shrink-0" aria-hidden="true">
+          <i class="fa-solid fa-globe text-[15px]" aria-hidden="true"></i>
         </div>
         <div class="text-left flex-1 min-w-0">
           <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Veb-sayt orqali kirish</div>
           <div class="text-[10px] text-slate-400 truncate mt-0.5">${domain}</div>
         </div>
-        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-violet-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
+        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-violet-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
       </button>` : ''}
       ${showMob ? `
       <button onclick="addClick('${escN}');setTimeout(()=>rerenderClickFor('${escN}'),50);window.open('${playEsc}','_blank','noopener,noreferrer');closePlatformModal()"
+        aria-label="${escN} — Google Play Store da ochish"
         class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
-        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0">
-          <i class="fa-brands fa-google-play text-[15px]"></i>
+        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0" aria-hidden="true">
+          <i class="fa-brands fa-google-play text-[15px]" aria-hidden="true"></i>
         </div>
         <div class="text-left flex-1 min-w-0">
           <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Android ilovasi</div>
           <div class="text-[10px] text-slate-400 mt-0.5">Google Play Store</div>
         </div>
-        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-emerald-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
+        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-emerald-400 text-xs shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
       </button>
       <button onclick="addClick('${escN}');setTimeout(()=>rerenderClickFor('${escN}'),50);window.open('${iosEsc}','_blank','noopener,noreferrer');closePlatformModal()"
+        aria-label="${escN} — App Store da ochish"
         class="plat-link flex items-center gap-3.5 w-full rounded-2xl px-4 py-3.5 group">
-        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white shadow-lg shrink-0">
-          <i class="fa-brands fa-apple text-[18px]"></i>
+        <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white shadow-lg shrink-0" aria-hidden="true">
+          <i class="fa-brands fa-apple text-[18px]" aria-hidden="true"></i>
         </div>
         <div class="text-left flex-1 min-w-0">
           <div class="font-bold text-[13.5px] text-slate-800 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">iPhone / iPad ilovasi</div>
           <div class="text-[10px] text-slate-400 mt-0.5">App Store</div>
         </div>
-        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-slate-500 text-xs shrink-0 transition-transform group-hover:translate-x-0.5"></i>
+        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-slate-500 text-xs shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
       </button>` : ''}
     </div>`
   modal.classList.remove('hidden');
@@ -2707,21 +2716,21 @@ window.openShareHistoryDrawer = function(){
       </div>
       <!-- Actions -->
       <div class="flex items-center gap-0.5 shrink-0">
-        <button onclick="copyShareHistUrl('${safeUrl}',this)" title="Nusxalash"
+        <button onclick="copyShareHistUrl('${safeUrl}',this)" aria-label="Havolani nusxalash"
           class="h-7 px-2.5 flex items-center gap-1 rounded-lg bg-violet-500 hover:bg-violet-600 text-white text-[10px] font-bold transition-all active:scale-95 shadow-sm shadow-violet-500/20">
-          <i class="fa-solid fa-copy text-[9px]"></i> <span class="hidden sm:inline text-[10px]">Nusxalash</span>
+          <i class="fa-solid fa-copy text-[9px]" aria-hidden="true"></i> <span class="hidden sm:inline text-[10px]">Nusxalash</span>
         </button>
-        <button onclick="window.open('${tgUrl}','_blank')" title="Telegram"
+        <button onclick="window.open('${tgUrl}','_blank')" aria-label="Telegram orqali ulashish"
           class="w-7 h-7 flex items-center justify-center rounded-lg text-[#2AABEE] hover:bg-[#2AABEE]/10 transition-all active:scale-95">
-          <i class="fa-brands fa-telegram text-sm"></i>
+          <i class="fa-brands fa-telegram text-sm" aria-hidden="true"></i>
         </button>
-        <button onclick="window.open('${waUrl}','_blank')" title="WhatsApp"
+        <button onclick="window.open('${waUrl}','_blank')" aria-label="WhatsApp orqali ulashish"
           class="w-7 h-7 flex items-center justify-center rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95">
-          <i class="fa-brands fa-whatsapp text-sm"></i>
+          <i class="fa-brands fa-whatsapp text-sm" aria-hidden="true"></i>
         </button>
-        <button onclick="deleteShareHistory('${safeUrl}')" title="O'chirish"
+        <button onclick="deleteShareHistory('${safeUrl}')" aria-label="Ulashish tarixidan o'chirish"
           class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all active:scale-95">
-          <i class="fa-solid fa-trash text-[10px]"></i>
+          <i class="fa-solid fa-trash text-[10px]" aria-hidden="true"></i>
         </button>
       </div>
     </div>`;
@@ -2741,12 +2750,12 @@ window.openShareHistoryDrawer = function(){
           <span class="text-[10px] font-bold text-violet-500 bg-violet-50 dark:bg-violet-500/15 px-2 py-0.5 rounded-full">${hist.length}</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <button onclick="clearShareHistory()" class="h-7 px-2.5 text-[10px] font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all flex items-center gap-1">
-            <i class="fa-solid fa-trash-can text-[9px]"></i> Hammasini o'chirish
+          <button onclick="clearShareHistory()" aria-label="Barcha ulashish tarixini o'chirish" class="h-7 px-2.5 text-[10px] font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all flex items-center gap-1">
+            <i class="fa-solid fa-trash-can text-[9px]" aria-hidden="true"></i> Hammasini o'chirish
           </button>
-          <button onclick="document.getElementById('shareHistDrawer').remove()"
+          <button onclick="document.getElementById('shareHistDrawer').remove()" aria-label="Yopish"
             class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-all text-sm">
-            <i class="fa-solid fa-xmark text-sm"></i>
+            <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
           </button>
         </div>
       </div>
