@@ -292,7 +292,9 @@ function _updateCountEl(name, count){
 const id = 'cb-' + name.replace(/[^a-zA-Z0-9]/g,'_');
 const el = document.getElementById(id);
 if(!el) return;
-el.querySelector('span').textContent = count;
+const span = el.querySelector('span');
+if(!span) return;
+span.textContent = count;
 if(count > 0){
   el.classList.remove(
     'text-slate-300','dark:text-slate-600','bg-slate-50','dark:bg-slate-800/40',
@@ -307,7 +309,16 @@ async function _syncUserData(){
   const remote = await loadUserDataFromSupabase();
   if(!remote) return false;
   let changed = false;
-  if(remote.customApps.length >= customApps.length){
+
+  // Uzunlik emas, yangilash vaqti bo'yicha merge qilish.
+  // Agar remote'da updated_at bo'lsa, undan foydalanamiz,
+  // aks holda uzunlik bo'yicha (xavfsiz tomonga o'tish).
+  const remoteTs = remote.updated_at ? new Date(remote.updated_at).getTime() : 0;
+  const localTs  = parseInt(localStorage.getItem('lh_sync_ts') || '0', 10);
+  const remoteIsNewer = remoteTs > 0 ? remoteTs > localTs : false;
+
+  // customApps: remote yangroq yoki remote ko'proq ma'lumot tutsa qabul qilamiz
+  if(remoteIsNewer || remote.customApps.length > customApps.length){
     customApps = remote.customApps;
     localStorage.setItem('lh_custom_apps', JSON.stringify(customApps));
     if(typeof DATA !== 'undefined'){
@@ -316,11 +327,16 @@ async function _syncUserData(){
     }
     changed = true;
   }
-  if(remote.favorites.length >= favorites.length){
-    favorites = remote.favorites;
+
+  // favorites: union (ikkalasini birlashtirish — hech birini yo'qotmaymiz)
+  const mergedFavs = [...new Set([...favorites, ...remote.favorites])];
+  if(mergedFavs.length !== favorites.length){
+    favorites = mergedFavs;
     localStorage.setItem('lh_favs', JSON.stringify(favorites));
     changed = true;
   }
+
+  if(remoteTs > 0) localStorage.setItem('lh_sync_ts', String(remoteTs));
   return changed;
 }
 
@@ -513,8 +529,13 @@ if(doCount){
   });
 }
 
+// Topilganda darhol to'xtatadigan qidiruv (forEach dan tezroq)
 let foundItem = null;
-DATA.forEach(c=>c.items.forEach(i=>{ if(i.n===name) foundItem=i; }));
+outer: for(const c of DATA){
+  for(const i of c.items){
+    if(i.n === name){ foundItem = i; break outer; }
+  }
+}
 if(foundItem){
   recentlyVisited = [foundItem, ...recentlyVisited.filter(i=>i.n!==name)].slice(0,8);
   localStorage.setItem('lh_recent', JSON.stringify(recentlyVisited));

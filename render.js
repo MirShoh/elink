@@ -10,8 +10,11 @@ function renderTrending() {
   if (!top.length) { sec.classList.add('hidden'); return; }
   sec.classList.remove('hidden');
   grid.innerHTML = top.map((item, idx) => {
-    const esc    = item.n.replace(/'/g, "\\'");
-    const escUrl = item.u.replace(/'/g, "\\'");
+    function _escAttr(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+    const esc    = _escAttr(item.n);
+    const rawUrl = (item.u||'').trim();
+    const safeRawUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+    const escUrl = _escAttr(safeRawUrl);
     const isMob  = item.t?.includes('mobil');
     const hasWeb = item.t?.includes('web');
     const clickAct = (isMob || item.androidUrl)
@@ -30,9 +33,12 @@ function renderTrending() {
 }
 
 function hl(s,q){
-if(!q||!s) return s||'';
-const rx=new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-return s.replace(rx,'<mark>$1</mark>');
+if(!q||!s) return escHtml(s)||'';
+// Avval HTML escape, keyin highlight — XSS oldini olish
+const safe = escHtml(String(s));
+const safeQ = escHtml(String(q));
+const rx = new RegExp(`(${safeQ.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+return safe.replace(rx,'<mark>$1</mark>');
 }
 
 function matchItem(item, cat){
@@ -61,8 +67,13 @@ const isVerified = !!item.v;
 const q2         = query.trim();
 const c          = getClicks(item.n);
 const isHot      = !!item._isTop;
-const esc        = item.n.replace(/'/g,"\\'");
-const escUrl     = item.u.replace(/'/g,"\\'");
+// Backslash, single-quote va double-quote ni ham escape qilish (XSS oldini olish)
+function _escAttr(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+const esc    = _escAttr(item.n);
+const rawUrl = (item.u||'').trim();
+// Faqat http(s) va market URL-lariga ruxsat
+const safeRawUrl = /^(https?:\/\/|market:\/\/)/i.test(rawUrl) ? rawUrl : '';
+const escUrl = _escAttr(safeRawUrl);
 const safeName   = isCustom ? escHtml(item.n) : item.n;
 const safeDesc   = isCustom ? escHtml(item.d||'') : (item.d||'');
 
@@ -1080,11 +1091,52 @@ window.saveNewCollection=function(){
 };
 
 window.deleteUserCollection=function(id){
-  if(!confirm("Tavsiyani o'chirmoqchimisiz?")) return;
-  userCollections=userCollections.filter(c=>c.id!==id);
-  saveUserCollections();
-  renderContent();
-  showToast("Tavsiya o'chirildi",'fa-circle-check text-emerald-400');
+  const col = getCollections().find(c=>c.id===id);
+  if(!col) return;
+
+  const existing = document.getElementById('deleteConfirmModal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'deleteConfirmModal';
+  modal.className = 'fixed inset-0 z-[600] flex items-center justify-center px-4';
+  modal.innerHTML = `
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="deleteModalBg"></div>
+    <div class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xs p-6 border border-slate-200 dark:border-slate-700 transform scale-95 opacity-0 transition-all duration-200" id="deleteModalBox">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mb-4">
+          <i class="fa-solid fa-trash-can text-red-500 text-2xl" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white mb-1">Tavsiyani o'chirish</h3>
+        <p class="text-[12px] text-slate-400 leading-relaxed mb-5">
+          <span class="font-bold text-slate-600 dark:text-slate-300">"${escHtml(col.title)}"</span> tavsiyasi o'chiriladi
+        </p>
+        <div class="flex gap-2.5 w-full">
+          <button id="deleteCancelBtn" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            Bekor qilish
+          </button>
+          <button id="deleteConfirmBtn" class="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors shadow-lg shadow-red-500/25 active:scale-[0.97]">
+            <i class="fa-solid fa-trash-can mr-1.5 text-xs" aria-hidden="true"></i> O'chirish
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const box = document.getElementById('deleteModalBox');
+  const close = () => { box.classList.add('scale-95','opacity-0'); setTimeout(()=>modal.remove(), 180); };
+  setTimeout(()=>{ box.classList.remove('scale-95','opacity-0'); box.classList.add('scale-100','opacity-100'); }, 10);
+  document.getElementById('deleteCancelBtn').onclick = close;
+  document.getElementById('deleteModalBg').onclick = close;
+  document.getElementById('deleteConfirmBtn').onclick = () => {
+    close();
+    setTimeout(()=>{
+      userCollections = userCollections.filter(c=>c.id!==id);
+      saveUserCollections();
+      renderContent();
+      showToast("Tavsiya o'chirildi", 'fa-circle-check text-emerald-400');
+    }, 200);
+  };
 };
 
 
@@ -1289,7 +1341,7 @@ function _renderMyApps(container, token){
   if(skelEl) skelEl.remove();
 
   const items = sortItems(customApps.filter(i=>matchItem(i,null)));
-  const found = items.length + 1;
+  const found = items.length;
 
   const sec = document.createElement('div');
   sec.className = 'animate-fade-up space-y-1.5';
@@ -1470,8 +1522,9 @@ function buildDropHTML(q){
       <span class="ml-auto text-[10px] font-bold text-slate-300 dark:text-slate-600">${catSugg.length} ta</span>
     </div>`;
 
+    const _ea = s => String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
     catSugg.forEach((i, idx) => {
-      const nm    = i.n.replace(/'/g, "\\'");
+      const nm    = _ea(i.n);
       const isMob = i.t?.includes('mobil');
       const isBep = i.t?.includes('bepul');
       const isPul = i.t?.includes('pullik');
@@ -1773,9 +1826,13 @@ btn.addEventListener('click',()=> ms.scrollTo({top:0,behavior:'smooth'}));
 function showToast(msg, ic='fa-circle-check text-emerald-400'){
 const t=$('toast'), i=$('toastIco'), m=$('toastMsg');
 if(!t||!i||!m) return;
-m.textContent=msg; i.className=`fa-solid ${ic}`;
+m.textContent = msg; // textContent — XSS xavfsiz
+// icon klassi faqat harf, raqam, '-' va bo'sh joy bo'lishi kerak
+const safeIc = String(ic).replace(/[^a-zA-Z0-9\-_ ]/g,'');
+i.className = `fa-solid ${safeIc}`;
 t.classList.remove('opacity-0','pointer-events-none');
-setTimeout(()=>t.classList.add('opacity-0','pointer-events-none'),2500);
+clearTimeout(t._toastTimer);
+t._toastTimer = setTimeout(()=>t.classList.add('opacity-0','pointer-events-none'), 2500);
 }
 
 
@@ -1881,8 +1938,21 @@ window.saveCustomApp = function() {
   if(!n) return showToast("Nomi kiritilishi shart!", "fa-circle-xmark text-red-500");
   if(!u && !aUrl && !iUrl) return showToast("Kamida bitta URL kiritilishi shart!", "fa-circle-xmark text-red-500");
 
-  const fixUrl = s => (!s?'': (!s.startsWith('http://')&&!s.startsWith('https://'))?'https://'+s:s);
+  // URL tozalash va xavfli protokollarni bloklash
+  const fixUrl = s => {
+    if (!s) return '';
+    s = s.trim();
+    // javascript:, data:, vbscript: va boshqa xavfli protokollarni rad etish
+    if (/^(javascript|data|vbscript|blob):/i.test(s)) return '';
+    if (!s.startsWith('http://') && !s.startsWith('https://')) s = 'https://' + s;
+    // Minimal URL tekshiruvi
+    try { new URL(s); } catch(e) { return ''; }
+    return s;
+  };
   u = fixUrl(u); aUrl = fixUrl(aUrl); iUrl = fixUrl(iUrl);
+
+  // fixUrl dan keyin qayta tekshirish
+  if (!u && !aUrl && !iUrl) return showToast("URL noto'g'ri formatda!", "fa-circle-xmark text-red-500");
 
 
   if(editName){
@@ -1998,12 +2068,15 @@ wrap.classList.remove('hidden');
 const grid = wrap.querySelector('#recentGrid');
 if(!grid) return;
 grid.innerHTML = recentlyVisited.map(item=>{
-  const esc=item.n.replace(/'/g,"\\'");
+  function _escAttr(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+  const esc=_escAttr(item.n);
+  const rawUrl=(item.u||'').trim();
+  const safeUrl=/^https?:\/\//i.test(rawUrl)?rawUrl:'';
   const isMob=item.t?.includes('mobil');
   const hasWeb=item.t?.includes('web');
   const clickAct=isMob
-    ? `openPlatformModal('${esc}','${item.u}',${hasWeb},true);addClick('${esc}')`
-    : `addClick('${esc}');window.open('${item.u}','_blank','noopener,noreferrer')`;
+    ? `openPlatformModal('${esc}','${_escAttr(safeUrl)}',${hasWeb},true);addClick('${esc}')`
+    : `addClick('${esc}');window.open('${_escAttr(safeUrl)}','_blank','noopener,noreferrer')`;
   return `
   <div onclick="${clickAct}" class="flex-shrink-0 glass rounded-xl p-2.5 flex items-center gap-3 min-w-[155px] max-w-[180px] hover:shadow-md transition-all group cursor-pointer">
     <div class="shrink-0">${iconHTML(item,'w-8 h-8 rounded-lg shadow-sm object-contain')}</div>
@@ -2235,9 +2308,10 @@ window.submitReport = async function(){
     showToast("Xabar yuborildi, rahmat! Ko'rib chiqamiz.", 'fa-circle-check text-emerald-400');
   } catch(e){
     showToast("Xato yuz berdi, qayta urining", 'fa-circle-xmark text-red-400');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish';
   }
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Yuborish';
 };
 
 
@@ -2274,9 +2348,10 @@ window.submitSuggest = async function(){
     showToast("Taklifingiz qabul qilindi! Tez orada ko'rib chiqamiz 🙏", 'fa-circle-check text-emerald-400');
   } catch(e){
     showToast("Xato yuz berdi, qayta urining", 'fa-circle-xmark text-red-400');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish';
   }
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Taklif qilish';
 };
 
 function init() {
@@ -2604,14 +2679,13 @@ window.copyShareHistUrl = async function(url, btn){
 };
 
 window.deleteShareHistory = function(url){
-  // Tasdiqlash dialogi
   const existing = document.getElementById('_shareDelConfirm');
   if(existing) existing.remove();
   const dlg = document.createElement('div');
   dlg.id = '_shareDelConfirm';
   dlg.className = 'fixed inset-0 z-[700] flex items-center justify-center px-4';
   dlg.innerHTML = `
-    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('_shareDelConfirm').remove()"></div>
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" id="_sdcBg"></div>
     <div class="relative glass rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-5 w-full max-w-xs text-center animate-fade-up">
       <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center mx-auto mb-3">
         <i class="fa-solid fa-trash text-red-500 text-sm"></i>
@@ -2619,24 +2693,31 @@ window.deleteShareHistory = function(url){
       <p class="text-sm font-black text-slate-800 dark:text-white mb-1">O'chirilsinmi?</p>
       <p class="text-[11px] text-slate-400 mb-4">Bu ro'yxat tarixdan o'chiriladi</p>
       <div class="flex gap-2">
-        <button onclick="document.getElementById('_shareDelConfirm').remove()"
-          class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+        <button id="_sdcCancel" class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
           Bekor
         </button>
-        <button onclick="(function(){
-          document.getElementById('_shareDelConfirm').remove();
-          try{ const h=JSON.parse(localStorage.getItem('lh_my_shares_v2')||'[]'); localStorage.setItem('lh_my_shares_v2',JSON.stringify(h.filter(x=>x.url!=='${url.replace(/'/g,"\\'").replace(/\\/g,'\\\\')}')));  }catch(e){}
-          const d=document.getElementById('shareHistDrawer'); if(d) d.remove();
-          showToast('Ro\\'yxat o\\'chirildi','fa-trash text-slate-400');
-          renderContent();
-          setTimeout(openShareHistoryDrawer, 100);
-        })()"
-          class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-red-500 hover:bg-red-600 text-white transition-all active:scale-95">
+        <button id="_sdcConfirm" class="flex-1 py-2 rounded-xl text-[12px] font-bold bg-red-500 hover:bg-red-600 text-white transition-all active:scale-95">
           O'chirish
         </button>
       </div>
     </div>`;
   document.body.appendChild(dlg);
+
+  const close = () => dlg.remove();
+  document.getElementById('_sdcBg').addEventListener('click', close);
+  document.getElementById('_sdcCancel').addEventListener('click', close);
+  document.getElementById('_sdcConfirm').addEventListener('click', () => {
+    close();
+    try {
+      const h = JSON.parse(localStorage.getItem('lh_my_shares_v2') || '[]');
+      localStorage.setItem('lh_my_shares_v2', JSON.stringify(h.filter(x => x.url !== url)));
+    } catch(e) {}
+    const d = document.getElementById('shareHistDrawer');
+    if(d) d.remove();
+    showToast("Ro'yxat o'chirildi", 'fa-trash text-slate-400');
+    renderContent();
+    setTimeout(openShareHistoryDrawer, 100);
+  });
 };
 
 window.clearShareHistory = function(){

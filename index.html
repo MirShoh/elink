@@ -57,13 +57,19 @@
 <meta name="twitter:image:alt" content="eLink.uz katalogi">
 
 <!-- ═══════════════════ Favicon ══════════════════════════ -->
-<link rel="shortcut icon" href="/favicon.ico">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
-<!-- android-chrome-192x192.png: /images/ papkasida mavjud bo'lsa qoldiring, aks holda olib tashlang -->
+<!--
+  Google favicon talablari:
+    • Kamida 48×48 px, PNG yaxshiroq
+    • Sahifa crawlable bo'lishi shart
+    • rel="icon" + to'g'ri sizes atributi
+-->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16"  href="/images/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32"  href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/images/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/images/android-chrome-512x512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-<link rel="manifest" href="/images/site.webmanifest">
+<link rel="manifest" href="/images/site.webmanifest" type="application/manifest+json" crossorigin="use-credentials">
 <meta name="msapplication-TileColor" content="#8b5cf6">
 <meta name="msapplication-TileImage" content="/images/android-chrome-192x192.png">
 <meta name="msapplication-config" content="none">
@@ -229,6 +235,28 @@
 </script>
 
 <!-- LOADING SCREEN — inline CSS, JS siz ishlaydi, init() tugagach o'chadi -->
+<noscript>
+  <style>
+    #elink-loader { display: none !important; }
+    .noscript-msg {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem; text-align: center; font-family: system-ui, sans-serif;
+      background: #eff1fb;
+    }
+    .noscript-msg h2 { font-size: 1.5rem; font-weight: 900; color: #1e293b; margin-bottom: 0.75rem; }
+    .noscript-msg p { color: #64748b; max-width: 380px; line-height: 1.6; margin-bottom: 1rem; }
+    .noscript-msg a { color: #8b5cf6; font-weight: 700; text-decoration: underline; }
+  </style>
+  <div class="noscript-msg">
+    <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+    <h2>JavaScript o'chirilgan</h2>
+    <p>
+      eLink.uz saytidan to'liq foydalanish uchun brauzerdagi JavaScript'ni yoqing.
+      Uni yoqish uchun brauzer sozlamalariga kiring yoki boshqa brauzer ishlating.
+    </p>
+    <p><a href="https://t.me/elink_uz">Telegram kanalimiz: @elink_uz</a></p>
+  </div>
+</noscript>
 <style>
 #elink-loader{
   position:fixed;inset:0;z-index:9999;
@@ -274,7 +302,7 @@
 </style>
 <div id="elink-loader" aria-label="Yuklanmoqda" role="status">
   <div class="el-logo">
-    <img src="images/eLink_Logo.png" alt="eLink" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
+    <img src="images/eLink_Logo.png" alt="eLink logotipi" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
   </div>
   <div class="el-name">e<span>Link</span></div>
   <div class="el-dots">
@@ -375,10 +403,10 @@ window.addEventListener('load',function(){
   <div class="p-4 pb-1.5 shrink-0">
     <div class="sb-brand flex items-center gap-3 mb-4">
       <a href="https://elink.uz" title="Bosh sahifa" class="w-9 h-9 rounded-xl shrink-0 hover:scale-105 transition-transform active:scale-95 overflow-hidden">
-        <img src="images/eLink_Logo.png" alt="eLink" class="w-full h-full object-cover">
+        <img src="images/eLink_Logo.png" alt="eLink logotipi" class="w-full h-full object-cover">
       </a>
       <div class="sb-logo-label min-w-0">
-        <h1 onclick="location.reload()" title="Sahifani yangilash" class="text-[17px] font-black text-slate-900 dark:text-white leading-tight tracking-tight cursor-pointer hover:text-violet-600 dark:hover:text-violet-400 transition-colors select-none">e<span class="text-violet-500">Link</span></h1>
+        <h1 onclick="location.reload()" title="Sahifani yangilash" class="text-[17px] font-black text-slate-900 dark:text-white leading-tight tracking-tight cursor-pointer hover:text-violet-600 dark:hover:text-violet-400 transition-colors select-none">e<span class="text-violet-500">Link</span> <span class="sr-only">— O'zbekiston onlayn resurslar katalogi</span></h1>
         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest" id="sidebarCount">...</p>
       </div>
     </div>
@@ -395,7 +423,7 @@ window.addEventListener('load',function(){
       </div>
     </div>
     <div class="sb-chips flex flex-wrap gap-1.5 mb-1" id="deskChips"></div>
-    <select id="sSort" aria-label="Saralash tartibi" class="hidden">
+    <select id="sSort" aria-label="Saralash tartibi" aria-hidden="true" class="hidden">
       <option value="def">Standart tartib</option>
       <option value="popular">🔥 Eng mashhur</option>
       <option value="az">A → Z</option>
@@ -428,7 +456,7 @@ window.addEventListener('load',function(){
 <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
   <!-- Mobile header -->
-  <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe" role="banner">
+  <header class="md:hidden glass border-b border-slate-200/60 dark:border-slate-800/60 z-40 shrink-0 pt-safe" role="banner" aria-label="Mobil sarlavha">
     <div class="flex items-center justify-between px-4 pt-3 pb-2">
       <div class="flex items-center gap-2.5">
         <a href="https://elink.uz" aria-label="eLink - Bosh sahifa" class="w-8 h-8 rounded-xl shrink-0 overflow-hidden shadow-md">
@@ -459,7 +487,7 @@ window.addEventListener('load',function(){
       </div>
     </div>
     <div class="flex gap-1.5 px-4 pb-2 overflow-x-auto no-sc" id="mobChips"></div>
-    <div class="flex gap-1.5 px-4 pb-3 overflow-x-auto no-sc items-center" id="mobNav"></div>
+    <div class="flex gap-1.5 px-4 pb-3 overflow-x-auto no-sc items-center" id="mobNav" aria-hidden="true"></div>
   </header>
 
   <!-- Content area -->
@@ -531,7 +559,7 @@ window.addEventListener('load',function(){
                 </button>
               </div>
             </div>
-            <select id="topSort" aria-label="Saralash tartibi" class="hidden">
+            <select id="topSort" aria-label="Saralash tartibi" aria-hidden="true" class="hidden">
               <option value="def">Standart</option>
               <option value="popular">🔥 Mashhur</option>
               <option value="az">A → Z</option>
@@ -581,7 +609,7 @@ window.addEventListener('load',function(){
       <div class="relative z-10 flex items-start justify-between">
         <div class="flex-1 min-w-0">
           <div id="obIcon" class="ob-icon w-12 h-12 rounded-2xl flex items-center justify-center mb-3" aria-hidden="true"></div>
-          <h2 id="obTitle" class="text-xl font-black text-white leading-snug mb-1"></h2>
+          <h2 id="obTitle" class="text-xl font-black text-white leading-snug mb-1">eLink xush kelibsiz</h2>
           <p id="obSubtitle" class="text-[13px] text-white/75 leading-relaxed"></p>
         </div>
         <button onclick="closeOnboard()" aria-label="Yopish" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center ml-3 shrink-0 transition-colors">
@@ -595,7 +623,7 @@ window.addEventListener('load',function(){
       <button id="obBack" onclick="obStep(-1)" aria-label="Orqaga" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 flex items-center justify-center transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 opacity-0 pointer-events-none">
         <i class="fa-solid fa-arrow-left text-sm" aria-hidden="true"></i>
       </button>
-      <button onclick="obStep(1)" class="flex-1 ob-btn-next rounded-xl py-3 flex items-center justify-center gap-2 font-bold text-sm">
+      <button onclick="obStep(1)" id="obNextBtn" aria-label="Keyingi qadam: Davom etish" class="flex-1 ob-btn-next rounded-xl py-3 flex items-center justify-center gap-2 font-bold text-sm">
         <span id="obNextTxt">Davom etish</span>
         <i id="obNextIco" class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
       </button>
@@ -638,13 +666,15 @@ window.addEventListener('load',function(){
     <input type="hidden" id="reportSiteNameHidden">
     <div class="space-y-3">
       <div>
-        <p class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5" id="reportReasonLabel">Muammo turi</p>
-        <div class="grid grid-cols-2 gap-2" id="reportReasonBtns" role="group" aria-labelledby="reportReasonLabel">
-          <button type="button" onclick="selectReason(this,'Sayt ochilmayapti')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔴 Sayt ochilmayapti</button>
-          <button type="button" onclick="selectReason(this,'Sekin ishlayapti')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🐢 Sekin ishlayapti</button>
-          <button type="button" onclick="selectReason(this,'Xato URL')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔗 Xato URL</button>
-          <button type="button" onclick="selectReason(this,'Boshqa muammo')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">❓ Boshqa muammo</button>
-        </div>
+        <fieldset>
+          <legend class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5" id="reportReasonLabel">Muammo turi</legend>
+          <div class="grid grid-cols-2 gap-2" id="reportReasonBtns" role="group" aria-labelledby="reportReasonLabel">
+            <button type="button" onclick="selectReason(this,'Sayt ochilmayapti')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔴 Sayt ochilmayapti</button>
+            <button type="button" onclick="selectReason(this,'Sekin ishlayapti')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🐢 Sekin ishlayapti</button>
+            <button type="button" onclick="selectReason(this,'Xato URL')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">🔗 Xato URL</button>
+            <button type="button" onclick="selectReason(this,'Boshqa muammo')" aria-pressed="false" class="reason-btn text-[11px] font-bold py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">❓ Boshqa muammo</button>
+          </div>
+        </fieldset>
         <input type="hidden" id="reportReason">
       </div>
       <div id="otherReasonWrap" class="hidden overflow-hidden" style="max-height:0;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s">

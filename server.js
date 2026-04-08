@@ -82,6 +82,12 @@ async function handleSupabase(req, res) {
     res.writeHead(400); res.end(JSON.stringify({ error: 'path required' })); return;
   }
 
+  // PATH INJECTION oldini olish: faqat /rest/v1/ yoki /auth/v1/ yo'llarga ruxsat
+  const ALLOWED_PREFIXES = ['/rest/v1/', '/auth/v1/'];
+  if (!ALLOWED_PREFIXES.some(p => supaPath.startsWith(p))) {
+    res.writeHead(403); res.end(JSON.stringify({ error: 'Forbidden path' })); return;
+  }
+
   const targetUrl = CONFIG.SUPABASE_URL + supaPath;
   const headers = {
     'apikey':        CONFIG.SUPABASE_KEY,
@@ -94,28 +100,53 @@ async function handleSupabase(req, res) {
     const postData = (method !== 'GET' && body) ? JSON.stringify(body) : undefined;
     if (postData) headers['Content-Length'] = Buffer.byteLength(postData);
 
-    const result = await httpsRequest(targetUrl, { method, headers }, postData);
+    // Faqat ruxsat etilgan HTTP metodlarga yo'l qo'yish
+    const ALLOWED_METHODS = new Set(['GET','POST','PATCH','PUT','DELETE']);
+    if (!ALLOWED_METHODS.has(method.toUpperCase())) {
+      res.writeHead(405); res.end(JSON.stringify({ error: 'Method not allowed' })); return;
+    }
+
+    const result = await httpsRequest(targetUrl, { method: method.toUpperCase(), headers }, postData);
 
     res.writeHead(result.status, {
-      'Content-Type':                'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+      ...corsHeaders(req),
     });
     res.end(result.body);
   } catch (e) {
     console.error('[supabase proxy error]', e.message);
-    res.writeHead(502);
+    res.writeHead(502, corsHeaders(req));
     res.end(JSON.stringify({ error: e.message }));
   }
 }
 
 // ─── Handler: /.netlify/functions/telegram ────────────────────
+// Oddiy in-memory rate limiter: IP bo'yicha 60 soniyada max 5 ta so'rov
+const _tgRateMap = new Map();
+function _tgRateCheck(ip) {
+  const now = Date.now();
+  const entry = _tgRateMap.get(ip) || { count: 0, reset: now + 60_000 };
+  if (now > entry.reset) { entry.count = 0; entry.reset = now + 60_000; }
+  entry.count++;
+  _tgRateMap.set(ip, entry);
+  return entry.count <= 5;
+}
+
 async function handleTelegram(req, res) {
   if (req.method !== 'POST') {
     res.writeHead(405); res.end('Method Not Allowed'); return;
   }
 
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+  if (!_tgRateCheck(ip)) {
+    res.writeHead(429, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ error: 'Too many requests' })); return;
+  }
+
   const payload = await readBody(req);
-  const text = payload.text || '(bo\'sh xabar)';
+  const rawText = payload.text || '';
+  // Matn uzunligini cheklash (XSS / flooding oldini olish)
+  const text = String(rawText).slice(0, 2000) || '(bo\'sh xabar)';
 
   try {
     const tgUrl    = `https://api.telegram.org/bot${CONFIG.TG_BOT_TOKEN}/sendMessage`;
@@ -127,13 +158,13 @@ async function handleTelegram(req, res) {
     const result = await httpsRequest(tgUrl, { method: 'POST', headers: tgHeaders }, tgBody);
 
     res.writeHead(result.status, {
-      'Content-Type':                'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+      ...corsHeaders(req),
     });
     res.end(result.body);
   } catch (e) {
     console.error('[telegram proxy error]', e.message);
-    res.writeHead(502);
+    res.writeHead(502, corsHeaders(req));
     res.end(JSON.stringify({ error: e.message }));
   }
 }
@@ -147,18 +178,34 @@ async function handleCheckAdmin(req, res) {
   const ok = payload.password === process.env.ADMIN_PASS;
   res.writeHead(ok ? 200 : 401, {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(req),
   });
+  // XAVFSIZLIK: supaUrl va supaKey klientga HECH QACHON yuborilmaydi.
+  // Admin paneli barcha Supabase so'rovlarini /api/supabase proxy orqali yuborishi kerak.
   res.end(JSON.stringify({
     ok,
-    token:   ok ? 'admin-ok-' + Date.now() : null,
-    supaUrl: ok ? CONFIG.SUPABASE_URL : null,
-    supaKey: ok ? CONFIG.SUPABASE_KEY : null,
-    error:   ok ? null : "Parol noto'g'ri",
+    token: ok ? 'admin-ok-' + Date.now() : null,
+    error: ok ? null : "Parol noto'g'ri",
   }));
 }
 
-// ─── Yordamchi: gzip / deflate javob yuborish ─────────────────
+// ─── CORS helper ──────────────────────────────────────────────
+const ALLOWED_ORIGINS = new Set([
+  'https://elink.uz',
+  'https://www.elink.uz',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+]);
+function corsHeaders(req) {
+  const origin = req.headers['origin'] || '';
+  const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://elink.uz';
+  return {
+    'Access-Control-Allow-Origin':  allowedOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
+  };
+}
 const GZIP_TYPES = new Set([
   'text/html; charset=utf-8',
   'application/javascript; charset=utf-8',
@@ -305,11 +352,7 @@ const server = http.createServer(async (req, res) => {
 
   // CORS preflight
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin':  '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    });
+    res.writeHead(204, corsHeaders(req));
     res.end(); return;
   }
 
